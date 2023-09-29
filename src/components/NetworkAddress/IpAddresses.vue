@@ -6,6 +6,10 @@
       :rows="rows"
       class="text-center"
       :loading="rows && rows.length > 0 ? false: true"
+      :pagination="{
+        sortBy: 'ipAddress',
+        rowsPerPage: 10
+      }"
     >
       <template #body-cell-actions="props">
         <q-td :props="props">
@@ -58,7 +62,7 @@ const getIpAddresses = async () => {
     if (props.networkAddress) {
       const response = await axios({
         method: 'get',
-        url: 'http://127.0.0.1:7547/getIpAddressesOfNetworkAddress/' + props.networkAddress
+        url: 'http://127.0.0.1:8080/getIpAddressesOfNetworkAddress/' + props.networkAddress
 
       })
       rows.value = response.data

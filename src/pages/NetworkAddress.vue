@@ -8,6 +8,10 @@
       row-key="name"
       :columns="columns"
       :loading="rows.length > 0 ? false: true"
+      :pagination="{
+
+        rowsPerPage: 10
+      }"
     >
       <template #body-cell-networkAddress="props">
         <q-td
@@ -80,7 +84,7 @@ const modalOpen = ref(false)
 // methods
 
 const getNetworkAddresses = async () => {
-  await axios.get('http://127.0.0.1:7547/getNetworkAddresses')
+  await axios.get('http://127.0.0.1:8080/getNetworkAddresses')
 
     .then((response) => {
       rows.value = response.data
