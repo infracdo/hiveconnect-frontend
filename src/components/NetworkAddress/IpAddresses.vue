@@ -62,7 +62,7 @@ const getIpAddresses = async () => {
     if (props.networkAddress) {
       const response = await axios({
         method: 'get',
-        url: 'http://127.0.0.1:8080/getIpAddressesOfNetworkAddress/' + props.networkAddress
+        url: 'http://localhost:8080/getIpAddressesOfNetworkAddress/' + props.networkAddress
 
       })
       rows.value = response.data

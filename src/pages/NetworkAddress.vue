@@ -84,7 +84,7 @@ const modalOpen = ref(false)
 // methods
 
 const getNetworkAddresses = async () => {
-  await axios.get('http://127.0.0.1:8080/getNetworkAddresses')
+  await axios.get('http://localhost:8080/getNetworkAddresses')
 
     .then((response) => {
       rows.value = response.data
