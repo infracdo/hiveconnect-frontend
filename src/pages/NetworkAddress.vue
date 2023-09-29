@@ -69,7 +69,7 @@
 <script setup lang="ts">
 import { useNetworkStore } from '../stores/network-address/network-address'
 import { QTableProps } from 'quasar'
-import { ref, onMounted, watchEffect } from 'vue'
+import { ref, watchEffect } from 'vue'
 import axios from 'axios'
 import IpAddresses from 'src/components/NetworkAddress/IpAddresses.vue'
 import AddNewNetworkModal from 'src/components/NetworkAddress/AddNewNetworkModal.vue'
