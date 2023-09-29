@@ -6,7 +6,7 @@ const routes: RouteRecordRaw[] = [
     component: () => import('layouts/MainLayout.vue'),
     children: [
       // { path: '', component: () => import('pages/IndexPage.vue') },
-      { path: '/', component: () => import('pages/InetConfig.vue') },
+      { path: '', component: () => import('pages/InetConfig.vue') },
       { path: 'rogue-devices', component: () => import('pages/ACSRougeTable.vue') },
       { path: 'network-address', component: () => import('pages/NetworkAddress.vue') }
     ]

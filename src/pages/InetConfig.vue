@@ -32,7 +32,7 @@ import { QTableProps } from 'quasar'
 import { onMounted, ref } from 'vue'
 import { useSubscriberStore } from 'src/stores/subscriber/subscriber-store'
 import axios from 'axios'
-import SubscriberModal from 'src/components/SubscriberModal.vue'
+import SubscriberModal from 'src/components/InetConfig/SubscriberModal.vue'
 
 const store = useSubscriberStore()
 const dataId = ref<string>()

@@ -27,3 +27,13 @@ export interface IsubsriberType {
   created_at?: string;
   updated_at?: string;
 }
+
+export interface IrowIpAddress{
+  id: number,
+  ipAddress: string,
+  status: string,
+  account_No: string,
+  vlanId: number,
+  assignable: string,
+  notes: string
+}

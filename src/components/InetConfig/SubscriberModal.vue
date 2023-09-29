@@ -128,7 +128,7 @@
 <script setup lang="ts">
 
 import { ref, watchEffect, reactive, defineProps, toRefs } from 'vue'
-import { useSubscriberStore } from '../stores/subscriber/subscriber-store'
+import { useSubscriberStore } from '../../stores/subscriber/subscriber-store'
 import axios from 'axios'
 const store = useSubscriberStore()
 const props = defineProps(['dataId', 'getSubsribers'])
