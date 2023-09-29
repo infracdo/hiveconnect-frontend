@@ -49,7 +49,7 @@
 <script setup lang="ts">
 import { useIpAddressStore } from '../../stores/network-address/ip-address'
 import axios from 'axios'
-import { ref, watchEffect, defineProps, toRefs } from 'vue'
+import { ref, watchEffect, defineProps } from 'vue'
 import { IrowIpAddress } from '../models'
 const store = useIpAddressStore()
 const props = defineProps(['networkAddress', 'networkAddressTable'])
