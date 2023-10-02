@@ -3,16 +3,7 @@ import { QTableProps } from 'quasar'
 export const useNetworkStore = defineStore('network-address', {
   state: () => ({
     networkAddressDetail: {},
-    networkRow: [{
-      id: 1,
-      NetworkAddress: '192.168.2.0',
-      AccountNumber: ' ',
-      VlanID: '104',
-      Site: 'Gingoog',
-      Type: 'Enterprise',
-      Status: 'Unavailable',
-      Notes: 'Office Now, Croconopia'
-    }],
+
     networkColumn: [
       {
         name: 'networkAddress',
