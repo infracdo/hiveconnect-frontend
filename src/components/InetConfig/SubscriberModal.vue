@@ -81,6 +81,7 @@
             </q-field>
             <q-input
               v-model.trim="ssidNi"
+
               outlined
               class="q-ma-md"
               label="SSID"
@@ -118,7 +119,11 @@
           />
         </q-card-actions>
         <q-banner class="bg-primary text-white">
-          Response: {{ responseMsg.subscriber }}
+          Subscriber Details: {{ responseMsg.subscriber }} <br>
+          SSID/Password Config: {{ responseMsg.configureSsid }} <br>
+          Wan Config: {{ responseMsg.wanConfig }} <br>
+          Bandwidth: {{ responseMsg.setBandwidth }} <br>
+          Playbook: {{ responseMsg.runAnsible }} <br>
         </q-banner>
       </q-card>
     </q-dialog>
@@ -130,6 +135,8 @@
 import { ref, watchEffect, reactive, defineProps, toRefs } from 'vue'
 import { useSubscriberStore } from '../../stores/subscriber/subscriber-store'
 import axios from 'axios'
+
+axios.defaults.timeout = 0
 const store = useSubscriberStore()
 const props = defineProps(['dataId', 'getSubsribers'])
 const { dataId } = toRefs(props)
@@ -164,16 +171,16 @@ watchEffect(() => {
 })
 
 const oltInterfaceOptions = ['0/1:1', '0/1:2', '0/1:3', '0/2:1', '0/2:2', '0/2:3', '0/3:1', '0/3:2', '0/3:3']
-const hostIp = '127.0.0.1:8000'
-const serverIp = 'serverIp'
-
+const hostIp = 'http://127.0.0.1:8000'
+const acsIp = 'http://192.168.250.11:7547'
+const serverIp = 'http://172.91.10.108:8080'
 const onClose = () => {
   store.$state.modalIsOpen = !store.$state.modalIsOpen
 }
 
 const updateDetails = async (id: string) => {
   // this is to update the subscriber/client info
-  await axios.put(`http://${hostIp}/api/subscriber_test/${id}/edit`, {
+  await axios.put(`${hostIp}/api/subscriber_test/${id}/edit`, {
     acc_no: accNo.value,
     subscriber_name: subscriberName.value,
     serial_number: serialNum.value,
@@ -190,11 +197,14 @@ const updateDetails = async (id: string) => {
     responseMsg.subscriber = error
   })
   // this is to configure SSID and Password
+
   await axios
-    .post(`http://${serverIp}/configureSSID`, {
+    .post(`${acsIp}/configureSSID`, {
+
       SN: serialNum.value,
-      NewSSID: ssidNi.value,
+      NewSSID: mode.value === 'Bridged' ? '' : ssidNi.value,
       Password: passwordNi.value
+
     })
     .then((response) => {
       responseMsg.configureSsid = response.data
@@ -202,19 +212,9 @@ const updateDetails = async (id: string) => {
     .catch((error) => {
       responseMsg.configureSsid = error
     })
-    // this is for setting up bandwidth
-  await axios.post('http://' + hostIp + '/api/setBandwidth').then((response) => {
-    if (response.data) {
-      responseMsg.setBandwidth = 'Bandwidth Config Success!'
-    } else {
-      throw new Error('Something went wrong!')
-    }
-  }).catch(err => {
-    responseMsg.setBandwidth = err
-  })
-  // this is for wan configuration
+    // this is for wan configuration
   await axios
-    .post(`http://${serverIp}/wanConfig`, {
+    .post(`${acsIp}/bridgedWanConfig`, {
       SN: serialNum.value
     })
     .then((response) => {
@@ -223,8 +223,18 @@ const updateDetails = async (id: string) => {
     .catch((error) => {
       responseMsg.wanConfig = error
     })
-    // this is for executing api call to run an ansible script
-  await axios.post('https//' + hostIp + '/api/run-ansible').then((response) => {
+    // this is for setting up bandwidth
+  await axios.post(serverIp + '/setBandwidth').then((response) => {
+    if (response.data) {
+      responseMsg.setBandwidth = 'Bandwidth Config Success!'
+    } else {
+      throw new Error('Something went wrong!')
+    }
+  }).catch(err => {
+    responseMsg.setBandwidth = err
+  })
+  // this is for executing api call to run an ansible script
+  await axios.post(serverIp + '/runPlaybook').then((response) => {
     if (response.data) {
       responseMsg.runAnsible = 'Successfull Setup!'
     } else {

@@ -8,8 +8,17 @@ const routes: RouteRecordRaw[] = [
       // { path: '', component: () => import('pages/IndexPage.vue') },
       { path: '', component: () => import('pages/InetConfig.vue') },
       { path: 'rogue-devices', component: () => import('pages/ACSRougeTable.vue') },
-      { path: 'network-address', component: () => import('pages/NetworkAddress.vue') }
+      {
+        path: 'network-address',
+        component: () => import('pages/NetworkAddress.vue')
+      },
+      { path: 'network-address/:ipAddress', component: () => import('../components/NetworkAddress/IpAddresses.vue'), props: true },
+      {
+        path: '/:catchAll(.*)*',
+        component: () => import('pages/ErrorNotFound.vue')
+      }
     ]
+
   },
 
   // Always leave this as last one,

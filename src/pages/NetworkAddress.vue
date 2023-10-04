@@ -1,7 +1,6 @@
 <template>
   <q-page padding>
     <q-table
-      v-show="showNetworkAddressTable"
       title="Network Address"
       :rows="rows"
       :filter="filter"
@@ -17,10 +16,13 @@
         <q-td
           :props="props"
           clickable
-          class="ip-link"
-          @click="currentNetwork(props.row.networkAddress)"
         >
-          {{ props.row.networkAddress }}
+          <router-link
+            class="ip-link"
+            :to="`network-address/${props.row.networkAddress}`"
+          >
+            {{ props.row.networkAddress }}
+          </router-link>
         </q-td>
       </template>
       <template #body-cell-actions="props">
@@ -28,7 +30,6 @@
           :props="props"
           clickable
           icon="edit"
-          @click="currentNetwork(props.row.networkAddress)"
         />
       </template>
 
@@ -53,11 +54,7 @@
         </q-input>
       </template>
     </q-table>
-    <ip-addresses
-      v-show="!showNetworkAddressTable"
-      :network-address="networkAddress"
-      :network-address-table="networkAddressTable"
-    />
+
     <add-new-network-modal
       :is-open="modalOpen"
       @close-modal="openModal"
@@ -67,19 +64,20 @@
 </template>
 
 <script setup lang="ts">
+import { RouterLink } from 'vue-router'
 import { useNetworkStore } from '../stores/network-address/network-address'
 import { QTableProps } from 'quasar'
 import { ref, watchEffect } from 'vue'
 import axios from 'axios'
-import IpAddresses from 'src/components/NetworkAddress/IpAddresses.vue'
+
 import AddNewNetworkModal from 'src/components/NetworkAddress/AddNewNetworkModal.vue'
 // state
 const filter = ref('')
 const store = useNetworkStore()
 const rows = ref([])
-const showNetworkAddressTable = ref(true)
+
 const columns: QTableProps['columns'] = store.$state.networkColumn
-const networkAddress = ref('')
+
 const modalOpen = ref(false)
 // methods
 
@@ -96,14 +94,6 @@ const openModal = () => {
   modalOpen.value = !modalOpen.value
 }
 
-const currentNetwork = (address: string) => {
-  networkAddress.value = address
-  networkAddressTable()
-}
-const networkAddressTable = () => {
-  showNetworkAddressTable.value = !showNetworkAddressTable.value
-}
-
 watchEffect(() => {
   getNetworkAddresses()
 })
@@ -112,6 +102,8 @@ watchEffect(() => {
 <style scoped>
 .ip-link{
   cursor: pointer;
+  text-decoration: none;
+  color: black;
 
 }
 .ip-link:hover {

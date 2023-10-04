@@ -66,12 +66,12 @@ const essentialLinks: EssentialLinkProps[] = [
   {
     title: 'Rogue Devices',
     icon: 'router',
-    link: 'rogue-devices'
+    link: '/rogue-devices'
   },
   {
     title: 'Network Address',
     icon: 'podcasts',
-    link: 'network-address'
+    link: '/network-address'
   }
 
 ]

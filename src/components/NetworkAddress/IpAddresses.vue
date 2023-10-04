@@ -1,5 +1,8 @@
 <template>
-  <q-page class="q-pt-md">
+  <q-page
+    class="q-pt-md"
+    padding
+  >
     <q-table
       :filter="filter"
       :columns="columns"
@@ -26,7 +29,7 @@
         <q-btn
           color="primary"
           label="Back"
-          @click="props.networkAddressTable()"
+          to="/network-address"
         />
         <q-space />
         <q-input
@@ -48,23 +51,31 @@
 
 <script setup lang="ts">
 import { useIpAddressStore } from '../../stores/network-address/ip-address'
+// import { useNetworkStore } from 'src/stores/network-address/network-address'
 import axios from 'axios'
-import { ref, watchEffect, defineProps } from 'vue'
+import { ref, watchEffect, defineProps, onMounted } from 'vue'
 import { IrowIpAddress } from '../models'
-const store = useIpAddressStore()
-const props = defineProps(['networkAddress', 'networkAddressTable'])
-// const { networkAddress } = toRefs(props)
-const columns = store.$state.ipAddressColumn
+import { useRoute } from 'vue-router'
+// import { getIpAddresses } from '../../api/RestAPIs'
+const route = useRoute()
+const storeIp = useIpAddressStore()
+
+const columns = storeIp.$state.ipAddressColumn
+const ipAddress = route.params.ipAddress
 const rows = ref<IrowIpAddress[]>()
 const filter = ref('')
+
+// rows.value = getIpAddresses(ipAddress)
 const getIpAddresses = async () => {
   try {
-    if (props.networkAddress) {
+    if (ipAddress !== '') {
       const response = await axios({
         method: 'get',
-        url: 'http://172.91.10.108:8080/getIpAddressesOfNetworkAddress/' + props.networkAddress
+        url: 'http://172.91.10.108:8080/getIpAddressesOfNetworkAddress/' + ipAddress
 
       })
+      console.log(response.data)
+
       rows.value = response.data
     }
   } catch (err) {
@@ -74,7 +85,9 @@ const getIpAddresses = async () => {
 
 watchEffect(() => {
   getIpAddresses()
+  // rows.value = getIpAddresses(ipAddress)
 })
+
 </script>
 
 <style scoped>
