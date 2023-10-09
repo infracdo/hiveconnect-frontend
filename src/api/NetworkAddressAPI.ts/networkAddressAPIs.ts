@@ -1,10 +1,10 @@
 import axios from 'axios'
 
-const API_BASE_URL = 'http://localhost:8080/'
-const API_BASE_URL_TEST = 'http://172.91.10.108:8080'
+const API_BASE_URL = 'http://localhost:8080'
+// const API_BASE_URL = 'http://172.91.10.108:8080'
 
 const api = axios.create({
-  baseURL: API_BASE_URL_TEST
+  baseURL: API_BASE_URL
 })
 
 export const getIpAddresses = async (ipAddress: string | string[]) => {
