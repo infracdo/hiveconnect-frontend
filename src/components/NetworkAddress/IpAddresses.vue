@@ -51,41 +51,21 @@
 
 <script setup lang="ts">
 import { useIpAddressStore } from '../../stores/network-address/ip-address'
-// import { useNetworkStore } from 'src/stores/network-address/network-address'
-import axios from 'axios'
-import { ref, watchEffect, defineProps, onMounted } from 'vue'
+import { ref, watchEffect } from 'vue'
 import { IrowIpAddress } from '../models'
 import { useRoute } from 'vue-router'
-// import { getIpAddresses } from '../../api/RestAPIs'
+import { getIpAddresses } from 'src/api/NetworkAddressAPI.ts/networkAddressAPIs'
+
 const route = useRoute()
 const storeIp = useIpAddressStore()
 
 const columns = storeIp.$state.ipAddressColumn
 const ipAddress = route.params.ipAddress
-const rows = ref<IrowIpAddress[]>()
+const rows = ref<IrowIpAddress[]>([])
 const filter = ref('')
 
-// rows.value = getIpAddresses(ipAddress)
-const getIpAddresses = async () => {
-  try {
-    if (ipAddress !== '') {
-      const response = await axios({
-        method: 'get',
-        url: 'http://172.91.10.108:8080/getIpAddressesOfNetworkAddress/' + ipAddress
-
-      })
-      console.log(response.data)
-
-      rows.value = response.data
-    }
-  } catch (err) {
-    console.error(err)
-  }
-}
-
-watchEffect(() => {
-  getIpAddresses()
-  // rows.value = getIpAddresses(ipAddress)
+watchEffect(async () => {
+  rows.value = await getIpAddresses(ipAddress)
 })
 
 </script>

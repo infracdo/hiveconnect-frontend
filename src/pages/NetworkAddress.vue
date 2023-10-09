@@ -68,35 +68,24 @@ import { RouterLink } from 'vue-router'
 import { useNetworkStore } from '../stores/network-address/network-address'
 import { QTableProps } from 'quasar'
 import { ref, watchEffect } from 'vue'
-import axios from 'axios'
 
+import { getNetworkAddresses } from 'src/api/NetworkAddressAPI.ts/networkAddressAPIs'
 import AddNewNetworkModal from 'src/components/NetworkAddress/AddNewNetworkModal.vue'
-// state
+
 const filter = ref('')
 const store = useNetworkStore()
 const rows = ref([])
-
 const columns: QTableProps['columns'] = store.$state.networkColumn
-
 const modalOpen = ref(false)
-// methods
 
-const getNetworkAddresses = async () => {
-  await axios.get('http://172.91.10.108:8080/getNetworkAddresses')
-
-    .then((response) => {
-      rows.value = response.data
-    }).catch(err => {
-      console.log(err)
-    })
-}
 const openModal = () => {
   modalOpen.value = !modalOpen.value
 }
 
-watchEffect(() => {
-  getNetworkAddresses()
+watchEffect(async () => {
+  rows.value = await getNetworkAddresses()
 })
+
 </script>
 
 <style scoped>

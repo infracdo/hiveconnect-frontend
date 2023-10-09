@@ -23,33 +23,25 @@ export const useSubscriberStore = defineStore('subsciber', {
 
     },
     {
-      name: 'acc_no',
+      name: 'account_No',
       label: 'Account No.',
-      field: 'acc_no',
+      field: 'account_No',
       align: 'left',
       sortable: true
 
     },
     {
-      name: 'subscriber_name',
-      label: 'Subscriber Name',
-      field: 'subscriber_name',
+      name: 'ip_assigned',
+      label: 'IP Assigned',
+      field: 'ip_assigned',
       align: 'left',
       sortable: true
 
     },
     {
-      name: 'serial_number',
-      label: 'Serial Number',
-      field: 'serial_number',
-      align: 'left',
-      sortable: true
-
-    },
-    {
-      name: 'package_type',
-      label: 'Package Type',
-      field: 'package_type',
+      name: 'onu_serial_no',
+      label: 'ONU Serial Number',
+      field: 'onu_serial_no',
       align: 'left',
       sortable: true
 
@@ -63,38 +55,25 @@ export const useSubscriberStore = defineStore('subsciber', {
 
     },
     {
-      name: 'olt_interface',
-      label: 'OLT Interface',
-      field: 'olt_interface',
+      name: 'onu_mac_address',
+      label: 'ONU Mac Address',
+      field: 'onu_mac_address',
       align: 'left',
       sortable: true
 
     },
     {
-      name: 'mode',
-      label: 'Mode',
-      field: 'mode',
+      name: 'package_type_id',
+      label: 'Package Type ID',
+      field: 'package_type_id',
       align: 'left',
       sortable: true
-
-    },
-    {
-      name: 'ssid',
-      label: 'SSID',
-      field: 'ssid',
-      align: 'left',
-      sortable: true
-
-    },
-    {
-      name: 'password',
-      label: 'Password',
-      field: 'password',
-      align: 'left',
-      sortable: true
-
-    },
-    { name: 'actions', label: 'Actions', field: '', align: 'left' }] as QTableProps['columns']
+    }] as QTableProps['columns']
   })
-
 })
+// {
+//   name: 'actions',
+//   label: 'Actions',
+//   field: '',
+//   align: 'left'
+// }

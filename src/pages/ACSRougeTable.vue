@@ -25,7 +25,7 @@ const store = useDevicesStore()
 const tableRow = ref<IdeviceType[]>([])
 const columns: QTableProps['columns'] = store.$state.devicesColumn
 const getDevices = async () => {
-  await axios.get('http://192.168.250.11:7547/getdevice').then((response) => {
+  await axios.get('http://172.91.0.136:7547/getdevice').then((response) => {
     if (response) {
       tableRow.value = response.data
     } else {
