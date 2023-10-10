@@ -105,10 +105,10 @@ const addingOfClient = async () => {
     NewClient.onuMacAddress = ''
     NewClient.oltIp = ''
     NewClient.ipAssign = ''
+    await getClients()
   } catch (error) {
     responseMsg.value = 'Unsuccessful client add: ' + error
   }
-  getClients()
 }
 
 const assignIp = async () => {
