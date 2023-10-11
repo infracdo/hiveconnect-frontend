@@ -1,43 +1,31 @@
 <template>
-  <q-page
-    padding
-    class="items-center justify-evenly"
-  >
+  <q-page padding class="items-center justify-evenly">
     <q-table
       :rows="tableRow"
-      :title="`Rogue ${tableRow.length < 2 ? 'Device': 'Devices'}`"
+      :title="`Rogue ${tableRow.length < 2 ? 'Device' : 'Devices'}`"
       :columns="columns"
       row-key="id"
-      :loading="tableRow.length > 0 ? false: true"
+      :dense="$q.screen.lt.md"
     />
   </q-page>
 </template>
 
 <script setup lang="ts">
-import { QTableProps } from 'quasar'
+import { QTableProps } from 'quasar';
 // import axios from 'src/boot/axios'
-import { IdeviceType } from '../components/models'
-import axios from 'axios'
-import { ref, onMounted } from 'vue'
-import { useDevicesStore } from 'src/stores/rogue-device/rogue-devices'
+import { IdeviceType } from '../components/models';
 
-const store = useDevicesStore()
-const tableRow = ref<IdeviceType[]>([])
-const columns: QTableProps['columns'] = store.$state.devicesColumn
-const getDevices = async () => {
-  await axios.get('http://172.91.0.136:7547/getdevice').then((response) => {
-    if (response) {
-      tableRow.value = response.data
-    } else {
-      throw new Error('Could not retrieve data!')
-    }
-  })
-}
-onMounted(() => {
-  getDevices()
-})
+import { ref, onMounted } from 'vue';
+import { useDevicesStore } from 'src/stores/rogue-device/rogue-devices';
+import { getDevices } from '../api/AcsApi/rougeDevicesApi';
+const store = useDevicesStore();
+const tableRow = ref<IdeviceType[]>([]);
+const columns: QTableProps['columns'] = store.$state.devicesColumn;
+
+onMounted(async () => {
+  tableRow.value = await getDevices();
+  getDevices();
+});
 </script>
 
-<style scoped>
-
-</style>
+<style scoped></style>

@@ -11,23 +11,13 @@
           @click="toggleLeftDrawer"
         />
 
-        <q-toolbar-title class="text-center">
-          INET Quasar
-        </q-toolbar-title>
+        <q-toolbar-title class="text-center"> INET Quasar </q-toolbar-title>
       </q-toolbar>
     </q-header>
 
-    <q-drawer
-      v-model="leftDrawerOpen"
-      show-if-above
-      bordered
-    >
+    <q-drawer v-model="leftDrawerOpen" show-if-above bordered>
       <q-list>
-        <q-item-label
-          header
-        >
-          Navgation
-        </q-item-label>
+        <q-item-label header> Navgation </q-item-label>
 
         <EssentialLink
           v-for="link in essentialLinks"
@@ -54,31 +44,37 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
-import EssentialLink, { EssentialLinkProps } from 'components/EssentialLink.vue'
+import { ref } from 'vue';
+import EssentialLink, {
+  EssentialLinkProps,
+} from 'components/EssentialLink.vue';
 
 const essentialLinks: EssentialLinkProps[] = [
   {
-    title: 'INET Config',
+    title: 'Provision',
     icon: 'settings',
-    link: '/'
+    link: '/',
   },
   {
     title: 'Rogue Devices',
     icon: 'router',
-    link: '/rogue-devices'
+    link: '/rogue-devices',
   },
   {
     title: 'Network Address',
     icon: 'podcasts',
-    link: '/network-address'
-  }
+    link: '/network-address',
+  },
+  {
+    title: 'Troubleshoot',
+    icon: 'build',
+    link: '/troubleshooting',
+  },
+];
 
-]
+const leftDrawerOpen = ref(false);
 
-const leftDrawerOpen = ref(false)
-
-function toggleLeftDrawer () {
-  leftDrawerOpen.value = !leftDrawerOpen.value
+function toggleLeftDrawer() {
+  leftDrawerOpen.value = !leftDrawerOpen.value;
 }
 </script>

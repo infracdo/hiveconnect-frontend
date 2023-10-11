@@ -6,17 +6,14 @@
       :filter="filter"
       row-key="name"
       :columns="columns"
-      :loading="rows.length > 0 ? false: true"
+      :loading="rows.length > 0 ? false : true"
       :pagination="{
-
-        rowsPerPage: 10
+        rowsPerPage: 10,
       }"
+      :dense="$q.screen.lt.md"
     >
       <template #body-cell-networkAddress="props">
-        <q-td
-          :props="props"
-          clickable
-        >
+        <q-td :props="props" clickable>
           <router-link
             class="ip-link"
             :to="`network-address/${props.row.networkAddress}`"
@@ -26,20 +23,12 @@
         </q-td>
       </template>
       <template #body-cell-actions="props">
-        <q-td
-          :props="props"
-          clickable
-          icon="edit"
-        />
+        <q-td :props="props" clickable icon="edit" />
       </template>
 
-      <template #top>
-        <q-btn
-          color="primary"
-          label="Add New Network"
-          @click="openModal"
-        />
-        <q-space />
+      <template #top-right>
+        <!-- <q-btn color="primary" label="Add New Network" @click="openModal" /> -->
+        <!-- <q-space /> -->
         <q-input
           v-model="filter"
           filled
@@ -55,48 +44,45 @@
       </template>
     </q-table>
 
-    <add-new-network-modal
-      :is-open="modalOpen"
-      @close-modal="openModal"
-    />
+    <add-new-network-modal :is-open="modalOpen" @close-modal="openModal" />
     <q-page />
   </q-page>
 </template>
 
 <script setup lang="ts">
-import { RouterLink } from 'vue-router'
-import { useNetworkStore } from '../stores/network-address/network-address'
-import { QTableProps } from 'quasar'
-import { ref, watchEffect } from 'vue'
+import { RouterLink } from 'vue-router';
+import { useNetworkStore } from '../stores/network-address/network-address';
+import { QTableProps } from 'quasar';
+import { ref, watchEffect } from 'vue';
 
-import { getNetworkAddresses } from 'src/api/NetworkAddressAPI.ts/networkAddressAPIs'
-import AddNewNetworkModal from 'src/components/NetworkAddress/AddNewNetworkModal.vue'
+import { getNetworkAddresses } from 'src/api/NetworkAddressAPI.ts/networkAddressAPIs';
+import AddNewNetworkModal from 'src/components/NetworkAddress/AddNewNetworkModal.vue';
 
-const filter = ref('')
-const store = useNetworkStore()
-const rows = ref([])
-const columns: QTableProps['columns'] = store.$state.networkColumn
-const modalOpen = ref(false)
+const filter = ref('');
+const store = useNetworkStore();
+const rows = ref([]);
+const columns: QTableProps['columns'] = store.$state.networkColumn;
+const modalOpen = ref(false);
 
 const openModal = () => {
-  modalOpen.value = !modalOpen.value
-}
+  modalOpen.value = !modalOpen.value;
+};
 
 watchEffect(async () => {
-  rows.value = await getNetworkAddresses()
-})
-
+  rows.value = await getNetworkAddresses();
+});
 </script>
 
 <style scoped>
-.ip-link{
+.ip-link {
   cursor: pointer;
   text-decoration: none;
   color: black;
-
 }
 .ip-link:hover {
   color: blue;
   text-decoration: underline;
 }
 </style>
+src/api/NetworkAddressAPI/networkAddressAPIs
+src/api/NetworkAddressAPI/networkAddressAPIs

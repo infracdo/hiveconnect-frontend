@@ -3,138 +3,200 @@
     <q-dialog v-model="isOpen">
       <q-card>
         <q-card-section>
-          <div class="text-h6">
-            Add New Client
-          </div>
+          <div class="text-h6">For Provisioning</div>
         </q-card-section>
 
         <q-card-section class="q-pt-none flex-client">
           <q-input
             v-model="NewClient.accountNumber"
-            outlined
+            filled
             label="Account Number"
+            readonly
+          />
+          <q-input
+            v-model="NewClient.clientName"
+            filled
+            label="Client Name"
+            readonly
           />
           <q-input
             v-model="NewClient.ipAssign"
-            outlined
+            filled
             label="IP Assign"
+            readonly
           >
             <template #append>
-              <q-icon
-                name="add"
-                class="cursor-pointer"
-                @click="assignIp"
-              />
+              <q-icon name="add" class="cursor-pointer" @click="assignIp" />
             </template>
           </q-input>
           <q-input
             v-model="NewClient.packageType"
-
-            outlined
+            filled
             label="Package Type"
+            readonly
           />
-
-          <q-input
-            v-model="NewClient.onuSerialNum"
+          <q-select
             outlined
+            v-model="NewClient.serialAndMac.serialNum"
+            :options="
+              serialAndMac.map((item, index) => ({
+                label: item.serial_number,
+                idx: index,
+              }))
+            "
             label="ONU Seriual Number"
           />
           <q-input
-            v-model="NewClient.onuMacAddress"
+            v-model="NewClient.serialAndMac.macAddress"
+            filled
+            label="ONU Mac Address"
+            readonly
+          >
+            <template #append>
+              <q-icon name="add" class="cursor-pointer" @click="assignMac" />
+            </template>
+          </q-input>
+          <q-select
             outlined
-            label="Mac Address"
-          />
-          <q-input
             v-model="NewClient.oltIp"
-            outlined
-            label="OLT IP"
+            :options="optionsOltIp"
+            label="OLT"
           />
           <q-card-actions align="right">
-            <q-btn
-              flat
-              label="OK"
-              color="primary"
-              @click="addingOfClient"
-            />
-            <q-btn
-              flat
-              label="close"
-              color="primary"
-              @click="closeModal"
-            />
+            <q-btn flat label="OK" color="primary" @click="provisionClient" />
+            <q-btn flat label="close" color="primary" @click="kapoyNako" />
           </q-card-actions>
         </q-card-section>
         <q-banner class="bg-primary text-white">
           Response: {{ responseMsg }}
         </q-banner>
-
       </q-card>
     </q-dialog>
   </q-page>
 </template>
 
 <script setup lang="ts">
+import {
+  defineProps,
+  toRefs,
+  reactive,
+  ref,
+  onUpdated,
+  watchEffect,
+  onMounted,
+} from 'vue';
+import {
+  updateClient,
+  getOneAvailableIpAddress,
+  executeProvision,
+} from 'src/api/NetworkAddressAPI.ts/networkAddressAPIs';
+import { IsubsriberType, IserialAndMac } from '../../components/models';
 
-import { defineProps, toRefs, defineEmits, reactive, ref } from 'vue'
-import { addNewClient, getOneAvailableIpAddress, getClients } from 'src/api/NetworkAddressAPI.ts/networkAddressAPIs'
-const props = defineProps({ isOpen: Boolean })
-const { isOpen } = toRefs(props)
-const emit = defineEmits(['closeModal'])
-const responseMsg = ref('')
-const closeModal = () => {
-  emit('closeModal')
-}
+const props = defineProps<{
+  isOpen: boolean;
+  serialAndMac: IserialAndMac[];
+  client: IsubsriberType;
+  closeModal: Function;
+}>();
+const { isOpen } = toRefs(props);
 
+const kapoyNako = () => {
+  props.closeModal();
+};
+const optionsOltIp = [
+  { label: 'Gusa 1', value: '172.16.0.2' },
+  { label: 'Gusa 2', value: '172.16.0.10' },
+];
+
+const responseMsg = ref('');
+let serialAndMacIndex = ref<number>();
 const NewClient = reactive({
+  clientId: 0,
   accountNumber: '',
   packageType: '',
-  onuSerialNum: '',
-  onuMacAddress: '',
-  oltIp: '',
-  ipAssign: ''
+  serialAndMac: {
+    serialNum: {
+      label: '',
+      idx: 0,
+    },
+    macAddress: '',
+  },
+  oltIp: {},
+  ipAssign: '',
+  clientName: '',
+});
 
-})
+watchEffect(() => {
+  NewClient.clientId = props.client?.id;
+  NewClient.accountNumber = props.client?.account_No;
+  NewClient.clientName = props.client?.client_name;
+  NewClient.ipAssign = props.client?.ip_assigned;
+  NewClient.oltIp = props.client?.olt_ip;
+  NewClient.packageType = props.client?.package_type_id;
+});
 
-const addingOfClient = async () => {
+const provisionClient = async () => {
+  console.log(NewClient);
+
   try {
-    const response = await addNewClient(NewClient.accountNumber, NewClient.oltIp, NewClient.onuSerialNum, NewClient.packageType, NewClient.onuMacAddress, NewClient.ipAssign)
-    responseMsg.value = response.data
-    NewClient.accountNumber = ''
-    NewClient.packageType = ''
-    NewClient.onuSerialNum = ''
-    NewClient.onuMacAddress = ''
-    NewClient.oltIp = ''
-    NewClient.ipAssign = ''
-    await getClients()
+    const response = await updateClient(
+      NewClient.clientId,
+      NewClient.ipAssign,
+      NewClient.serialAndMac.serialNum.label,
+      NewClient.oltIp.value,
+      NewClient.serialAndMac.macAddress
+    );
+    if (response) {
+      responseMsg.value = 'Successfull Provision!';
+    }
   } catch (error) {
-    responseMsg.value = 'Unsuccessful client add: ' + error
+    responseMsg.value = 'Unsuccessful client Update: ' + error;
   }
-}
+
+  try {
+    const response = await executeProvision(
+      NewClient.accountNumber,
+      NewClient.clientName,
+      NewClient.serialAndMac.serialNum.label,
+      NewClient.serialAndMac.macAddress,
+      NewClient.ipAssign,
+      NewClient.oltIp.value,
+      NewClient.packageType
+    );
+    responseMsg.value = response;
+  } catch (error) {
+    throw new Error('Provoision Not complete');
+  }
+};
 
 const assignIp = async () => {
-  const [IpNetwork] = await getOneAvailableIpAddress()
-  const { ipAddress } = IpNetwork
-  NewClient.ipAssign = ipAddress
-}
+  const [IpNetwork] = await getOneAvailableIpAddress();
+  const { ipAddress } = IpNetwork;
+  NewClient.ipAssign = ipAddress;
+};
+
+const assignMac = async () => {
+  NewClient.serialAndMac.macAddress =
+    props.serialAndMac[NewClient.serialAndMac.serialNum.idx].mac_address;
+};
 </script>
 
 <style scoped>
 .flex-client {
   min-width: 350px;
-
 }
 
-@media screen and (min-width: 660px){
+@media screen and (min-width: 660px) {
   .flex-client {
-  width: 100%;
-  max-width: 350px;
-  display: flex;
-  flex-direction: column;
-  gap: 1em;
-}
-.q-banner{
-  width: 100%;
-  max-width: 350px;
-}
+    width: 100%;
+    max-width: 350px;
+    display: flex;
+    flex-direction: column;
+    gap: 1em;
+  }
+  .q-banner {
+    width: 100%;
+    max-width: 350px;
+  }
 }
 </style>
