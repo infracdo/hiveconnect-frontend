@@ -6,6 +6,7 @@
         :options="deviceNames"
         label="Select Subscriber"
         filled
+        class="select-subscriber"
       />
       <q-btn
         icon="autorenew"
@@ -58,6 +59,9 @@ const ayy = async () => {
 .grafana-panel {
   aspect-ratio: 16 / 7;
   max-width: 750px;
+}
+.select-subscriber {
+  min-width: 200px;
 }
 @media screen and (min-width: 660px) {
 }
