@@ -45,6 +45,7 @@
               }))
             "
             label="ONU Seriual Number"
+            @update:model-value="assignMac"
           />
           <q-input
             v-model="NewClient.serialAndMac.macAddress"
@@ -52,9 +53,6 @@
             label="ONU Mac Address"
             readonly
           >
-            <template #append>
-              <q-icon name="add" class="cursor-pointer" @click="assignMac" />
-            </template>
           </q-input>
           <q-select
             outlined
@@ -86,6 +84,7 @@ import {
   watchEffect,
   onMounted,
   onUpdated,
+  watch,
 } from 'vue';
 import {
   updateClient,
@@ -101,7 +100,7 @@ const props = defineProps<{
   closeModal: Function;
 }>();
 const { isOpen } = toRefs(props);
-
+const onChange = ref('');
 const kapoyNako = () => {
   props.closeModal();
 };
@@ -111,7 +110,7 @@ const optionsOltIp = [
 ];
 
 const responseMsg = ref('');
-let serialAndMacIndex = ref<number>();
+
 const NewClient = reactive({
   clientId: 0,
   accountNumber: '',
@@ -138,8 +137,6 @@ watchEffect(() => {
   NewClient.ipAssign = props.client?.ipAssigned;
   NewClient.oltIp = props.client?.oltIp;
   NewClient.packageType = props.client?.packageTypeId;
-  // NewClient.serialAndMac.serialNum.label = props.client?.onuSerialNumber;
-  // NewClient.serialAndMac.macAddress = props.client?.onuMacAddress;
 });
 
 const provisionClient = async () => {
@@ -182,7 +179,7 @@ const assignIp = async () => {
   NewClient.ipAssign = ipAddress;
 };
 
-const assignMac = async () => {
+const assignMac = () => {
   NewClient.serialAndMac.macAddress =
     props.serialAndMac[NewClient.serialAndMac.serialNum.idx].mac_address;
 };
