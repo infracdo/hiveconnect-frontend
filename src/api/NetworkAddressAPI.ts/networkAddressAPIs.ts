@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { IupdateClient, IexecuteProvision, IaddNewClient } from './types';
-// const API_BASE_URL = 'http://localhost:8080';
-const API_BASE_URL = 'http://172.91.10.108:8080';
+const API_BASE_URL = 'http://localhost:8080';
+// const API_BASE_URL = 'http://172.91.10.108:8080';
 
 const api = axios.create({
   baseURL: API_BASE_URL,
