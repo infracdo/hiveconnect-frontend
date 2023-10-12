@@ -1,54 +1,45 @@
-import { defineStore } from 'pinia'
-import { QTableProps } from 'quasar'
+import { defineStore } from 'pinia';
+import { QTableProps } from 'quasar';
 export const useIpAddressStore = defineStore('ip-address', {
   state: () => ({
-
     ipAddressDetail: {},
-    ipAddressRow: [{
-
-    }],
+    ipAddressRow: [{}],
     ipAddressColumn: [
       {
         name: 'ipAddress',
         label: 'Ip Address',
         field: 'ipAddress',
         align: 'left',
-        sortable: true
-
+        sortable: true,
       },
       {
-        name: 'account_No',
+        name: 'accountNumber',
         label: 'Account Number',
-        field: 'AccountNumber',
+        field: 'accountNumber',
         align: 'left',
-        sortable: true
-
+        sortable: true,
       },
       {
         name: 'status',
         label: 'Status',
         field: 'status',
         align: 'left',
-        sortable: true
-
+        sortable: true,
       },
       {
         name: 'notes',
         label: 'Notes',
         field: 'notes',
         align: 'left',
-        sortable: true
-
+        sortable: true,
       },
       {
         name: 'actions',
         label: 'Actions',
         field: 'actions',
         align: 'left',
-        sortable: true
-
-      }
-
-    ] as QTableProps['columns']
-  })
-})
+        sortable: true,
+      },
+    ] as QTableProps['columns'],
+  }),
+});
