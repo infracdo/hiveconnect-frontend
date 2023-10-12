@@ -1,6 +1,6 @@
 <template>
   <q-page>
-    <q-dialog v-model="isOpen">
+    <q-dialog v-model="isOpen" persistent>
       <q-card>
         <q-card-section>
           <div class="text-h6">For Provisioning</div>
@@ -61,6 +61,8 @@
             v-model="NewClient.oltIp"
             :options="optionsOltIp"
             label="OLT"
+            emit-value
+            map-options
           />
           <q-card-actions align="right">
             <q-btn flat label="OK" color="primary" @click="provisionClient" />
@@ -81,9 +83,9 @@ import {
   toRefs,
   reactive,
   ref,
-  onUpdated,
   watchEffect,
   onMounted,
+  onUpdated,
 } from 'vue';
 import {
   updateClient,
@@ -121,18 +123,23 @@ const NewClient = reactive({
     },
     macAddress: '',
   },
-  oltIp: {},
+  oltIp: '',
   ipAssign: '',
   clientName: '',
 });
-
+onUpdated(() => {
+  NewClient.serialAndMac.serialNum.label = props.client?.onuSerialNumber;
+  NewClient.serialAndMac.macAddress = props.client?.onuMacAddress;
+});
 watchEffect(() => {
   NewClient.clientId = props.client?.id;
-  NewClient.accountNumber = props.client?.account_No;
-  NewClient.clientName = props.client?.client_name;
-  NewClient.ipAssign = props.client?.ip_assigned;
-  NewClient.oltIp = props.client?.olt_ip;
-  NewClient.packageType = props.client?.package_type_id;
+  NewClient.accountNumber = props.client?.accountNumber;
+  NewClient.clientName = props.client?.clientName;
+  NewClient.ipAssign = props.client?.ipAssigned;
+  NewClient.oltIp = props.client?.oltIp;
+  NewClient.packageType = props.client?.packageTypeId;
+  // NewClient.serialAndMac.serialNum.label = props.client?.onuSerialNumber;
+  // NewClient.serialAndMac.macAddress = props.client?.onuMacAddress;
 });
 
 const provisionClient = async () => {
@@ -143,11 +150,11 @@ const provisionClient = async () => {
       NewClient.clientId,
       NewClient.ipAssign,
       NewClient.serialAndMac.serialNum.label,
-      NewClient.oltIp.value,
+      NewClient.oltIp,
       NewClient.serialAndMac.macAddress
     );
     if (response) {
-      responseMsg.value = 'Successfull Provision!';
+      responseMsg.value = 'Successfull Client Update!';
     }
   } catch (error) {
     responseMsg.value = 'Unsuccessful client Update: ' + error;
@@ -160,7 +167,7 @@ const provisionClient = async () => {
       NewClient.serialAndMac.serialNum.label,
       NewClient.serialAndMac.macAddress,
       NewClient.ipAssign,
-      NewClient.oltIp.value,
+      NewClient.oltIp,
       NewClient.packageType
     );
     responseMsg.value = response;
@@ -183,20 +190,21 @@ const assignMac = async () => {
 
 <style scoped>
 .flex-client {
-  min-width: 350px;
+  /* min-width: 350px; */
+  /* width: 100%; */
+
+  gap: 1em;
 }
 
 @media screen and (min-width: 660px) {
   .flex-client {
     width: 100%;
-    max-width: 350px;
-    display: flex;
-    flex-direction: column;
-    gap: 1em;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
   }
   .q-banner {
     width: 100%;
-    max-width: 350px;
+    max-width: inherit;
   }
 }
 </style>

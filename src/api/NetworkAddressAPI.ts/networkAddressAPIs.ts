@@ -1,5 +1,5 @@
 import axios from 'axios';
-
+import { IupdateClient, IexecuteProvision, IaddNewClient } from './types';
 const API_BASE_URL = 'http://localhost:8080';
 // const API_BASE_URL = 'http://172.91.10.108:8080';
 
@@ -47,6 +47,7 @@ export const getClientById = async (id: number) => {
     throw error;
   }
 };
+
 export const updateClient = async (
   id: number,
   ipAddress: string,
@@ -66,6 +67,7 @@ export const updateClient = async (
     throw new Error('Could not update Client/Subscriber Data!');
   }
 };
+
 export const executeProvision = async (
   accNum: string,
   clientName: string,
@@ -90,6 +92,7 @@ export const executeProvision = async (
     throw new Error('Could not proceed execute provision!');
   }
 };
+
 export const addNewClient = async (
   accNum: string,
   packageType: string,

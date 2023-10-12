@@ -16,13 +16,13 @@ export interface IdeviceType {
 
 export interface IsubsriberType {
   id: number;
-  account_No: string;
-  client_name: string;
-  ip_assigned: string;
-  onu_serial_no: string;
-  olt_ip: string;
-  onu_mac_address: string;
-  package_type_id: string;
+  accountNumber: string;
+  clientName: string;
+  ipAssigned: string;
+  onuSerialNumber: string;
+  oltIp: string;
+  onuMacAddress: string;
+  packageTypeId: string;
   created_at?: string;
   updated_at?: string;
 }
