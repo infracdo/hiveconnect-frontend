@@ -30,6 +30,10 @@
       </q-list>
     </q-drawer>
 
+    <q-page-container>
+      <router-view />
+    </q-page-container>
+
     <q-footer>
       <q-tabs indicator-color="white" active-color="white">
         <q-route-tab
@@ -39,9 +43,6 @@
           :to="link.link"
         /> </q-tabs
     ></q-footer>
-    <q-page-container>
-      <router-view />
-    </q-page-container>
   </q-layout>
 </template>
 

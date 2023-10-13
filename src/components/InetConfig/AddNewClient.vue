@@ -133,35 +133,35 @@ watchEffect(() => {
 const provisionClient = async () => {
   console.log(NewClient);
 
-  // try {
-  //   const response = await updateClient(
-  //     NewClient.clientId,
-  //     NewClient.ipAssign,
-  //     NewClient.serialAndMac.serialNum.label,
-  //     NewClient.oltIp,
-  //     NewClient.serialAndMac.macAddress
-  //   );
-  //   if (response) {
-  //     responseMsg.value = 'Successfull Client Update!';
-  //   }
-  // } catch (error) {
-  //   responseMsg.value = 'Unsuccessful client Update: ' + error;
-  // }
+  try {
+    const response = await updateClient(
+      NewClient.clientId,
+      NewClient.ipAssign,
+      NewClient.serialAndMac.serialNum.label,
+      NewClient.oltIp,
+      NewClient.serialAndMac.macAddress
+    );
+    if (response) {
+      responseMsg.value = 'Successfull Client Update!';
+    }
+  } catch (error) {
+    responseMsg.value = 'Unsuccessful client Update: ' + error;
+  }
 
-  // try {
-  //   const response = await executeProvision(
-  //     NewClient.accountNumber,
-  //     NewClient.clientName,
-  //     NewClient.serialAndMac.serialNum.label,
-  //     NewClient.serialAndMac.macAddress,
-  //     NewClient.ipAssign,
-  //     NewClient.oltIp,
-  //     NewClient.packageType
-  //   );
-  //   responseMsg.value = response;
-  // } catch (error) {
-  //   throw new Error('Provoision Not complete');
-  // }
+  try {
+    const response = await executeProvision(
+      NewClient.accountNumber,
+      NewClient.clientName,
+      NewClient.serialAndMac.serialNum.label,
+      NewClient.serialAndMac.macAddress,
+      NewClient.ipAssign,
+      NewClient.oltIp,
+      NewClient.packageType
+    );
+    responseMsg.value = response;
+  } catch (error) {
+    throw new Error('Provoision Not complete');
+  }
 };
 
 const assignIp = async () => {
