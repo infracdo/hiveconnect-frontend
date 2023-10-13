@@ -6,12 +6,15 @@
           flat
           dense
           round
+          class="header-btn"
           icon="menu"
           aria-label="Menu"
           @click="toggleLeftDrawer"
         />
 
-        <q-toolbar-title class="text-center"> INET Quasar </q-toolbar-title>
+        <q-toolbar-title class="text-center">
+          Provisioning Quasar
+        </q-toolbar-title>
       </q-toolbar>
     </q-header>
 
@@ -27,16 +30,15 @@
       </q-list>
     </q-drawer>
 
-    <!-- <q-footer
-      elevated
-      class="bg-grey-8 text-white"
-    >
-      <q-toolbar>
-        <q-toolbar-title>
-          INET Quasar
-        </q-toolbar-title>
-      </q-toolbar>
-    </q-footer> -->
+    <q-footer>
+      <q-tabs indicator-color="white" active-color="white">
+        <q-route-tab
+          v-for="link in essentialLinks"
+          :key="link.title"
+          :icon="link.icon"
+          :to="link.link"
+        /> </q-tabs
+    ></q-footer>
     <q-page-container>
       <router-view />
     </q-page-container>
@@ -78,3 +80,17 @@ function toggleLeftDrawer() {
   leftDrawerOpen.value = !leftDrawerOpen.value;
 }
 </script>
+
+<style scoped>
+.header-btn {
+  display: none;
+}
+@media screen and (min-width: 768px) {
+  .q-footer {
+    display: none;
+  }
+  .header-btn {
+    display: block;
+  }
+}
+</style>

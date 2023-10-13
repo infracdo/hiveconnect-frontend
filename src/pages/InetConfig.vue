@@ -67,7 +67,7 @@ import {
 } from 'src/api/NetworkAddressAPI.ts/networkAddressAPIs';
 import addNewClient from '../components/InetConfig/AddNewClient.vue';
 import { getDevices } from 'src/api/AcsApi/rougeDevicesApi';
-import { IserialAndMac } from 'src/components/models';
+import { IserialAndMac, IsubsriberType } from 'src/components/models';
 
 const store = useSubscriberStore();
 const dataId = ref<string>();
@@ -76,7 +76,16 @@ const filter = ref('');
 const columns: QTableProps['columns'] = store.$state.subscribercolumns;
 const modalOpen = ref(false);
 let serialAndMac: IserialAndMac[] = [];
-const client = ref();
+const client = ref<IsubsriberType>({
+  id: 0,
+  accountNumber: '',
+  clientName: '',
+  ipAssigned: '',
+  onuSerialNumber: '',
+  oltIp: '',
+  onuMacAddress: '',
+  packageTypeId: '',
+});
 const openModal = async (id: number) => {
   modalOpen.value = !modalOpen.value;
   const rogueDevice = await getDevices();
@@ -87,7 +96,6 @@ const openModal = async (id: number) => {
       mac_address: device.mac_address,
     })
   );
-
   client.value = await getClientById(id);
 };
 
