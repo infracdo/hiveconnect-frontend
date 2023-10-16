@@ -126,3 +126,23 @@ export const getOneAvailableIpAddress = async () => {
     throw error;
   }
 };
+
+export const checkPackageBandwidth = async (packageType: string) => {
+  try {
+    const response = await api.get('/checkPackageBandwidth/' + packageType);
+    return response.data;
+  } catch (error) {
+    console.log('Could not retrieve Data!', error);
+    throw error;
+  }
+};
+
+export const checkOltSiteByIp = async (oltIp: string) => {
+  try {
+    const response = await api.get('/checkOltSiteByIp/' + oltIp);
+    return response.data;
+  } catch (error) {
+    console.log('Could not retrieve Data!', error);
+    throw error;
+  }
+};

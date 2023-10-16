@@ -23,6 +23,7 @@ export interface IsubsriberType {
   oltIp: string;
   onuMacAddress: string;
   packageTypeId: string;
+  onuDeviceName: string;
   created_at?: string;
   updated_at?: string;
 }

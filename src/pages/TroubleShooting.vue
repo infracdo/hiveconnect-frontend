@@ -3,10 +3,28 @@
     <div class="select">
       <q-select
         v-model="selectSubscriber"
-        :options="deviceNames"
+        :options="
+          deviceNames.map((item) => ({
+            label: item.onuDeviceName,
+            id: item.id,
+          }))
+        "
         label="Select Subscriber"
         filled
         class="select-subscriber"
+        map-option
+        @update:model-value="
+          getInfoApiPrometheus(selectSubscriber.label, selectSubscriber.id)
+        "
+      />
+      <q-select
+        v-model="selectTime"
+        :options="timeOptions"
+        label="Select Time"
+        filled
+        class="select-subscriber"
+        emit-value
+        map-options
       />
       <q-btn
         icon="autorenew"
@@ -15,56 +33,237 @@
         flat
       />
     </div>
-    <div class="grafana">
-      <div v-for="idx in grafanaFor" class="grafana-center">
-        <iframe
-          loading="lazy"
-          :src="`http://172.91.10.151:3000/d-solo/d94d1e0e-a6e4-45c4-847f-6603e1c31ccb/subscribers-uptime?from=now-15m&to=now&orgId=1&panelId=${idx}&refresh=5s&var-Subscriber=${selectSubscriber}`"
-          class="grafana-panel"
-          frameborder="0"
-        ></iframe>
+    <div class="my-cards">
+      <q-card>
+        <q-banner class="bg-primary text-white"> Client Details </q-banner>
+        <q-card-section>
+          <p>Client Name: {{ clientInfo.clientName }}</p>
+          <p>Account Number: {{ clientInfo.accountNumber }}</p>
+          <p>Package Type: {{ clientInfo.packageTypeId }}</p>
+        </q-card-section>
+      </q-card>
+      <q-card>
+        <q-banner class="bg-primary text-white"> ONU Details </q-banner>
+        <q-card-section>
+          <p class="">
+            ONU Status:
+            <span
+              v-if="selectSubscriber.label !== ''"
+              :class="onuStatus === '1' ? 'up' : 'down'"
+              >{{ onuStatus === '1' ? 'UP' : 'Down' }}</span
+            >
+          </p>
+          <p class="">
+            ONU IP:
+            <span style="">{{ onuInfo.instance }}</span>
+          </p>
+          <p>ONU Serial Number: {{ clientInfo.onuSerialNumber }}</p>
+          <p>ONU Mac Address: {{ clientInfo.onuMacAddress }}</p>
+          <p>
+            upstream: {{ bandwidth.upStream }} downstream:
+            {{ bandwidth.downStream }}
+          </p>
+        </q-card-section></q-card
+      >
+      <q-card>
+        <q-banner class="bg-primary text-white"> OLT Details </q-banner>
+        <q-card-section>
+          <p class="">
+            OLT Status:
+            <span
+              v-if="selectSubscriber.label !== ''"
+              :class="oltStatus === '1' ? 'up' : 'down'"
+              >{{ oltStatus === '1' ? 'UP' : 'Down' }}</span
+            >
+          </p>
+          <p class="">
+            OLT IP:
+            <span style="">{{ clientInfo.oltIp }}</span>
+          </p>
+          <p>OLT Site: {{ clientInfo.oltSite }}</p>
+          <p>OLT Interface: {{ clientInfo.oltSite }}</p>
+          <p>Site Name: {{ onuInfo.site_name }}</p>
+        </q-card-section>
+      </q-card>
+    </div>
+    <div class="grafana-main">
+      <div
+        class="grafana"
+        v-if="selectSubscriber.label !== '' && selectTime !== ''"
+      >
+        <div>
+          <iframe
+            :src="`http://172.91.10.151:3000/d-solo/d94d1e0e-a6e4-45c4-847f-6603e1c31ccb/subscribers-traffic-rate-and-uptime?orgId=1&from=now-${selectTime}&to=now&var-Subscriber=${selectSubscriber.label}&panelId=3`"
+            class="grafana-panel"
+            frameborder="0"
+          ></iframe>
+        </div>
       </div>
     </div>
   </q-page>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, reactive } from 'vue';
 import { getClients } from 'src/api/NetworkAddressAPI.ts/networkAddressAPIs';
-const selectSubscriber = ref('');
-const optionsni = ['mitzi_marie_bw1', 'Mitzi_Mae_bw1'];
-const deviceNames = ref([]);
+import axios from 'axios';
+import {
+  getClientById,
+  checkPackageBandwidth,
+  checkOltSiteByIp,
+} from '../api/NetworkAddressAPI.ts/networkAddressAPIs';
+const selectSubscriber = ref({
+  label: '',
+  id: 0,
+});
+const selectTime = ref('');
 
-const grafanaFor = [10, 2, 8, 3, 6, 5, 4];
+const deviceNames = ref<{ onuDeviceName: string; id: number }[]>([]);
+const onuInfo = ref({
+  __name__: '',
+  device_name: '',
+  device_role: '',
+  instance: '',
+  job: '',
+  site_name: '',
+  site_status: '',
+  site_tenant: '',
+});
+const onuStatus = ref('');
+const oltStatus = ref('');
+const grafanaFor = [3, 6];
+const timeOptions = [
+  { label: 'Last 5 minutes', value: '5m' },
+  { label: 'Last 15 minutes', value: '15m' },
+  { label: 'Last 30 minutes', value: '30m' },
+  { label: 'Last 1 hour', value: '1h' },
+  { label: 'Last 3 hours', value: '3h' },
+  { label: 'Last 6 hours', value: '6h' },
+  { label: 'Last 12 hours', value: '12h' },
+  { label: 'Last 24 hours', value: '24h' },
+  { label: 'Last 2 days', value: '2d' },
+  { label: 'Last 90 days', value: '90d' },
+];
+const clientInfo = reactive({
+  accountNumber: '',
+  clientName: '',
+  ipAssigned: '',
+  onuSerialNumber: '',
+  oltIp: '',
+  onuMacAddress: '',
+  onuDeviceName: '',
+  packageTypeId: '',
+  oltSite: '',
+});
+const bandwidth = reactive({
+  upStream: '',
+  downStream: '',
+});
 
 const ayy = async () => {
   const clients = await getClients();
   deviceNames.value = clients.map(
-    (client: { onuDeviceName: string }) => client.onuDeviceName
+    (client: { onuDeviceName: string; id: number }) => ({
+      onuDeviceName: client.onuDeviceName,
+      id: client.id,
+    })
   );
 };
+
+const getInfoApiPrometheus = async (deviceName: string, id: number) => {
+  const response = await axios.get(
+    `http://172.91.10.129:9090/api/v1/query?query=lo_status{job=%22ip_address%22,site_tenant=%22DCTECH%22,device_name="${deviceName}"}`
+  );
+
+  onuInfo.value = response.data.data.result[0].metric;
+  onuStatus.value = response.data.data.result[0].value[1];
+  const oltInfo = await axios.get(
+    `http://172.91.10.129:9090/api/v1/query?query=lo_status{job=%22ip_address%22,site_tenant=%22DCTECH%22,device_name="${onuInfo.value.site_name}"}`
+  );
+  oltStatus.value = oltInfo.data.data.result[0].value[1];
+
+  const client = await getClientById(id);
+  const {
+    accountNumber,
+    clientName,
+    ipAssigned,
+    oltIp,
+    onuDeviceName,
+    onuMacAddress,
+    onuSerialNumber,
+    packageTypeId,
+  } = client;
+  clientInfo.accountNumber = accountNumber;
+  clientInfo.clientName = clientName;
+  clientInfo.ipAssigned = ipAssigned;
+  clientInfo.oltIp = oltIp;
+  clientInfo.onuDeviceName = onuDeviceName;
+  clientInfo.onuMacAddress = onuMacAddress;
+  clientInfo.onuSerialNumber = onuSerialNumber;
+  clientInfo.packageTypeId = packageTypeId;
+
+  const oltSitePo = await checkOltSiteByIp(oltIp);
+  const { olt_site } = oltSitePo;
+  clientInfo.oltSite = olt_site;
+
+  const responsePo = await checkPackageBandwidth(packageTypeId);
+  const { upstream, downstream } = responsePo;
+  bandwidth.upStream = upstream;
+  bandwidth.downStream = downstream;
+};
+
+onMounted(() => {
+  ayy();
+});
 </script>
 
 <style scoped>
+.grafana-main {
+  max-width: 1500px;
+  margin: 0 auto;
+}
 .grafana {
   display: grid;
-  margin: 0 auto;
-  /* flex-direction: row; */
-  /* grid-template-columns: 1fr; */
-  /* display: flex;
-  justify-content: center; */
-  max-width: 1500px;
+
   gap: 0.5em;
 }
 
 .grafana-panel {
   width: 100%;
-  aspect-ratio: 16 / 6;
+  aspect-ratio: 16 / 7;
   /* max-width: 750px; */
 }
+.grafana-own {
+  width: 200px;
+  aspect-ratio: 16/ 9;
+}
+.grafana-uptime {
+  width: 500px;
+  aspect-ratio: 16/ 3;
+}
+.grafana-netbox {
+  width: 700px;
+}
+.select-grafana {
+  display: flex;
+  justify-content: space-evenly;
+  gap: 1em;
+  max-width: 1500px;
+  margin: 0 auto 15px auto;
+  height: 120px;
+}
+
 .select {
   display: flex;
   max-width: 1500px;
+  margin: 0 auto 15px auto;
+  gap: 1em;
+}
+.my-cards {
+  max-width: 1500px;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5em;
   margin: 0 auto 15px auto;
 }
 .select-subscriber {
@@ -76,11 +275,26 @@ const ayy = async () => {
   background-color: red;
   border: 1px solid black;
 }
+.up {
+  color: green;
+}
+.down {
+  color: red;
+}
 @media screen and (min-width: 660px) {
   .grafana {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr;
     gap: 1.5em;
+    max-width: 700px;
+  }
+  .my-cards {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+@media screen and (min-width: 1200px) {
+  .my-cards {
+    grid-template-columns: 1fr 1fr 1fr;
   }
 }
 </style>

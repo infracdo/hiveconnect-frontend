@@ -83,6 +83,7 @@ const client = ref<IsubsriberType>({
   ipAssigned: '',
   onuSerialNumber: '',
   oltIp: '',
+  onuDeviceName: '',
   onuMacAddress: '',
   packageTypeId: '',
 });
