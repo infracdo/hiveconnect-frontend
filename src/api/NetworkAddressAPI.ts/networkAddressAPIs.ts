@@ -146,3 +146,8 @@ export const checkOltSiteByIp = async (oltIp: string) => {
     throw error;
   }
 };
+
+export const checkOltInterface = async (deviceName: string) => {
+  const response = await api.get('/checkOltInterface/' + deviceName);
+  return response.data;
+};

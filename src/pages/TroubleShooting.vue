@@ -33,7 +33,7 @@
         flat
       />
     </div>
-    <div class="my-cards">
+    <div class="my-cards" v-if="doneApiCalls">
       <q-card>
         <q-banner class="bg-primary text-white"> Client Details </q-banner>
         <q-card-section>
@@ -81,16 +81,12 @@
             <span style="">{{ clientInfo.oltIp }}</span>
           </p>
           <p>OLT Site: {{ clientInfo.oltSite }}</p>
-          <p>OLT Interface: {{ clientInfo.oltSite }}</p>
-          <p>Site Name: {{ onuInfo.site_name }}</p>
+          <p>OLT Interface: {{ clientInfo.oltInterface }}</p>
         </q-card-section>
       </q-card>
     </div>
     <div class="grafana-main">
-      <div
-        class="grafana"
-        v-if="selectSubscriber.label !== '' && selectTime !== ''"
-      >
+      <div class="grafana" v-if="doneApiCalls && selectTime !== ''">
         <div>
           <iframe
             :src="`http://172.91.10.151:3000/d-solo/d94d1e0e-a6e4-45c4-847f-6603e1c31ccb/subscribers-traffic-rate-and-uptime?orgId=1&from=now-${selectTime}&to=now&var-Subscriber=${selectSubscriber.label}&panelId=3`"
@@ -106,16 +102,20 @@
 <script setup lang="ts">
 import { ref, onMounted, reactive } from 'vue';
 import { getClients } from 'src/api/NetworkAddressAPI.ts/networkAddressAPIs';
+
 import axios from 'axios';
 import {
   getClientById,
   checkPackageBandwidth,
   checkOltSiteByIp,
+  checkOltInterface,
 } from '../api/NetworkAddressAPI.ts/networkAddressAPIs';
 const selectSubscriber = ref({
   label: '',
   id: 0,
 });
+
+const doneApiCalls = ref(false);
 const selectTime = ref('');
 
 const deviceNames = ref<{ onuDeviceName: string; id: number }[]>([]);
@@ -131,7 +131,7 @@ const onuInfo = ref({
 });
 const onuStatus = ref('');
 const oltStatus = ref('');
-const grafanaFor = [3, 6];
+
 const timeOptions = [
   { label: 'Last 5 minutes', value: '5m' },
   { label: 'Last 15 minutes', value: '15m' },
@@ -154,6 +154,7 @@ const clientInfo = reactive({
   onuDeviceName: '',
   packageTypeId: '',
   oltSite: '',
+  oltInterface: '',
 });
 const bandwidth = reactive({
   upStream: '',
@@ -210,8 +211,23 @@ const getInfoApiPrometheus = async (deviceName: string, id: number) => {
   const { upstream, downstream } = responsePo;
   bandwidth.upStream = upstream;
   bandwidth.downStream = downstream;
+
+  const oltInterfaceResponse = await checkOltInterface(deviceName);
+  clientInfo.oltInterface = oltInterfaceResponse;
+  doneApiCalls.value = true;
 };
 
+// function trigger() {
+//   const barRef = bar.value;
+//   barRef.start();
+
+//   setTimeout(() => {
+//     const barRef = bar.value;
+//     if (barRef) {
+//       barRef.stop();
+//     }
+//   }, Math.random() * 3000 + 1000);
+// }
 onMounted(() => {
   ayy();
 });
@@ -254,7 +270,7 @@ onMounted(() => {
 }
 
 .select {
-  display: flex;
+  /* display: flex; */
   max-width: 1500px;
   margin: 0 auto 15px auto;
   gap: 1em;
@@ -290,6 +306,9 @@ onMounted(() => {
   }
   .my-cards {
     grid-template-columns: 1fr 1fr;
+  }
+  .select {
+    display: flex;
   }
 }
 @media screen and (min-width: 1200px) {
