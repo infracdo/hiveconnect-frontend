@@ -244,34 +244,13 @@ onMounted(() => {
   margin: 0 auto;
 }
 .grafana {
-  display: grid;
-
-  gap: 0.5em;
+  width: 100%;
 }
 
 .grafana-panel {
   width: 100%;
   aspect-ratio: 16 / 7;
-  /* max-width: 750px; */
-}
-.grafana-own {
-  width: 200px;
-  aspect-ratio: 16/ 9;
-}
-.grafana-uptime {
-  width: 500px;
-  aspect-ratio: 16/ 3;
-}
-.grafana-netbox {
-  width: 700px;
-}
-.select-grafana {
-  display: flex;
-  justify-content: space-evenly;
-  gap: 1em;
   max-width: 1500px;
-  margin: 0 auto 15px auto;
-  height: 120px;
 }
 
 .select {
@@ -290,12 +269,7 @@ onMounted(() => {
 .select-subscriber {
   min-width: 200px;
 }
-.sample {
-  width: 200px;
-  height: 200px;
-  background-color: red;
-  border: 1px solid black;
-}
+
 .up {
   color: green;
 }
@@ -306,8 +280,12 @@ onMounted(() => {
   .grafana {
     display: grid;
     grid-template-columns: 1fr;
+
     gap: 1.5em;
-    max-width: 700px;
+  }
+  .grafana-panel {
+    aspect-ratio: 16 / 7;
+    max-height: 450px;
   }
   .my-cards {
     grid-template-columns: 1fr 1fr;
@@ -319,6 +297,9 @@ onMounted(() => {
 @media screen and (min-width: 1200px) {
   .my-cards {
     grid-template-columns: 1fr 1fr 1fr;
+  }
+  .grafana-panel {
+    aspect-ratio: 21 / 6;
   }
 }
 </style>

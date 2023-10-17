@@ -21,6 +21,13 @@
             icon="assignment"
             @click="openModal(props.row.id)"
           />
+          <q-btn
+            dense
+            round
+            flat
+            icon="build"
+            @click="openModal(props.row.id)"
+          />
         </q-td>
       </template>
       <template #top-right>
