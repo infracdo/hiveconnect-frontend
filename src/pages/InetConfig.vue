@@ -26,7 +26,9 @@
             round
             flat
             icon="build"
-            @click="openModal(props.row.id)"
+            @click="
+              openTroubleshootModal(props.row.onuDeviceName, props.row.id)
+            "
           />
         </q-td>
       </template>
@@ -58,6 +60,12 @@
       :client="client"
       :close-modal="closeModal"
     />
+    <troubleshoot-client
+      :confirm="openTroubleShootModal"
+      :close-modal="closeTroubleShootModal"
+      :device-name="deviceName"
+      :clientId="clientId"
+    ></troubleshoot-client>
     <subscriber-modal :data-id="dataId" :get-subsribers="refreshTable" />
   </q-page>
 </template>
@@ -66,7 +74,7 @@
 import { QTableProps } from 'quasar';
 import { ref, watchEffect } from 'vue';
 import { useSubscriberStore } from 'src/stores/subscriber/subscriber-store';
-
+import TroubleshootClient from 'src/components/InetConfig/TroubleshootClient.vue';
 import SubscriberModal from 'src/components/InetConfig/SubscriberModal.vue';
 import {
   getClients,
@@ -75,6 +83,7 @@ import {
 import addNewClient from '../components/InetConfig/AddNewClient.vue';
 import { getDevices } from 'src/api/AcsApi/rougeDevicesApi';
 import { IserialAndMac, IsubsriberType } from 'src/components/models';
+import { on } from 'events';
 
 const store = useSubscriberStore();
 const dataId = ref<string>();
@@ -82,6 +91,9 @@ const rows = ref([]);
 const filter = ref('');
 const columns: QTableProps['columns'] = store.$state.subscribercolumns;
 const modalOpen = ref(false);
+const deviceName = ref('');
+const clientId = ref(0);
+const openTroubleShootModal = ref(false);
 let serialAndMac: IserialAndMac[] = [];
 const client = ref<IsubsriberType>({
   id: 0,
@@ -110,7 +122,15 @@ const openModal = async (id: number) => {
 const closeModal = () => {
   modalOpen.value = !modalOpen.value;
 };
-
+const openTroubleshootModal = (onuDeviceName: string, id: number) => {
+  deviceName.value = onuDeviceName;
+  clientId.value = id;
+  openTroubleShootModal.value = !openTroubleShootModal.value;
+  console.log(deviceName.value, clientId.value);
+};
+const closeTroubleShootModal = () => {
+  openTroubleShootModal.value = !openTroubleShootModal.value;
+};
 const refreshTable = async () => {
   rows.value = [];
   rows.value = await getClients();
