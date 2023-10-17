@@ -1,5 +1,6 @@
 <template>
   <q-page padding>
+    <q-ajax-bar color="secondary" position="bottom"></q-ajax-bar>
     <div class="select">
       <q-select
         v-model="selectSubscriber"
@@ -33,6 +34,14 @@
         flat
       />
     </div>
+    <q-ajax-bar
+      ref="bar"
+      color="info"
+      position="bottom"
+      size="10px"
+      skip-hijack
+    />
+
     <div class="my-cards" v-if="doneApiCalls">
       <q-card>
         <q-banner class="bg-primary text-white"> Client Details </q-banner>
@@ -114,7 +123,10 @@ const selectSubscriber = ref({
   label: '',
   id: 0,
 });
-
+const bar = ref<{
+  start(): void;
+  stop(): void;
+}>();
 const doneApiCalls = ref(false);
 const selectTime = ref('');
 
@@ -172,6 +184,9 @@ const ayy = async () => {
 };
 
 const getInfoApiPrometheus = async (deviceName: string, id: number) => {
+  const barRef = bar.value;
+  barRef?.start();
+
   const response = await axios.get(
     `http://172.91.10.129:9090/api/v1/query?query=lo_status{job=%22ip_address%22,site_tenant=%22DCTECH%22,device_name="${deviceName}"}`
   );
@@ -214,20 +229,10 @@ const getInfoApiPrometheus = async (deviceName: string, id: number) => {
 
   const oltInterfaceResponse = await checkOltInterface(deviceName);
   clientInfo.oltInterface = oltInterfaceResponse;
+  barRef?.stop();
   doneApiCalls.value = true;
 };
 
-// function trigger() {
-//   const barRef = bar.value;
-//   barRef.start();
-
-//   setTimeout(() => {
-//     const barRef = bar.value;
-//     if (barRef) {
-//       barRef.stop();
-//     }
-//   }, Math.random() * 3000 + 1000);
-// }
 onMounted(() => {
   ayy();
 });
