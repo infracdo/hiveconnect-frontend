@@ -29,7 +29,22 @@
             @click="
               openTroubleshootModal(props.row.onuDeviceName, props.row.id)
             "
-          />
+            :disable="
+              props.row.onuDeviceName === null || props.row.onuDeviceName === ''
+            "
+          >
+            <q-tooltip
+              v-if="
+                props.row.onuDeviceName === null ||
+                props.row.onuDeviceName === ''
+              "
+              anchor="center left"
+              self="center right"
+              :offset="[10, 10]"
+            >
+              Device Name Missing!
+            </q-tooltip>
+          </q-btn>
         </q-td>
       </template>
       <template #top-right>
@@ -72,7 +87,7 @@
 
 <script setup lang="ts">
 import { QTableProps } from 'quasar';
-import { ref, watchEffect } from 'vue';
+import { ref, watchEffect, watch } from 'vue';
 import { useSubscriberStore } from 'src/stores/subscriber/subscriber-store';
 import TroubleshootClient from 'src/components/InetConfig/TroubleshootClient.vue';
 import SubscriberModal from 'src/components/InetConfig/SubscriberModal.vue';
@@ -83,8 +98,8 @@ import {
 import addNewClient from '../components/InetConfig/AddNewClient.vue';
 import { getDevices } from 'src/api/AcsApi/rougeDevicesApi';
 import { IserialAndMac, IsubsriberType } from 'src/components/models';
-import { on } from 'events';
 
+const disableTroubleshootBtn = ref(true);
 const store = useSubscriberStore();
 const dataId = ref<string>();
 const rows = ref([]);

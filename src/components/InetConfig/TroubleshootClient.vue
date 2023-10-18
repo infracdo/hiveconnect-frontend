@@ -7,8 +7,13 @@
       size="10px"
       skip-hijack
     />
-    <q-dialog v-model="confirm" persistent>
-      <q-card class="hehe" v-if="doneApiCalls">
+    <q-dialog
+      v-model="confirm"
+      persistent
+      transition-show="flip-down"
+      transition-hide="flip-up"
+    >
+      <q-card class="dialog-content" v-if="doneApiCalls">
         <div class="provision-info">
           <q-card>
             <q-banner class="bg-primary text-white"> Client Details </q-banner>
@@ -213,7 +218,7 @@ watch(confirm, (newVal) => {
   grid-template-columns: 1fr;
   gap: 1em;
 }
-.hehe {
+.dialog-content {
   max-width: 1200px;
   width: 100%;
   padding: 1em;
