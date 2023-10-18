@@ -160,92 +160,169 @@ const timeOptions = [
 const showNotif = () => {
   $q.notify({
     message: 'Gathering SNMP Data! Please wait for a moment.',
-    color: 'primary',
+    color: 'warning',
+    position: 'top',
   });
 };
+// const getInfoApiPrometheus = async (deviceName: string, id: number) => {
+//   if (deviceName === null || deviceName === '') {
+//     closeModalNow();
+//   }
+//   const barRef = bar.value;
+//   barRef?.start();
+//   try {
+//     const response = await axios.get(
+//       `http://172.91.10.129:9090/api/v1/query?query=lo_status{job=%22ip_address%22,site_tenant=%22DCTECH%22,device_name="${deviceName}"}`
+//     );
+
+//     onuInfo.value = response.data.data.result[0].metric;
+//     onuStatus.value = response.data.data.result[0].value[1];
+//   } catch (err) {
+//     barRef?.stop();
+//     closeModalNow();
+//     showNotif();
+//     return;
+//   }
+//   try {
+//     const oltInfo = await axios.get(
+//       `http://172.91.10.129:9090/api/v1/query?query=lo_status{job=%22ip_address%22,site_tenant=%22DCTECH%22,device_name="${onuInfo.value.site_name}"}`
+//     );
+//     oltStatus.value = oltInfo.data.data.result[0].value[1];
+//   } catch (err) {
+//     barRef?.stop();
+//     closeModalNow();
+//     showNotif();
+//     return;
+//   }
+//   try {
+//     const client = await getClientById(id);
+//     const {
+//       accountNumber,
+//       clientName,
+//       ipAssigned,
+//       oltIp,
+//       onuDeviceName,
+//       onuMacAddress,
+//       onuSerialNumber,
+//       packageTypeId,
+//     } = client;
+//     clientInfo.accountNumber = accountNumber;
+//     clientInfo.clientName = clientName;
+//     clientInfo.ipAssigned = ipAssigned;
+//     clientInfo.oltIp = oltIp;
+//     clientInfo.onuDeviceName = onuDeviceName;
+//     clientInfo.onuMacAddress = onuMacAddress;
+//     clientInfo.onuSerialNumber = onuSerialNumber;
+//     clientInfo.packageTypeId = packageTypeId;
+//     try {
+//       const oltSitePo = await checkOltSiteByIp(oltIp);
+//       const { olt_site } = oltSitePo;
+//       clientInfo.oltSite = olt_site;
+//     } catch (err) {
+//       barRef?.stop();
+//       closeModalNow();
+//       showNotif();
+//       return;
+//     }
+//     try {
+//       const responsePo = await checkPackageBandwidth(packageTypeId);
+//       const { upstream, downstream } = responsePo;
+//       bandwidth.upStream = upstream;
+//       bandwidth.downStream = downstream;
+//     } catch (err) {
+//       barRef?.stop();
+//       closeModalNow();
+//       showNotif();
+//       return;
+//     }
+//   } catch (err) {
+//     barRef?.stop();
+//     closeModalNow();
+//     showNotif();
+//     return;
+//   }
+
+//   const oltInterfaceResponse = await checkOltInterface(deviceName);
+//   clientInfo.oltInterface = oltInterfaceResponse;
+//   barRef?.stop();
+//   doneApiCalls.value = true;
+// };
 const getInfoApiPrometheus = async (deviceName: string, id: number) => {
-  if (deviceName === null || deviceName === '') {
-    closeModalNow();
-  }
-  const barRef = bar.value;
-  barRef?.start();
   try {
-    const response = await axios.get(
+    if (!deviceName) {
+      closeModalAndShowNotif();
+      return;
+    }
+
+    const barRef = bar.value;
+    barRef?.start();
+
+    const onuInfoResponse = await axios.get(
       `http://172.91.10.129:9090/api/v1/query?query=lo_status{job=%22ip_address%22,site_tenant=%22DCTECH%22,device_name="${deviceName}"}`
     );
+    onuInfo.value = onuInfoResponse.data.data.result[0].metric;
+    onuStatus.value = onuInfoResponse.data.data.result[0].value[1];
 
-    onuInfo.value = response.data.data.result[0].metric;
-    onuStatus.value = response.data.data.result[0].value[1];
-  } catch (err) {
-    barRef?.stop();
-    closeModalNow();
-    showNotif();
-    return;
-  }
-  try {
-    const oltInfo = await axios.get(
-      `http://172.91.10.129:9090/api/v1/query?query=lo_status{job=%22ip_address%22,site_tenant=%22DCTECH%22,device_name="${onuInfo.value.site_name}"}`
+    const onuDeviceName = onuInfo.value.site_name;
+    const oltInfoResponse = await axios.get(
+      `http://172.91.10.129:9090/api/v1/query?query=lo_status{job=%22ip_address%22,site_tenant=%22DCTECH%22,device_name="${onuDeviceName}"}`
     );
-    oltStatus.value = oltInfo.data.data.result[0].value[1];
-  } catch (err) {
-    barRef?.stop();
-    closeModalNow();
-    showNotif();
-    return;
-  }
-  try {
-    const client = await getClientById(id);
-    const {
-      accountNumber,
-      clientName,
-      ipAssigned,
-      oltIp,
-      onuDeviceName,
-      onuMacAddress,
-      onuSerialNumber,
-      packageTypeId,
-    } = client;
-    clientInfo.accountNumber = accountNumber;
-    clientInfo.clientName = clientName;
-    clientInfo.ipAssigned = ipAssigned;
-    clientInfo.oltIp = oltIp;
-    clientInfo.onuDeviceName = onuDeviceName;
-    clientInfo.onuMacAddress = onuMacAddress;
-    clientInfo.onuSerialNumber = onuSerialNumber;
-    clientInfo.packageTypeId = packageTypeId;
-    try {
-      const oltSitePo = await checkOltSiteByIp(oltIp);
-      const { olt_site } = oltSitePo;
-      clientInfo.oltSite = olt_site;
-    } catch (err) {
-      barRef?.stop();
-      closeModalNow();
-      showNotif();
-      return;
-    }
-    try {
-      const responsePo = await checkPackageBandwidth(packageTypeId);
-      const { upstream, downstream } = responsePo;
-      bandwidth.upStream = upstream;
-      bandwidth.downStream = downstream;
-    } catch (err) {
-      barRef?.stop();
-      closeModalNow();
-      showNotif();
-      return;
-    }
-  } catch (err) {
-    barRef?.stop();
-    closeModalNow();
-    showNotif();
-    return;
-  }
+    oltStatus.value = oltInfoResponse.data.data.result[0].value[1];
 
-  const oltInterfaceResponse = await checkOltInterface(deviceName);
-  clientInfo.oltInterface = oltInterfaceResponse;
-  barRef?.stop();
-  doneApiCalls.value = true;
+    const client = await getClientById(id);
+
+    if (client) {
+      const {
+        accountNumber,
+        clientName,
+        ipAssigned,
+        oltIp,
+        onuDeviceName,
+        onuMacAddress,
+        onuSerialNumber,
+        packageTypeId,
+      } = client;
+
+      clientInfo.accountNumber = accountNumber;
+      clientInfo.clientName = clientName;
+      clientInfo.ipAssigned = ipAssigned;
+      clientInfo.oltIp = oltIp;
+      clientInfo.onuDeviceName = onuDeviceName;
+      clientInfo.onuMacAddress = onuMacAddress;
+      clientInfo.onuSerialNumber = onuSerialNumber;
+      clientInfo.packageTypeId = packageTypeId;
+
+      try {
+        const oltSitePo = await checkOltSiteByIp(oltIp);
+        clientInfo.oltSite = oltSitePo.olt_site;
+        const responsePo = await checkPackageBandwidth(packageTypeId);
+        const { upstream, downstream } = responsePo;
+        bandwidth.upStream = upstream;
+        bandwidth.downStream = downstream;
+      } catch (err) {
+        throw err;
+      }
+    } else {
+      throw new Error('Error fetching client data');
+    }
+
+    const oltInterfaceResponse = await checkOltInterface(deviceName);
+    clientInfo.oltInterface = oltInterfaceResponse;
+
+    barRef?.stop();
+    doneApiCalls.value = true;
+  } catch (err) {
+    closeModalAndShowNotif();
+  }
 };
+
+const closeModalAndShowNotif = () => {
+  const barRef = bar.value;
+  barRef?.stop();
+  closeModalNow();
+  showNotif();
+};
+
 watch(confirm, (newVal) => {
   if (confirm.value === true) {
     getInfoApiPrometheus(props.deviceName, props.clientId);
