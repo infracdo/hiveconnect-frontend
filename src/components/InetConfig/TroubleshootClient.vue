@@ -201,6 +201,7 @@ const getInfoApiPrometheus = async (deviceName: string, id: number) => {
       clientInfo.oltSite = olt_site;
     } catch (err) {
       barRef?.stop();
+      closeModalNow();
     }
     try {
       const responsePo = await checkPackageBandwidth(packageTypeId);
@@ -212,6 +213,7 @@ const getInfoApiPrometheus = async (deviceName: string, id: number) => {
     }
   } catch (err) {
     barRef?.stop();
+    closeModalNow();
   }
 
   const oltInterfaceResponse = await checkOltInterface(deviceName);
