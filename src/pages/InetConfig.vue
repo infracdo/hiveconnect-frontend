@@ -141,7 +141,6 @@ const openTroubleshootModal = (onuDeviceName: string, id: number) => {
   deviceName.value = onuDeviceName;
   clientId.value = id;
   openTroubleShootModal.value = !openTroubleShootModal.value;
-  console.log(deviceName.value, clientId.value);
 };
 const closeTroubleShootModal = () => {
   openTroubleShootModal.value = !openTroubleShootModal.value;

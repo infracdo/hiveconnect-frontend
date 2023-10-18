@@ -132,7 +132,7 @@ export const checkPackageBandwidth = async (packageType: string) => {
     const response = await api.get('/checkPackageBandwidth/' + packageType);
     return response.data;
   } catch (error) {
-    console.log('Could not retrieve Data!', error);
+    console.log('Could not retrieve Bandwidth Data!', error);
     throw error;
   }
 };
@@ -142,12 +142,17 @@ export const checkOltSiteByIp = async (oltIp: string) => {
     const response = await api.get('/checkOltSiteByIp/' + oltIp);
     return response.data;
   } catch (error) {
-    console.log('Could not retrieve Data!', error);
+    console.log('Could not retrieve OLT SiteBy Ip Data!', error);
     throw error;
   }
 };
 
 export const checkOltInterface = async (deviceName: string) => {
-  const response = await api.get('/checkOltInterface/' + deviceName);
-  return response.data;
+  try {
+    const response = await api.get('/checkOltInterface/' + deviceName);
+    return response.data;
+  } catch (error) {
+    console.log('Could not retrieve Olt Interface Data!', error);
+    throw error;
+  }
 };

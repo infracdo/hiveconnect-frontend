@@ -33,9 +33,7 @@
                   >{{ onuStatus === '1' ? 'UP' : 'Down' }}</span
                 >
               </p>
-              <p>
-                {{ onuInfo.instance }}
-              </p>
+              <p>ONU IP: {{ onuInfo.instance }}</p>
               <p>ONU Serial Number: {{ clientInfo.onuSerialNumber }}</p>
               <p>ONU Mac Address: {{ clientInfo.onuMacAddress }}</p>
               <p>
@@ -159,46 +157,62 @@ const timeOptions = [
 const getInfoApiPrometheus = async (deviceName: string, id: number) => {
   const barRef = bar.value;
   barRef?.start();
+  try {
+    const response = await axios.get(
+      `http://172.91.10.129:9090/api/v1/query?query=lo_status{job=%22ip_address%22,site_tenant=%22DCTECH%22,device_name="${deviceName}"}`
+    );
 
-  const response = await axios.get(
-    `http://172.91.10.129:9090/api/v1/query?query=lo_status{job=%22ip_address%22,site_tenant=%22DCTECH%22,device_name="${deviceName}"}`
-  );
-
-  onuInfo.value = response.data.data.result[0].metric;
-  onuStatus.value = response.data.data.result[0].value[1];
-  const oltInfo = await axios.get(
-    `http://172.91.10.129:9090/api/v1/query?query=lo_status{job=%22ip_address%22,site_tenant=%22DCTECH%22,device_name="${onuInfo.value.site_name}"}`
-  );
-  oltStatus.value = oltInfo.data.data.result[0].value[1];
-
-  const client = await getClientById(id);
-  const {
-    accountNumber,
-    clientName,
-    ipAssigned,
-    oltIp,
-    onuDeviceName,
-    onuMacAddress,
-    onuSerialNumber,
-    packageTypeId,
-  } = client;
-  clientInfo.accountNumber = accountNumber;
-  clientInfo.clientName = clientName;
-  clientInfo.ipAssigned = ipAssigned;
-  clientInfo.oltIp = oltIp;
-  clientInfo.onuDeviceName = onuDeviceName;
-  clientInfo.onuMacAddress = onuMacAddress;
-  clientInfo.onuSerialNumber = onuSerialNumber;
-  clientInfo.packageTypeId = packageTypeId;
-
-  const oltSitePo = await checkOltSiteByIp(oltIp);
-  const { olt_site } = oltSitePo;
-  clientInfo.oltSite = olt_site;
-
-  const responsePo = await checkPackageBandwidth(packageTypeId);
-  const { upstream, downstream } = responsePo;
-  bandwidth.upStream = upstream;
-  bandwidth.downStream = downstream;
+    onuInfo.value = response.data.data.result[0].metric;
+    onuStatus.value = response.data.data.result[0].value[1];
+  } catch (err) {
+    barRef?.stop();
+  }
+  try {
+    const oltInfo = await axios.get(
+      `http://172.91.10.129:9090/api/v1/query?query=lo_status{job=%22ip_address%22,site_tenant=%22DCTECH%22,device_name="${onuInfo.value.site_name}"}`
+    );
+    oltStatus.value = oltInfo.data.data.result[0].value[1];
+  } catch (err) {
+    barRef?.stop();
+  }
+  try {
+    const client = await getClientById(id);
+    const {
+      accountNumber,
+      clientName,
+      ipAssigned,
+      oltIp,
+      onuDeviceName,
+      onuMacAddress,
+      onuSerialNumber,
+      packageTypeId,
+    } = client;
+    clientInfo.accountNumber = accountNumber;
+    clientInfo.clientName = clientName;
+    clientInfo.ipAssigned = ipAssigned;
+    clientInfo.oltIp = oltIp;
+    clientInfo.onuDeviceName = onuDeviceName;
+    clientInfo.onuMacAddress = onuMacAddress;
+    clientInfo.onuSerialNumber = onuSerialNumber;
+    clientInfo.packageTypeId = packageTypeId;
+    try {
+      const oltSitePo = await checkOltSiteByIp(oltIp);
+      const { olt_site } = oltSitePo;
+      clientInfo.oltSite = olt_site;
+    } catch (err) {
+      barRef?.stop();
+    }
+    try {
+      const responsePo = await checkPackageBandwidth(packageTypeId);
+      const { upstream, downstream } = responsePo;
+      bandwidth.upStream = upstream;
+      bandwidth.downStream = downstream;
+    } catch (err) {
+      barRef?.stop();
+    }
+  } catch (err) {
+    barRef?.stop();
+  }
 
   const oltInterfaceResponse = await checkOltInterface(deviceName);
   clientInfo.oltInterface = oltInterfaceResponse;
