@@ -97,6 +97,8 @@ import {
   checkOltSiteByIp,
   checkPackageBandwidth,
 } from 'src/api/NetworkAddressAPI.ts/networkAddressAPIs';
+import { useQuasar } from 'quasar';
+const $q = useQuasar();
 const props = defineProps<{
   confirm: boolean;
   closeModal: Function;
@@ -154,6 +156,13 @@ const timeOptions = [
   { label: 'Last 2 days', value: '2d' },
   { label: 'Last 90 days', value: '90d' },
 ];
+
+const showNotif = () => {
+  $q.notify({
+    message: 'Gathering SNMP Data! Please wait for a moment.',
+    color: 'primary',
+  });
+};
 const getInfoApiPrometheus = async (deviceName: string, id: number) => {
   if (deviceName === null || deviceName === '') {
     closeModalNow();
@@ -169,6 +178,8 @@ const getInfoApiPrometheus = async (deviceName: string, id: number) => {
     onuStatus.value = response.data.data.result[0].value[1];
   } catch (err) {
     barRef?.stop();
+    closeModalNow();
+    showNotif();
     return;
   }
   try {
@@ -178,6 +189,8 @@ const getInfoApiPrometheus = async (deviceName: string, id: number) => {
     oltStatus.value = oltInfo.data.data.result[0].value[1];
   } catch (err) {
     barRef?.stop();
+    closeModalNow();
+    showNotif();
     return;
   }
   try {
@@ -207,6 +220,7 @@ const getInfoApiPrometheus = async (deviceName: string, id: number) => {
     } catch (err) {
       barRef?.stop();
       closeModalNow();
+      showNotif();
       return;
     }
     try {
@@ -217,11 +231,13 @@ const getInfoApiPrometheus = async (deviceName: string, id: number) => {
     } catch (err) {
       barRef?.stop();
       closeModalNow();
+      showNotif();
       return;
     }
   } catch (err) {
     barRef?.stop();
     closeModalNow();
+    showNotif();
     return;
   }
 
