@@ -155,6 +155,9 @@ const timeOptions = [
   { label: 'Last 90 days', value: '90d' },
 ];
 const getInfoApiPrometheus = async (deviceName: string, id: number) => {
+  if (deviceName === null || deviceName === '') {
+    closeModalNow();
+  }
   const barRef = bar.value;
   barRef?.start();
   try {
@@ -166,6 +169,7 @@ const getInfoApiPrometheus = async (deviceName: string, id: number) => {
     onuStatus.value = response.data.data.result[0].value[1];
   } catch (err) {
     barRef?.stop();
+    return;
   }
   try {
     const oltInfo = await axios.get(
@@ -174,6 +178,7 @@ const getInfoApiPrometheus = async (deviceName: string, id: number) => {
     oltStatus.value = oltInfo.data.data.result[0].value[1];
   } catch (err) {
     barRef?.stop();
+    return;
   }
   try {
     const client = await getClientById(id);
@@ -202,6 +207,7 @@ const getInfoApiPrometheus = async (deviceName: string, id: number) => {
     } catch (err) {
       barRef?.stop();
       closeModalNow();
+      return;
     }
     try {
       const responsePo = await checkPackageBandwidth(packageTypeId);
@@ -210,10 +216,13 @@ const getInfoApiPrometheus = async (deviceName: string, id: number) => {
       bandwidth.downStream = downstream;
     } catch (err) {
       barRef?.stop();
+      closeModalNow();
+      return;
     }
   } catch (err) {
     barRef?.stop();
     closeModalNow();
+    return;
   }
 
   const oltInterfaceResponse = await checkOltInterface(deviceName);
