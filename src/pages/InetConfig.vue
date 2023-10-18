@@ -11,6 +11,7 @@
         rowsPerPage: 10,
       }"
       :dense="$q.screen.lt.md"
+      :filter="filter"
     >
       <template #body-cell-actions="props">
         <q-td :props="props">
