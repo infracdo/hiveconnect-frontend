@@ -9,9 +9,7 @@ const api = axios.create({
 
 export const getIpAddresses = async (ipAddress: string | string[]) => {
   try {
-    const response = await api.get(
-      '/getIpAddressesOfNetworkAddress/' + ipAddress
-    );
+    const response = await api.get('/getIpAddressesOfCidrBlock/' + ipAddress);
     return response.data;
   } catch (error) {
     console.log('Cannot retrieve IP Address data!', error);
@@ -21,7 +19,7 @@ export const getIpAddresses = async (ipAddress: string | string[]) => {
 
 export const getNetworkAddresses = async () => {
   try {
-    const response = await api.get('/getNetworkAddresses');
+    const response = await api.get('/getCidrBlocks');
     return response.data;
   } catch (error) {
     console.log('Cannot Retrieve Network Address Data!', error);
@@ -122,7 +120,7 @@ export const getOneAvailableIpAddress = async () => {
     const response = await api.get('/getOneAvailableIpAddress');
     return response.data;
   } catch (error) {
-    console.log('Could not retrieve Client/Subscriber Data!', error);
+    console.log('Could not get One Available IpAddress Data!', error);
     throw error;
   }
 };
