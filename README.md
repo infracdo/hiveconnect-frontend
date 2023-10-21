@@ -31,3 +31,29 @@ quasar build
 
 ### Customize the configuration
 See [Configuring quasar.config.js](https://v2.quasar.dev/quasar-cli-vite/quasar-config-js).
+
+
+
+### deploy on vercel
+
+move to directory dist/spa
+```
+vercel
+```
+package.json
+```
+ "scripts": {
+      ...
+      "build": "quasar build",
+      "deploy": "vercel"
+    }
+```
+add a vercel.json file and inside
+```
+{
+  "routes": [
+    { "handle": "filesystem" },
+    { "src": "/.*", "dest": "/" }
+  ]
+}
+```
