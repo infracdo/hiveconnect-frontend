@@ -76,13 +76,13 @@
 </template>
 
 <script setup lang="ts">
-import { toRefs, reactive, ref, watchEffect, onUpdated } from 'vue';
+import { toRefs, reactive, ref, watchEffect, onUpdated } from "vue";
 import {
   updateClient,
   getOneAvailableIpAddress,
   executeProvision,
-} from 'src/api/NetworkAddressAPI.ts/networkAddressAPIs';
-import { IsubsriberType, IserialAndMac } from '../../components/models';
+} from "src/api/NetworkAddressAPI.ts/networkAddressAPIs";
+import { IsubsriberType, IserialAndMac } from "../../components/models";
 
 const props = defineProps<{
   isOpen: boolean;
@@ -96,26 +96,26 @@ const isModal = () => {
   props.closeModal();
 };
 const optionsOltIp = [
-  { label: 'Gusa 1', value: '172.16.0.2' },
-  { label: 'Gusa 2', value: '172.16.0.10' },
+  { label: "Gusa 1", value: "172.16.0.2" },
+  { label: "Gusa 2", value: "172.16.0.10" },
 ];
 
-const responseMsg = ref('');
+const responseMsg = ref("");
 
 const NewClient = reactive({
   clientId: 0,
-  accountNumber: '',
-  packageType: '',
+  accountNumber: "",
+  packageType: "",
   serialAndMac: {
     serialNum: {
-      label: '',
+      label: "",
       idx: 0,
     },
-    macAddress: '',
+    macAddress: "",
   },
-  oltIp: '',
-  ipAssign: '',
-  clientName: '',
+  oltIp: "",
+  ipAssign: "",
+  clientName: "",
 });
 onUpdated(() => {
   NewClient.serialAndMac.serialNum.label = props.client?.onuSerialNumber;
@@ -142,10 +142,10 @@ const provisionClient = async () => {
       NewClient.serialAndMac.macAddress
     );
     if (response) {
-      responseMsg.value = 'Successfull Client Update!';
+      responseMsg.value = "Provisioning...";
     }
   } catch (error) {
-    responseMsg.value = 'Unsuccessful client Update: ' + error;
+    responseMsg.value = "Unsuccessful client Update: " + error;
   }
 
   try {
@@ -160,7 +160,7 @@ const provisionClient = async () => {
     );
     responseMsg.value = response;
   } catch (error) {
-    throw new Error('Provoision Not complete');
+    throw new Error("Provoision Not complete");
   }
 };
 
