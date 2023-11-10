@@ -2,11 +2,12 @@
 <template>
   <q-page padding>
     <q-table
+      class="my-sticky-last-column-table"
       :rows="rows"
       title="For Provision"
       row-key="name"
       :columns="columns"
-      :loading="rows.length > 0 ? false : true"
+      :loading="loading"
       :pagination="{
         rowsPerPage: 10,
       }"
@@ -28,7 +29,10 @@
             flat
             icon="build"
             @click="
-              openTroubleshootModal(props.row.onuDeviceName, props.row.id)
+              openTroubleshootModal(
+                props.row.onuDeviceName + '-' + props.row.ipAssigned,
+                props.row.id
+              )
             "
             :disable="
               props.row.onuDeviceName === null || props.row.onuDeviceName === ''
@@ -49,12 +53,6 @@
         </q-td>
       </template>
       <template #top-right>
-        <q-btn
-          icon="autorenew"
-          class="cursor-pointer q-mx-sm"
-          @click="refreshTable"
-          flat
-        />
         <q-input
           v-model="filter"
           filled
@@ -67,8 +65,16 @@
             <q-icon name="search" />
           </template>
         </q-input>
+        <q-icon
+          name="autorenew"
+          class="cursor-pointer q-ma-sm"
+          size="sm"
+          @click="refreshTable"
+          flat
+        />
       </template>
     </q-table>
+
     <add-new-client
       :is-open="modalOpen"
       @open-modal="openModal"
@@ -87,43 +93,47 @@
 </template>
 
 <script setup lang="ts">
-import { QTableProps } from 'quasar';
-import { ref, watchEffect, watch } from 'vue';
-import { useSubscriberStore } from 'src/stores/subscriber/subscriber-store';
-import TroubleshootClient from 'src/components/InetConfig/TroubleshootClient.vue';
-import SubscriberModal from 'src/components/InetConfig/SubscriberModal.vue';
+import { QTableProps } from "quasar";
+import { ref, watchEffect, watch, onMounted } from "vue";
+import { useSubscriberStore } from "src/stores/subscriber/subscriber-store";
+import TroubleshootClient from "src/components/InetConfig/TroubleshootClient.vue";
+import SubscriberModal from "src/components/InetConfig/SubscriberModal.vue";
 import {
   getClients,
   getClientById,
-} from 'src/api/NetworkAddressAPI.ts/networkAddressAPIs';
-import addNewClient from '../components/InetConfig/AddNewClient.vue';
-import { getDevices } from 'src/api/AcsApi/rougeDevicesApi';
-import { IserialAndMac, IsubsriberType } from 'src/components/models';
+} from "src/api/NetworkAddressAPI.ts/networkAddressAPIs";
+import addNewClient from "../components/InetConfig/AddNewClient.vue";
+import { getDevices } from "src/api/AcsApi/rougeDevicesApi";
+import { IserialAndMac, IsubsriberType } from "src/components/models";
+import { useQuasar } from "quasar";
+import { text } from "body-parser";
 
-const disableTroubleshootBtn = ref(true);
+const $q = useQuasar();
 const store = useSubscriberStore();
 const dataId = ref<string>();
 const rows = ref([]);
-const filter = ref('');
-const columns: QTableProps['columns'] = store.$state.subscribercolumns;
+
+const filter = ref("");
+const columns: QTableProps["columns"] = store.$state.subscribercolumns;
 const modalOpen = ref(false);
-const deviceName = ref('');
+const deviceName = ref("");
 const clientId = ref(0);
 const openTroubleShootModal = ref(false);
+const loading = ref(false);
 let serialAndMac: IserialAndMac[] = [];
 const client = ref<IsubsriberType>({
   id: 0,
-  accountNumber: '',
-  clientName: '',
-  ipAssigned: '',
-  onuSerialNumber: '',
-  oltIp: '',
-  onuDeviceName: '',
-  onuMacAddress: '',
-  packageTypeId: '',
+  accountNumber: "",
+  clientName: "",
+  ipAssigned: "",
+  onuSerialNumber: "",
+  oltIp: "",
+  onuDeviceName: "",
+  onuMacAddress: "",
+  packageTypeId: "",
 });
 const openModal = async (id: number) => {
-  modalOpen.value = !modalOpen.value;
+  $q.loading.show();
   const rogueDevice = await getDevices();
 
   serialAndMac = rogueDevice.map(
@@ -132,7 +142,11 @@ const openModal = async (id: number) => {
       mac_address: device.mac_address,
     })
   );
+  console.log(serialAndMac);
+
   client.value = await getClientById(id);
+  modalOpen.value = !modalOpen.value;
+  $q.loading.hide();
 };
 
 const closeModal = () => {
@@ -150,9 +164,19 @@ const refreshTable = async () => {
   rows.value = [];
   rows.value = await getClients();
 };
-watchEffect(async () => {
-  rows.value = await getClients();
+
+const getAllClients = async () => {
+  try {
+    loading.value = true;
+    rows.value = await getClients();
+  } catch (error) {
+    throw new Error("Cannot get Clients info.");
+  }
+  loading.value = false;
+};
+onMounted(async () => {
+  getAllClients();
 });
 </script>
 
-<style scoped></style>
+<style scoped lang="sass"></style>

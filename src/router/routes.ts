@@ -1,33 +1,38 @@
-import { RouteRecordRaw } from 'vue-router';
+import { RouteRecordRaw } from "vue-router";
 
 const routes: RouteRecordRaw[] = [
   {
-    path: '/',
-    component: () => import('layouts/MainLayout.vue'),
+    path: "/",
+    component: () => import("layouts/MainLayout.vue"),
     children: [
       // { path: '', component: () => import('pages/IndexPage.vue') },
-      { path: '', component: () => import('pages/InetConfig.vue') },
+      { path: "", component: () => import("pages/InetConfig.vue") },
       {
-        path: 'rogue-devices',
-        component: () => import('pages/ACSRougeTable.vue'),
+        path: "rogue-devices",
+        component: () => import("pages/ACSRougeTable.vue"),
       },
       {
-        path: 'network-address',
-        component: () => import('pages/NetworkAddress.vue'),
+        path: "network-address",
+        component: () => import("pages/NetworkAddress.vue"),
       },
       {
-        path: 'network-address/:ipAddress',
-        component: () => import('../components/NetworkAddress/IpAddresses.vue'),
+        path: "network-address/:ipAddress",
+        component: () => import("../components/NetworkAddress/IpAddresses.vue"),
         props: true,
       },
       {
-        path: 'troubleshooting',
-        component: () => import('../pages/TroubleShooting.vue'),
+        path: "troubleshooting",
+        component: () => import("../pages/TroubleShooting.vue"),
         props: true,
       },
       {
-        path: '/:catchAll(.*)*',
-        component: () => import('pages/ErrorNotFound.vue'),
+        path: "test-table",
+        component: () => import("../pages/TestTable.vue"),
+        props: true,
+      },
+      {
+        path: "/:catchAll(.*)*",
+        component: () => import("pages/ErrorNotFound.vue"),
       },
     ],
   },
@@ -35,8 +40,8 @@ const routes: RouteRecordRaw[] = [
   // Always leave this as last one,
   // but you can also remove it
   {
-    path: '/:catchAll(.*)*',
-    component: () => import('pages/ErrorNotFound.vue'),
+    path: "/:catchAll(.*)*",
+    component: () => import("pages/ErrorNotFound.vue"),
   },
 ];
 

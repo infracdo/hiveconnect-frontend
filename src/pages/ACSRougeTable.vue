@@ -6,25 +6,31 @@
       :columns="columns"
       row-key="id"
       :dense="$q.screen.lt.md"
+      :loading="loading"
     />
   </q-page>
 </template>
 
 <script setup lang="ts">
-import { QTableProps } from 'quasar';
-// import axios from 'src/boot/axios'
-import { IdeviceType } from '../components/models';
+import { QTableProps } from "quasar";
 
-import { ref, onMounted } from 'vue';
-import { useDevicesStore } from 'src/stores/rogue-device/rogue-devices';
-import { getDevices } from '../api/AcsApi/rougeDevicesApi';
+import { IdeviceType } from "../components/models";
+
+import { ref, onMounted } from "vue";
+import { useDevicesStore } from "src/stores/rogue-device/rogue-devices";
+
+import { getDevices } from "src/api/NetworkAddressAPI.ts/networkAddressAPIs";
 const store = useDevicesStore();
 const tableRow = ref<IdeviceType[]>([]);
-const columns: QTableProps['columns'] = store.$state.devicesColumn;
+const columns: QTableProps["columns"] = store.$state.devicesColumn;
+const loading = ref<boolean>(false);
 
 onMounted(async () => {
-  tableRow.value = await getDevices();
-  getDevices();
+  loading.value = true;
+  try {
+    tableRow.value = await getDevices();
+  } catch (error) {}
+  loading.value = false;
 });
 </script>
 

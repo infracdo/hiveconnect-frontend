@@ -10,7 +10,7 @@
 
 const { configure } = require('quasar/wrappers')
 
-module.exports = configure(function (/* ctx */) {
+module.exports = configure(function (ctx) {
   return {
     // eslint: {
       // fix: true,
@@ -58,7 +58,7 @@ module.exports = configure(function (/* ctx */) {
         node: 'node16'
       },
 
-      vueRouterMode: 'hash' // available values: 'hash', 'history'
+      vueRouterMode: 'hash', // available values: 'hash', 'history'
       // vueRouterBase,
       // vueDevtools,
       // vueOptionsAPI: false,
@@ -67,7 +67,12 @@ module.exports = configure(function (/* ctx */) {
 
       // publicPath: '/',
       // analyze: true,
-      // env: {},
+      // env: require('dotenv').config().parsed,
+      env: {
+        PROVISION_API_URL: ctx.dev
+          ? 'http://172.91.10.108:8080'
+          : 'https://autoprov-test.apolloglobal.net:8081'
+      },
       // rawDefine: {}
       // ignorePublicFolder: true,
       // minify: false,
@@ -103,7 +108,7 @@ module.exports = configure(function (/* ctx */) {
       // directives: [],
 
       // Quasar plugins
-      plugins: [  'Notify']
+      plugins: [ 'Notify','Loading']
     },
 
     // animations: 'all', // --- includes all animations

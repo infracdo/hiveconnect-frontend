@@ -12,9 +12,7 @@
           @click="toggleLeftDrawer"
         />
 
-        <q-toolbar-title class="text-center">
-          Provisioning Quasar
-        </q-toolbar-title>
+        <q-toolbar-title class="text-center"> Hive Connect </q-toolbar-title>
       </q-toolbar>
     </q-header>
 
@@ -47,31 +45,31 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref } from "vue";
 import EssentialLink, {
   EssentialLinkProps,
-} from 'components/EssentialLink.vue';
+} from "components/EssentialLink.vue";
 
 const essentialLinks: EssentialLinkProps[] = [
   {
-    title: 'Provision',
-    icon: 'settings',
-    link: '/',
+    title: "Provision",
+    icon: "settings",
+    link: "/",
   },
   {
-    title: 'Rogue Devices',
-    icon: 'router',
-    link: '/rogue-devices',
+    title: "Rogue Devices",
+    icon: "router",
+    link: "/rogue-devices",
   },
   {
-    title: 'Network Address',
-    icon: 'podcasts',
-    link: '/network-address',
+    title: "Network Address",
+    icon: "podcasts",
+    link: "/network-address",
   },
   {
-    title: 'Troubleshoot',
-    icon: 'build',
-    link: '/troubleshooting',
+    title: "Troubleshoot",
+    icon: "build",
+    link: "/troubleshooting",
   },
 ];
 
