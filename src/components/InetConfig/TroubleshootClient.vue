@@ -96,7 +96,7 @@ import {
   checkOltInterface,
   checkOltSiteByIp,
   checkPackageBandwidth,
-} from "src/api/NetworkAddressAPI.ts/networkAddressAPIs";
+} from "src/api/HiveConnectApis/hiveConnect";
 import { useQuasar } from "quasar";
 const $q = useQuasar();
 const props = defineProps<{
@@ -283,3 +283,4 @@ watch(confirm, (newVal) => {
   }
 }
 </style>
+src/api/HiveConnectApis/networkAddressAPIs

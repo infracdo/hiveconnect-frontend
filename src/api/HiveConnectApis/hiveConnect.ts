@@ -1,5 +1,6 @@
 import axios from "axios";
 import { useDevicesStore } from "src/stores/rogue-device/rogue-devices";
+import { IClient, IRogueDevices, IipAddressesOfCidrBlock } from "./types";
 const store = useDevicesStore();
 
 const API_BASE_URL = process.env.PROVISION_API_URL;
@@ -9,22 +10,24 @@ const api = axios.create({
   timeout: 0,
 });
 
-export const getDevices = async () => {
+export const getDevices = async (): Promise<IRogueDevices[]> => {
   try {
-    const response = await api.get("/getRogueDevices");
+    const { data } = await api.get("/getRogueDevices");
     store.$patch({
-      rogueDevice: response.data,
+      rogueDevice: data,
     });
-    return response.data;
+    return data;
   } catch (error) {
     throw new Error("Could not retrieve rogue devices data!");
   }
 };
 
-export const getIpAddresses = async (ipAddress: string | string[]) => {
+export const getIpAddresses = async (
+  ipAddress: string | string[]
+): Promise<IipAddressesOfCidrBlock[]> => {
   try {
-    const response = await api.get("/getIpAddressesOfCidrBlock/" + ipAddress);
-    return response.data;
+    const { data } = await api.get("/getIpAddressesOfCidrBlock/" + ipAddress);
+    return data;
   } catch (error) {
     console.log("Cannot retrieve IP Address data!", error);
     throw error;
@@ -33,18 +36,18 @@ export const getIpAddresses = async (ipAddress: string | string[]) => {
 
 export const getNetworkAddresses = async () => {
   try {
-    const response = await api.get("/getCidrBlocks");
-    return response.data;
+    const { data } = await api.get("/getCidrBlocks");
+    return data;
   } catch (error) {
     console.log("Cannot Retrieve Network Address Data!", error);
     throw error;
   }
 };
 
-export const getClients = async () => {
+export const getClients = async (): Promise<IClient[]> => {
   try {
-    const response = await api.get("/getClients");
-    return response.data;
+    const { data } = await api.get("/getClients");
+    return data;
   } catch (error) {
     console.log("Could not retrieve Client/Subscriber Data!", error);
     throw error;
@@ -52,8 +55,8 @@ export const getClients = async () => {
 };
 export const getClientById = async (id: number) => {
   try {
-    const response = await api.get("/getClientById/" + id);
-    return response.data;
+    const { data } = await api.get("/getClientById/" + id);
+    return data;
   } catch (error) {
     console.log("Could not retrieve Client/Subscriber Data!", error);
     throw error;
@@ -68,12 +71,12 @@ export const updateClient = async (
   macaddress: string
 ) => {
   try {
-    const response = await api.patch("/updateClient/" + id, {
+    const { data } = await api.patch("/updateClient/" + id, {
       serialNumber: serialNum,
       olt: olt,
       macAddress: macaddress,
     });
-    return response.data;
+    return data;
   } catch (error) {
     throw new Error("Could not update Client/Subscriber Data!");
   }
@@ -88,7 +91,7 @@ export const updateClient = async (
 //   olt: string,
 //   packageType: string
 // ) => {
-//   const response = await api.post("/executeProvision", {
+//   const { data} = await api.post("/executeProvision", {
 //     accountNo: accNum,
 //     clientName: clientName,
 //     serialNumber: serialNum,
@@ -96,7 +99,7 @@ export const updateClient = async (
 //     olt: olt,
 //     packageType: packageType,
 //   });
-//   return response.data;
+//   return data;
 // };
 export const executeAutoConfig = async (
   accNum: string,
@@ -106,7 +109,7 @@ export const executeAutoConfig = async (
   olt: string,
   packageType: string
 ) => {
-  const response = await api.post("/executeAutoConfig", {
+  const { data } = await api.post("/executeAutoConfig", {
     accountNo: accNum,
     clientName: clientName,
     serialNumber: serialNum,
@@ -114,7 +117,7 @@ export const executeAutoConfig = async (
     olt: olt,
     packageType: packageType,
   });
-  return response.data;
+  return data;
 };
 export const executeMonitoring = async (
   accNum: string,
@@ -124,7 +127,7 @@ export const executeMonitoring = async (
   olt: string,
   packageType: string
 ) => {
-  const response = await api.post("/executeMonitoring", {
+  const { data } = await api.post("/executeMonitoring", {
     accountNo: accNum,
     clientName: clientName,
     serialNumber: serialNum,
@@ -132,7 +135,7 @@ export const executeMonitoring = async (
     olt: olt,
     packageType: packageType,
   });
-  return response.data;
+  return data;
 };
 
 export const addNewClient = async (
@@ -142,20 +145,20 @@ export const addNewClient = async (
   macAddress: string,
   oltIp: string
 ) => {
-  const response = await api.post("/addNewClient", {
+  const { data } = await api.post("/addNewClient", {
     AccountID: accNum,
     OltIP: oltIp,
     ONUSerialNum: serialNum,
     PackageType: packageType,
     ONUMacAddress: macAddress,
   });
-  return response.data;
+  return data;
 };
 
 export const getOneAvailableIpAddress = async () => {
   try {
-    const response = await api.get("/getOneAvailableIpAddress");
-    return response.data;
+    const { data } = await api.get("/getOneAvailableIpAddress");
+    return data;
   } catch (error) {
     console.log("Could not get One Available IpAddress Data!", error);
     throw error;
@@ -164,8 +167,8 @@ export const getOneAvailableIpAddress = async () => {
 
 export const checkPackageBandwidth = async (packageType: string) => {
   try {
-    const response = await api.get("/checkPackageBandwidth/" + packageType);
-    return response.data;
+    const { data } = await api.get("/checkPackageBandwidth/" + packageType);
+    return data;
   } catch (error) {
     console.log("Could not retrieve Bandwidth Data!", error);
     throw error;
@@ -174,8 +177,8 @@ export const checkPackageBandwidth = async (packageType: string) => {
 
 export const checkOltSiteByIp = async (oltIp: string) => {
   try {
-    const response = await api.get("/checkOltSiteByIp/" + oltIp);
-    return response.data;
+    const { data } = await api.get("/checkOltSiteByIp/" + oltIp);
+    return data;
   } catch (error) {
     console.log("Could not retrieve OLT SiteBy Ip Data!", error);
     throw error;
@@ -184,8 +187,8 @@ export const checkOltSiteByIp = async (oltIp: string) => {
 
 export const checkOltInterface = async (deviceName: string) => {
   try {
-    const response = await api.get("/checkOltInterface/" + deviceName);
-    return response.data;
+    const { data } = await api.get("/checkOltInterface/" + deviceName);
+    return data;
   } catch (error) {
     console.log("Could not retrieve Olt Interface Data!", error);
     throw error;

@@ -50,18 +50,18 @@
 </template>
 
 <script setup lang="ts">
-import { RouterLink } from 'vue-router';
-import { useNetworkStore } from '../stores/network-address/network-address';
-import { QTableProps } from 'quasar';
-import { ref, watchEffect } from 'vue';
+import { RouterLink } from "vue-router";
+import { useNetworkStore } from "src/stores/network-address/network-address";
+import { QTableProps } from "quasar";
+import { ref, watchEffect } from "vue";
 
-import { getNetworkAddresses } from 'src/api/NetworkAddressAPI.ts/networkAddressAPIs';
-import AddNewNetworkModal from 'src/components/NetworkAddress/AddNewNetworkModal.vue';
+import { getNetworkAddresses } from "src/api/HiveConnectApis/hiveConnect";
+import AddNewNetworkModal from "src/components/NetworkAddress/AddNewNetworkModal.vue";
 
-const filter = ref('');
+const filter = ref("");
 const store = useNetworkStore();
 const rows = ref([]);
-const columns: QTableProps['columns'] = store.$state.networkColumn;
+const columns: QTableProps["columns"] = store.$state.networkColumn;
 const modalOpen = ref(false);
 
 const openModal = () => {
@@ -86,3 +86,4 @@ watchEffect(async () => {
 </style>
 src/api/NetworkAddressAPI/networkAddressAPIs
 src/api/NetworkAddressAPI/networkAddressAPIs
+src/api/HiveConnectApis/networkAddressAPIs

@@ -110,15 +110,15 @@
 
 <script setup lang="ts">
 import { ref, onMounted, reactive } from "vue";
-import { getClients } from "src/api/NetworkAddressAPI.ts/networkAddressAPIs";
-
 import axios from "axios";
 import {
+  getClients,
   getClientById,
   checkPackageBandwidth,
   checkOltSiteByIp,
   checkOltInterface,
-} from "../api/NetworkAddressAPI.ts/networkAddressAPIs";
+} from "src/api/HiveConnectApis/hiveConnect";
+import { IClient } from "src/api/HiveConnectApis/types";
 const selectSubscriber = ref({
   label: "",
   id: 0,
@@ -174,13 +174,13 @@ const bandwidth = reactive({
 });
 
 const ayy = async () => {
-  const clients = await getClients();
+  const clients: IClient[] = await getClients();
   deviceNames.value = clients
     .filter(
-      (client: { onuDeviceName: string | null; id: number }) =>
+      (client: IClient) =>
         client.onuDeviceName !== null && client.onuDeviceName.trim() !== ""
     )
-    .map((client: { onuDeviceName: string; id: number }) => ({
+    .map((client: IClient) => ({
       onuDeviceName: client.onuDeviceName,
       id: client.id,
     }));

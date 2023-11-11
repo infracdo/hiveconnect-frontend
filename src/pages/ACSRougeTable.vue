@@ -13,15 +13,12 @@
 
 <script setup lang="ts">
 import { QTableProps } from "quasar";
-
-import { IdeviceType } from "../components/models";
-
 import { ref, onMounted } from "vue";
 import { useDevicesStore } from "src/stores/rogue-device/rogue-devices";
-
-import { getDevices } from "src/api/NetworkAddressAPI.ts/networkAddressAPIs";
+import { IRogueDevices } from "src/api/HiveConnectApis/types";
+import { getDevices } from "src/api/HiveConnectApis/hiveConnect";
 const store = useDevicesStore();
-const tableRow = ref<IdeviceType[]>([]);
+const tableRow = ref<IRogueDevices[]>([]);
 const columns: QTableProps["columns"] = store.$state.devicesColumn;
 const loading = ref<boolean>(false);
 

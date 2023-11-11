@@ -94,10 +94,15 @@
           <q-select
             outlined
             v-model="NewClient.oltIp"
-            :options="optionsOltIp"
-            label="OLT"
+            :options="filteredOptions"
+            label="OLT IP"
+            clearable
+            option-label="HOSTNAME"
+            option-value="IP"
+            input-debounce="0"
+            use-input
             emit-value
-            map-options
+            @filter="filterSelect"
           />
         </q-card-section>
         <q-separator />
@@ -126,7 +131,7 @@
             <h1 class="text-h6">Responses</h1>
           </div>
           <div>
-            <p>
+            <!-- <p>
               Client:
               <span
                 :class="
@@ -134,7 +139,7 @@
                 "
                 >{{ responses.subscriber }}</span
               >
-            </p>
+            </p> -->
             <p>
               Auto Config:
               <span
@@ -153,28 +158,26 @@
                 >{{ responses.monitoring }}</span
               >
             </p>
-            <q-separator class="q-mb-sm" />
-            <p
-              v-if="showProvisionResult"
-              class="text-uppercase text-center text-bold"
-              :class="
-                responseStatus.autoConfig &&
-                responseStatus.monitoring &&
-                responseStatus.subscriber
-                  ? 'text-positive'
-                  : 'text-warning'
-              "
-            >
-
-              {{
-                responseStatus.autoConfig &&
-                responseStatus.monitoring &&
-                responseStatus.subscriber
-                  ? " Successful Provision!"
-                  : "Unsuccessful Provision!"
-              }}
-              <p v-if="ssid.name || ssid.pw">SSID: {{  ssid.name }} Password: {{ ssid.pw }}</p>
-            </p>
+            <div v-if="showProvisionResult" class="text-center">
+              <q-separator class="q-mb-sm" />
+              <p
+                class="text-uppercase text-bold"
+                :class="
+                  responseStatus.autoConfig && responseStatus.monitoring
+                    ? 'text-positive'
+                    : 'text-warning'
+                "
+              >
+                {{
+                  responseStatus.autoConfig && responseStatus.monitoring
+                    ? " Successful Provision!"
+                    : "Unsuccessful Provision!"
+                }}
+              </p>
+              <p v-if="ssid.name || ssid.pw">
+                SSID: {{ ssid.name }} Password: {{ ssid.pw }}
+              </p>
+            </div>
           </div>
         </q-banner>
         <q-img
@@ -193,11 +196,11 @@ import {
   updateClient,
   executeAutoConfig,
   executeMonitoring,
-} from "src/api/NetworkAddressAPI.ts/networkAddressAPIs";
-import { IsubsriberType, IserialAndMac } from "../../components/models";
+} from "src/api/HiveConnectApis/hiveConnect";
+import { IsubsriberType, IserialAndMac } from "../models";
 import { QrcodeStream } from "vue-qrcode-reader";
 import { useQuasar } from "quasar";
-
+import oltjson from "src/assets/CDO OLT IPs - olt.json";
 //////////////////////
 ////VARIABLES AREA////
 //////////////////////
@@ -215,9 +218,9 @@ const isModal = () => {
   props.closeModal();
 };
 const ssid = reactive({
-  name: '',
-  pw: ''
-})
+  name: "",
+  pw: "",
+});
 const showProvisionResult = ref(false);
 const showSkeletonDancing = ref(false);
 const scannerOptions = [
@@ -228,21 +231,31 @@ const scannerOptions = [
   "itf",
   "qr_code",
 ];
-const optionsOltIp = [
-  { label: "Vsol", value: "10.10.0.58" },
-  { label: "Guangda", value: "10.17.0.2" },
-];
+const optionsOltIp = oltjson;
 
 const responses = reactive({
-  subscriber: "",
   autoConfig: "",
   monitoring: "",
 });
 const responseStatus = reactive({
-  subscriber: false,
   autoConfig: false,
   monitoring: false,
 });
+
+const filteredOptions = ref<
+  {
+    LOCATION: string;
+    IP: string;
+    HOSTNAME: string;
+    TYPE: string;
+    MANUFACTURER: string;
+    STATUS: string;
+    MODEL: string;
+    SNMP: string;
+    FIELD9: string;
+    FIELD10: string;
+  }[]
+>([]);
 const result = ref("");
 const NewClient = reactive({
   clientId: 0,
@@ -256,12 +269,24 @@ const NewClient = reactive({
     macAddress: "",
   },
   oltIp: "",
-  ipAssign: "",
   clientName: "",
 });
 //////////////////////
 ////METHODS AREA/////
 //////////////////////
+const filterSelect = (val: string, update: any) => {
+  if (val === "") {
+    update(() => {
+      filteredOptions.value = optionsOltIp;
+    });
+  }
+  update(() => {
+    const needle = val.toLowerCase();
+    filteredOptions.value = optionsOltIp.filter((options) => {
+      return options.HOSTNAME.toLowerCase().includes(needle);
+    });
+  });
+};
 const findSerialInRogue = (
   barcodeSerial: string,
   serialAndMac: { serial_number: string; mac_address: string }[]
@@ -302,72 +327,69 @@ const provisionClient = async (): Promise<void> => {
   $q.loading.show();
   showSkeletonDancing.value = true;
   showProvisionResult.value = false;
-  responses.subscriber = "";
+  console.log(NewClient);
+
   responses.autoConfig = "";
   responses.monitoring = "";
 
-  
   // TODO: CHECKING API
-  try {
-    responses.autoConfig = "Executing Auto Config...";
-    const response = await executeAutoConfig(
-      NewClient.accountNumber,
-      NewClient.clientName,
-      NewClient.serialAndMac.serialNum.label,
-      NewClient.serialAndMac.macAddress,
-      NewClient.oltIp,
-      NewClient.packageType
-    );
-    if (response) {
-  
-      responses.autoConfig = response.message;
-      responseStatus.autoConfig = true;
-    }
-  } catch (error) {
-    responses.autoConfig = "Error: " + error;
+  // try {
+  //   responses.autoConfig = "Executing Auto Config...";
+  //   const response = await executeAutoConfig(
+  //     NewClient.accountNumber,
+  //     NewClient.clientName,
+  //     NewClient.serialAndMac.serialNum.label,
+  //     NewClient.serialAndMac.macAddress,
+  //     NewClient.oltIp,
+  //     NewClient.packageType
+  //   );
+  //   if (response) {
+  //     responses.autoConfig = response.message;
+  //     responseStatus.autoConfig = true;
+  //   }
+  // } catch (error) {
+  //   responses.autoConfig = "Error: " + error;
 
-    return $q.loading.hide();
-  }
+  //   return $q.loading.hide();
+  // }
 
-  try {
-    responses.monitoring = "Executing Monitoring...";
-    const response = await executeMonitoring(
-      NewClient.accountNumber,
-      NewClient.clientName,
-      NewClient.serialAndMac.serialNum.label,
-      NewClient.serialAndMac.macAddress,
-      NewClient.oltIp,
-      NewClient.packageType
-    );
-    if (response) {
-    
-      responses.monitoring = response.message;
-      ssid.name = response.ssid_name;
-      ssid.pw = response.ssid_pw
-      responseStatus.monitoring = true;
-    }
-  } catch (error) {
-    responses.monitoring = "Error: " + error;
+  // try {
+  //   responses.monitoring = "Executing Monitoring...";
+  //   const response = await executeMonitoring(
+  //     NewClient.accountNumber,
+  //     NewClient.clientName,
+  //     NewClient.serialAndMac.serialNum.label,
+  //     NewClient.serialAndMac.macAddress,
+  //     NewClient.oltIp,
+  //     NewClient.packageType
+  //   );
+  //   if (response) {
+  //     responses.monitoring = response.message;
+  //     ssid.name = response.ssid_name;
+  //     ssid.pw = response.ssid_pw;
+  //     responseStatus.monitoring = true;
+  //   }
+  // } catch (error) {
+  //   responses.monitoring = "Error: " + error;
 
-    return $q.loading.hide();
-  
-  }
-  try {
-    responses.subscriber = "updating client...";
-    const response = await updateClient(
-      NewClient.clientId,
-      NewClient.serialAndMac.serialNum.label,
-      NewClient.oltIp,
-      NewClient.serialAndMac.macAddress
-    );
-    if (response) {
-      responses.subscriber = "Successful Client Update";
-      responseStatus.subscriber = true;
-    }
-  } catch (error) {
-    responses.subscriber = "Unsuccessful client Update: " + error;
-    return $q.loading.hide();
-  }
+  //   return $q.loading.hide();
+  // }
+  // try {
+  //   responses.subscriber = "updating client...";
+  //   const response = await updateClient(
+  //     NewClient.clientId,
+  //     NewClient.serialAndMac.serialNum.label,
+  //     NewClient.oltIp,
+  //     NewClient.serialAndMac.macAddress
+  //   );
+  //   if (response) {
+  //     responses.subscriber = "Successful Client Update";
+  //     responseStatus.subscriber = true;
+  //   }
+  // } catch (error) {
+  //   responses.subscriber = "Unsuccessful client Update: " + error;
+  //   return $q.loading.hide();
+  // }
   showSkeletonDancing.value = false;
   showProvisionResult.value = true;
   $q.loading.hide();
@@ -391,7 +413,6 @@ watchEffect(() => {
   NewClient.clientId = props.client?.id;
   NewClient.accountNumber = props.client?.accountNumber;
   NewClient.clientName = props.client?.clientName;
-  NewClient.ipAssign = props.client?.ipAssigned;
   NewClient.oltIp = props.client?.oltIp;
   NewClient.packageType = props.client?.packageTypeId;
 });

@@ -26,11 +26,6 @@ const routes: RouteRecordRaw[] = [
         props: true,
       },
       {
-        path: "test-table",
-        component: () => import("../pages/TestTable.vue"),
-        props: true,
-      },
-      {
         path: "/:catchAll(.*)*",
         component: () => import("pages/ErrorNotFound.vue"),
       },

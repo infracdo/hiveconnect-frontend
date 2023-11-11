@@ -43,19 +43,20 @@
 </template>
 
 <script setup lang="ts">
-import { useIpAddressStore } from '../../stores/network-address/ip-address';
-import { ref, watchEffect } from 'vue';
-import { IrowIpAddress } from '../models';
-import { useRoute } from 'vue-router';
-import { getIpAddresses } from 'src/api/NetworkAddressAPI.ts/networkAddressAPIs';
+import { useIpAddressStore } from "../../stores/network-address/ip-address";
+import { ref, watchEffect } from "vue";
+
+import { useRoute } from "vue-router";
+import { getIpAddresses } from "src/api/HiveConnectApis/hiveConnect";
+import { IipAddressesOfCidrBlock } from "src/api/HiveConnectApis/types";
 
 const route = useRoute();
 const storeIp = useIpAddressStore();
 
 const columns = storeIp.$state.ipAddressColumn;
 const ipAddress = route.params.ipAddress;
-const rows = ref<IrowIpAddress[]>([]);
-const filter = ref('');
+const rows = ref<IipAddressesOfCidrBlock[]>([]);
+const filter = ref("");
 
 watchEffect(async () => {
   rows.value = await getIpAddresses(ipAddress);
@@ -63,5 +64,3 @@ watchEffect(async () => {
 </script>
 
 <style scoped></style>
-src/api/NetworkAddressAPI/networkAddressAPIs
-src/api/NetworkAddressAPI/networkAddressAPIs

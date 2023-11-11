@@ -13,6 +13,7 @@
       }"
       :dense="$q.screen.lt.md"
       :filter="filter"
+      :visible-columns="visibleColumns"
     >
       <template #body-cell-actions="props">
         <q-td :props="props">
@@ -53,6 +54,20 @@
         </q-td>
       </template>
       <template #top-right>
+        <q-select
+          v-model="visibleColumns"
+          multiple
+          outlined
+          dense
+          options-dense
+          :display-value="$q.lang.table.columns"
+          emit-value
+          map-options
+          :options="columns"
+          option-value="name"
+          options-cover
+          style="min-width: 150px"
+        />
         <q-input
           v-model="filter"
           filled
@@ -101,17 +116,29 @@ import SubscriberModal from "src/components/InetConfig/SubscriberModal.vue";
 import {
   getClients,
   getClientById,
-} from "src/api/NetworkAddressAPI.ts/networkAddressAPIs";
-import addNewClient from "../components/InetConfig/AddNewClient.vue";
-import { getDevices } from "src/api/AcsApi/rougeDevicesApi";
+  getDevices,
+} from "src/api/HiveConnectApis/hiveConnect";
+import { IClient } from "src/api/HiveConnectApis/types";
+import addNewClient from "../components/InetConfig/ProvisionClient.vue";
+
 import { IserialAndMac, IsubsriberType } from "src/components/models";
 import { useQuasar } from "quasar";
-import { text } from "body-parser";
 
 const $q = useQuasar();
 const store = useSubscriberStore();
 const dataId = ref<string>();
-const rows = ref([]);
+const rows = ref<IClient[]>([]);
+const visibleColumns = ref([
+  "id",
+  "actions",
+  "clientName",
+  "ipAssigned",
+  "onuSerialNumber",
+  "onuMacAddress",
+  "oltIp",
+  "packageTypeId",
+  "ssidName",
+]);
 
 const filter = ref("");
 const columns: QTableProps["columns"] = store.$state.subscribercolumns;

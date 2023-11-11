@@ -66,11 +66,11 @@ const essentialLinks: EssentialLinkProps[] = [
     icon: "podcasts",
     link: "/network-address",
   },
-  {
-    title: "Troubleshoot",
-    icon: "build",
-    link: "/troubleshooting",
-  },
+  // {
+  //   title: "Troubleshoot",
+  //   icon: "build",
+  //   link: "/troubleshooting",
+  // },
 ];
 
 const leftDrawerOpen = ref(false);
