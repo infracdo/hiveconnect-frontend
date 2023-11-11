@@ -130,14 +130,10 @@ const dataId = ref<string>();
 const rows = ref<IClient[]>([]);
 const visibleColumns = ref([
   "id",
+  "accountNumber",
   "actions",
   "clientName",
-  "ipAssigned",
-  "onuSerialNumber",
-  "onuMacAddress",
-  "oltIp",
   "packageTypeId",
-  "ssidName",
 ]);
 
 const filter = ref("");
@@ -169,7 +165,6 @@ const openModal = async (id: number) => {
       mac_address: device.mac_address,
     })
   );
-  console.log(serialAndMac);
 
   client.value = await getClientById(id);
   modalOpen.value = !modalOpen.value;

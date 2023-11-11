@@ -332,12 +332,6 @@ const provisionClient = async (): Promise<void> => {
   $q.loading.show();
   showSkeletonDancing.value = true;
   showProvisionResult.value = false;
-  console.log(NewClient);
-  console.log(
-    NewClient.serialAndMac.serialNum.label &&
-      NewClient.serialAndMac.macAddress &&
-      NewClient.oltIp
-  );
 
   responses.autoConfig = "";
   responses.monitoring = "";
@@ -382,10 +376,8 @@ const provisionClient = async (): Promise<void> => {
     if (error.response && error.response.data) {
       const responseData = error.response.data;
       responses.monitoring = `Error: ${responseData.message}`;
-      console.log(responseData);
     } else {
       responses.monitoring = "Error: " + error.message;
-      console.log(error);
     }
     return stopProvisionFunction();
   }
