@@ -333,47 +333,47 @@ const provisionClient = async (): Promise<void> => {
   responses.monitoring = "";
 
   // TODO: CHECKING API
-  // try {
-  //   responses.autoConfig = "Executing Auto Config...";
-  //   const response = await executeAutoConfig(
-  //     NewClient.accountNumber,
-  //     NewClient.clientName,
-  //     NewClient.serialAndMac.serialNum.label,
-  //     NewClient.serialAndMac.macAddress,
-  //     NewClient.oltIp,
-  //     NewClient.packageType
-  //   );
-  //   if (response) {
-  //     responses.autoConfig = response.message;
-  //     responseStatus.autoConfig = true;
-  //   }
-  // } catch (error) {
-  //   responses.autoConfig = "Error: " + error;
+  try {
+    responses.autoConfig = "Executing Auto Config...";
+    const response = await executeAutoConfig(
+      NewClient.accountNumber,
+      NewClient.clientName,
+      NewClient.serialAndMac.serialNum.label,
+      NewClient.serialAndMac.macAddress,
+      NewClient.oltIp,
+      NewClient.packageType
+    );
+    if (response) {
+      responses.autoConfig = response.message;
+      responseStatus.autoConfig = true;
+    }
+  } catch (error) {
+    responses.autoConfig = "Error: " + error;
 
-  //   return $q.loading.hide();
-  // }
+    return $q.loading.hide();
+  }
 
-  // try {
-  //   responses.monitoring = "Executing Monitoring...";
-  //   const response = await executeMonitoring(
-  //     NewClient.accountNumber,
-  //     NewClient.clientName,
-  //     NewClient.serialAndMac.serialNum.label,
-  //     NewClient.serialAndMac.macAddress,
-  //     NewClient.oltIp,
-  //     NewClient.packageType
-  //   );
-  //   if (response) {
-  //     responses.monitoring = response.message;
-  //     ssid.name = response.ssid_name;
-  //     ssid.pw = response.ssid_pw;
-  //     responseStatus.monitoring = true;
-  //   }
-  // } catch (error) {
-  //   responses.monitoring = "Error: " + error;
+  try {
+    responses.monitoring = "Executing Monitoring...";
+    const response = await executeMonitoring(
+      NewClient.accountNumber,
+      NewClient.clientName,
+      NewClient.serialAndMac.serialNum.label,
+      NewClient.serialAndMac.macAddress,
+      NewClient.oltIp,
+      NewClient.packageType
+    );
+    if (response) {
+      responses.monitoring = response.message;
+      ssid.name = response.ssid_name;
+      ssid.pw = response.ssid_pw;
+      responseStatus.monitoring = true;
+    }
+  } catch (error) {
+    responses.monitoring = "Error: " + error;
 
-  //   return $q.loading.hide();
-  // }
+    return $q.loading.hide();
+  }
   // try {
   //   responses.subscriber = "updating client...";
   //   const response = await updateClient(
