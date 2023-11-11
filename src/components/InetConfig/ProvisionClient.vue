@@ -109,16 +109,18 @@
         <q-card-actions align="right">
           <q-btn
             :disable="
-              !NewClient.oltIp &&
-              !NewClient.serialAndMac.serialNum.label &&
-              !NewClient.oltIp
+              !(
+                NewClient.serialAndMac.serialNum.label &&
+                NewClient.serialAndMac.macAddress &&
+                NewClient.oltIp
+              )
             "
             flat
             type="submit"
             :label="
               NewClient.oltIp &&
               NewClient.serialAndMac.serialNum.label &&
-              NewClient.oltIp
+              NewClient.serialAndMac.macAddress
                 ? 'OK'
                 : 'Missing Inputs'
             "
@@ -328,11 +330,16 @@ const provisionClient = async (): Promise<void> => {
   showSkeletonDancing.value = true;
   showProvisionResult.value = false;
   console.log(NewClient);
+  console.log(
+    NewClient.serialAndMac.serialNum.label &&
+      NewClient.serialAndMac.macAddress &&
+      NewClient.oltIp
+  );
 
   responses.autoConfig = "";
   responses.monitoring = "";
 
-  // TODO: CHECKING API
+  //TODO: CHECKING API
   try {
     responses.autoConfig = "Executing Auto Config...";
     const response = await executeAutoConfig(
@@ -349,8 +356,7 @@ const provisionClient = async (): Promise<void> => {
     }
   } catch (error) {
     responses.autoConfig = "Error: " + error;
-
-    return $q.loading.hide();
+    return stopProvisionFunction();
   }
 
   try {
@@ -371,8 +377,7 @@ const provisionClient = async (): Promise<void> => {
     }
   } catch (error) {
     responses.monitoring = "Error: " + error;
-
-    return $q.loading.hide();
+    return stopProvisionFunction();
   }
   // try {
   //   responses.subscriber = "updating client...";
@@ -390,8 +395,13 @@ const provisionClient = async (): Promise<void> => {
   //   responses.subscriber = "Unsuccessful client Update: " + error;
   //   return $q.loading.hide();
   // }
-  showSkeletonDancing.value = false;
+
   showProvisionResult.value = true;
+  stopProvisionFunction();
+};
+
+const stopProvisionFunction = () => {
+  showSkeletonDancing.value = false;
   $q.loading.hide();
 };
 
@@ -448,6 +458,7 @@ watch(result, (newVal, oldVal) => {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
+  z-index: 100;
 }
 @media screen and (min-width: 1000px) {
   .flex-client {
@@ -459,8 +470,8 @@ watch(result, (newVal, oldVal) => {
     width: 100%;
     max-width: inherit;
   }
-  .q-qialog .q-card {
-    max-width: 1200px;
+  .q-dialog .q-card {
+    max-width: 800px;
   }
 }
 </style>

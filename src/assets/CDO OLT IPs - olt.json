@@ -466,5 +466,17 @@
    "SNMP": "done",
    "FIELD9": "done",
    "FIELD10": ""
- }
+ },
+ {
+  "LOCATION": "GUSA",
+  "IP": "10.17.0.2",
+  "HOSTNAME": "GUSA_OLT_GUANGDA",
+  "TYPE": "",
+  "MANUFACTURER": "GUANGDA",
+  "STATUS": "accessible",
+  "MODEL": "",
+  "SNMP": "done",
+  "FIELD9": "done",
+  "FIELD10": ""
+}
 ]
