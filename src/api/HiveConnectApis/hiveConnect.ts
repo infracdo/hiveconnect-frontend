@@ -82,6 +82,11 @@ export const updateClient = async (
   }
 };
 
+export const testError = async () => {
+  const { data } = await api.post("/simulateHiveMonitoringError");
+  return data;
+};
+
 // export const executeProvision = async (
 //   accNum: string,
 //   clientName: string,

@@ -184,7 +184,7 @@
         </q-banner>
         <q-img
           v-if="showSkeletonDancing"
-          src="src/assets/dance.gif"
+          src="~assets/dance.gif"
           class="skeleton-dance"
         ></q-img>
       </q-card>
@@ -198,14 +198,17 @@ import {
   updateClient,
   executeAutoConfig,
   executeMonitoring,
+  testError,
 } from "src/api/HiveConnectApis/hiveConnect";
 import { IsubsriberType, IserialAndMac } from "../models";
 import { QrcodeStream } from "vue-qrcode-reader";
 import { useQuasar } from "quasar";
 import oltjson from "src/assets/CDO OLT IPs - olt.json";
+
 //////////////////////
 ////VARIABLES AREA////
 //////////////////////
+
 const $q = useQuasar();
 const props = defineProps<{
   isOpen: boolean;
@@ -375,10 +378,18 @@ const provisionClient = async (): Promise<void> => {
       ssid.pw = response.ssid_pw;
       responseStatus.monitoring = true;
     }
-  } catch (error) {
-    responses.monitoring = "Error: " + error;
+  } catch (error: any) {
+    if (error.response && error.response.data) {
+      const responseData = error.response.data;
+      responses.monitoring = `Error: ${responseData.message}`;
+      console.log(responseData);
+    } else {
+      responses.monitoring = "Error: " + error.message;
+      console.log(error);
+    }
     return stopProvisionFunction();
   }
+
   // try {
   //   responses.subscriber = "updating client...";
   //   const response = await updateClient(
