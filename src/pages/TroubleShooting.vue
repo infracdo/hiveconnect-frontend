@@ -59,7 +59,7 @@
             <span
               v-if="selectSubscriber.label !== ''"
               :class="onuStatus === '1' ? 'up' : 'down'"
-              >{{ onuStatus === '1' ? 'UP' : 'Down' }}</span
+              >{{ onuStatus === "1" ? "UP" : "Down" }}</span
             >
           </p>
           <p class="">
@@ -82,7 +82,7 @@
             <span
               v-if="selectSubscriber.label !== ''"
               :class="oltStatus === '1' ? 'up' : 'down'"
-              >{{ oltStatus === '1' ? 'UP' : 'Down' }}</span
+              >{{ oltStatus === "1" ? "UP" : "Down" }}</span
             >
           </p>
           <p class="">
@@ -109,18 +109,18 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, reactive } from 'vue';
-import { getClients } from 'src/api/NetworkAddressAPI.ts/networkAddressAPIs';
+import { ref, onMounted, reactive } from "vue";
+import { getClients } from "src/api/NetworkAddressAPI.ts/networkAddressAPIs";
 
-import axios from 'axios';
+import axios from "axios";
 import {
   getClientById,
   checkPackageBandwidth,
   checkOltSiteByIp,
   checkOltInterface,
-} from '../api/NetworkAddressAPI.ts/networkAddressAPIs';
+} from "../api/NetworkAddressAPI.ts/networkAddressAPIs";
 const selectSubscriber = ref({
-  label: '',
+  label: "",
   id: 0,
 });
 const bar = ref<{
@@ -128,59 +128,62 @@ const bar = ref<{
   stop(): void;
 }>();
 const doneApiCalls = ref(false);
-const selectTime = ref('');
+const selectTime = ref("");
 
 const deviceNames = ref<{ onuDeviceName: string; id: number }[]>([]);
 const onuInfo = ref({
-  __name__: '',
-  device_name: '',
-  device_role: '',
-  instance: '',
-  job: '',
-  site_name: '',
-  site_status: '',
-  site_tenant: '',
+  __name__: "",
+  device_name: "",
+  device_role: "",
+  instance: "",
+  job: "",
+  site_name: "",
+  site_status: "",
+  site_tenant: "",
 });
-const onuStatus = ref('');
-const oltStatus = ref('');
+const onuStatus = ref("");
+const oltStatus = ref("");
 
 const timeOptions = [
-  { label: 'Last 5 minutes', value: '5m' },
-  { label: 'Last 15 minutes', value: '15m' },
-  { label: 'Last 30 minutes', value: '30m' },
-  { label: 'Last 1 hour', value: '1h' },
-  { label: 'Last 3 hours', value: '3h' },
-  { label: 'Last 6 hours', value: '6h' },
-  { label: 'Last 12 hours', value: '12h' },
-  { label: 'Last 24 hours', value: '24h' },
-  { label: 'Last 2 days', value: '2d' },
-  { label: 'Last 90 days', value: '90d' },
+  { label: "Last 5 minutes", value: "5m" },
+  { label: "Last 15 minutes", value: "15m" },
+  { label: "Last 30 minutes", value: "30m" },
+  { label: "Last 1 hour", value: "1h" },
+  { label: "Last 3 hours", value: "3h" },
+  { label: "Last 6 hours", value: "6h" },
+  { label: "Last 12 hours", value: "12h" },
+  { label: "Last 24 hours", value: "24h" },
+  { label: "Last 2 days", value: "2d" },
+  { label: "Last 90 days", value: "90d" },
 ];
 const clientInfo = reactive({
-  accountNumber: '',
-  clientName: '',
-  ipAssigned: '',
-  onuSerialNumber: '',
-  oltIp: '',
-  onuMacAddress: '',
-  onuDeviceName: '',
-  packageTypeId: '',
-  oltSite: '',
-  oltInterface: '',
+  accountNumber: "",
+  clientName: "",
+  ipAssigned: "",
+  onuSerialNumber: "",
+  oltIp: "",
+  onuMacAddress: "",
+  onuDeviceName: "",
+  packageTypeId: "",
+  oltSite: "",
+  oltInterface: "",
 });
 const bandwidth = reactive({
-  upStream: '',
-  downStream: '',
+  upStream: "",
+  downStream: "",
 });
 
 const ayy = async () => {
   const clients = await getClients();
-  deviceNames.value = clients.map(
-    (client: { onuDeviceName: string; id: number }) => ({
+  deviceNames.value = clients
+    .filter(
+      (client: { onuDeviceName: string | null; id: number }) =>
+        client.onuDeviceName !== null && client.onuDeviceName.trim() !== ""
+    )
+    .map((client: { onuDeviceName: string; id: number }) => ({
       onuDeviceName: client.onuDeviceName,
       id: client.id,
-    })
-  );
+    }));
 };
 
 const getInfoApiPrometheus = async (deviceName: string, id: number) => {

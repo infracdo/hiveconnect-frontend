@@ -301,12 +301,57 @@ const paintBoundingBox = (detectedCodes: any, ctx: any): void => {
 const provisionClient = async (): Promise<void> => {
   $q.loading.show();
   showSkeletonDancing.value = true;
-
   showProvisionResult.value = false;
   responses.subscriber = "";
   responses.autoConfig = "";
   responses.monitoring = "";
 
+  
+  // TODO: CHECKING API
+  try {
+    responses.autoConfig = "Executing Auto Config...";
+    const response = await executeAutoConfig(
+      NewClient.accountNumber,
+      NewClient.clientName,
+      NewClient.serialAndMac.serialNum.label,
+      NewClient.serialAndMac.macAddress,
+      NewClient.oltIp,
+      NewClient.packageType
+    );
+    if (response) {
+  
+      responses.autoConfig = response.message;
+      responseStatus.autoConfig = true;
+    }
+  } catch (error) {
+    responses.autoConfig = "Error: " + error;
+
+    return $q.loading.hide();
+  }
+
+  try {
+    responses.monitoring = "Executing Monitoring...";
+    const response = await executeMonitoring(
+      NewClient.accountNumber,
+      NewClient.clientName,
+      NewClient.serialAndMac.serialNum.label,
+      NewClient.serialAndMac.macAddress,
+      NewClient.oltIp,
+      NewClient.packageType
+    );
+    if (response) {
+    
+      responses.monitoring = response.message;
+      ssid.name = response.ssid_name;
+      ssid.pw = response.ssid_pw
+      responseStatus.monitoring = true;
+    }
+  } catch (error) {
+    responses.monitoring = "Error: " + error;
+
+    return $q.loading.hide();
+  
+  }
   try {
     responses.subscriber = "updating client...";
     const response = await updateClient(
@@ -323,52 +368,6 @@ const provisionClient = async (): Promise<void> => {
     responses.subscriber = "Unsuccessful client Update: " + error;
     return $q.loading.hide();
   }
-  // TODO: CHECKING API
-  try {
-    responses.autoConfig = "Executing Auto Config...";
-    const response = await executeAutoConfig(
-      NewClient.accountNumber,
-      NewClient.clientName,
-      NewClient.serialAndMac.serialNum.label,
-      NewClient.serialAndMac.macAddress,
-
-      NewClient.oltIp,
-      NewClient.packageType
-    );
-    if (response) {
-      console.log(response.message, response.status);
-      responses.autoConfig = response.message;
-      responseStatus.autoConfig = true;
-    }
-  } catch (error) {
-    responses.autoConfig = "Error: " + error;
-    console.log("Error: " + error);
-    return $q.loading.hide();
-  }
-
-  try {
-    responses.monitoring = "Executing Monitoring...";
-    const response = await executeMonitoring(
-      NewClient.accountNumber,
-      NewClient.clientName,
-      NewClient.serialAndMac.serialNum.label,
-      NewClient.serialAndMac.macAddress,
-      NewClient.oltIp,
-      NewClient.packageType
-    );
-    if (response) {
-      console.log(response.message, response.status);
-      responses.monitoring = response.message;
-      ssid.name = response.ssid_name;
-      ssid.pw = response.ssid_pw
-      responseStatus.monitoring = true;
-    }
-  } catch (error) {
-    responses.monitoring = "Error: " + error;
-    console.log("Error: " + error);
-    return $q.loading.hide();
-  
-  }
   showSkeletonDancing.value = false;
   showProvisionResult.value = true;
   $q.loading.hide();
@@ -376,7 +375,7 @@ const provisionClient = async (): Promise<void> => {
 
 const notifForMissingInRogue = (): void => {
   $q.notify({
-    message: "Scanned Value is not rogue devices!",
+    message: "Scanned Value is not in rogue devices!",
     color: "danger",
     position: "top",
   });
