@@ -57,3 +57,9 @@ export interface IipAddressesOfCidrBlock {
   assignable: boolean;
   notes: string;
 }
+
+export interface IOltSiteByIp {
+  id: number;
+  olt_name: string;
+  olt_ip: string;
+}

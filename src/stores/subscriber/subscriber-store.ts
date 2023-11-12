@@ -96,7 +96,7 @@ export const useSubscriberStore = defineStore("subsciber", {
         name: "actions",
         label: "Actions",
         field: "",
-        align: "left",
+        align: "center",
       },
     ] as QTableProps["columns"],
   }),

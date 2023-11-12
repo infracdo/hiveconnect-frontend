@@ -1,6 +1,11 @@
 import axios from "axios";
 import { useDevicesStore } from "src/stores/rogue-device/rogue-devices";
-import { IClient, IRogueDevices, IipAddressesOfCidrBlock } from "./types";
+import {
+  IClient,
+  IRogueDevices,
+  IipAddressesOfCidrBlock,
+  IOltSiteByIp,
+} from "./types";
 const store = useDevicesStore();
 
 const API_BASE_URL = process.env.PROVISION_API_URL;
@@ -47,6 +52,15 @@ export const getNetworkAddresses = async () => {
 export const getClients = async (): Promise<IClient[]> => {
   try {
     const { data } = await api.get("/getClients");
+    return data;
+  } catch (error) {
+    console.log("Could not retrieve Client/Subscriber Data!", error);
+    throw error;
+  }
+};
+export const getHiveClients = async (): Promise<IClient[]> => {
+  try {
+    const { data } = await api.get("/getHiveClients");
     return data;
   } catch (error) {
     console.log("Could not retrieve Client/Subscriber Data!", error);
@@ -180,7 +194,9 @@ export const checkPackageBandwidth = async (packageType: string) => {
   }
 };
 
-export const checkOltSiteByIp = async (oltIp: string) => {
+export const checkOltSiteByIp = async (
+  oltIp: string
+): Promise<IOltSiteByIp> => {
   try {
     const { data } = await api.get("/checkOltSiteByIp/" + oltIp);
     return data;

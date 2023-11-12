@@ -195,7 +195,6 @@
 <script setup lang="ts">
 import { toRefs, reactive, ref, watchEffect, onUpdated, watch } from "vue";
 import {
-  updateClient,
   executeAutoConfig,
   executeMonitoring,
   testError,
@@ -374,30 +373,13 @@ const provisionClient = async (): Promise<void> => {
     }
   } catch (error: any) {
     if (error.response && error.response.data) {
-      const responseData = error.response.data;
-      responses.monitoring = `Error: ${responseData.message}`;
+      const responseData = error.response.data.message;
+      responses.monitoring = `Error: ${responseData ? responseData : error}`;
     } else {
-      responses.monitoring = "Error: " + error.message;
+      responses.monitoring = error;
     }
     return stopProvisionFunction();
   }
-
-  // try {
-  //   responses.subscriber = "updating client...";
-  //   const response = await updateClient(
-  //     NewClient.clientId,
-  //     NewClient.serialAndMac.serialNum.label,
-  //     NewClient.oltIp,
-  //     NewClient.serialAndMac.macAddress
-  //   );
-  //   if (response) {
-  //     responses.subscriber = "Successful Client Update";
-  //     responseStatus.subscriber = true;
-  //   }
-  // } catch (error) {
-  //   responses.subscriber = "Unsuccessful client Update: " + error;
-  //   return $q.loading.hide();
-  // }
 
   showProvisionResult.value = true;
   stopProvisionFunction();

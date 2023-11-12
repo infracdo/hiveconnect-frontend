@@ -1,5 +1,5 @@
 <template>
-  <q-layout view="hHh lpR lFf">
+  <q-layout view="hHh lpR lFf" style="min-height: 0">
     <q-header>
       <q-toolbar>
         <q-btn
@@ -57,8 +57,13 @@ const essentialLinks: EssentialLinkProps[] = [
     link: "/",
   },
   {
+    title: "Hive Provisioned",
+    icon: "how_to_reg",
+    link: "/provisioned",
+  },
+  {
     title: "Rogue Devices",
-    icon: "router",
+    icon: "device_unknown",
     link: "/rogue-devices",
   },
   {
@@ -84,7 +89,7 @@ function toggleLeftDrawer() {
 .header-btn {
   display: none;
 }
-@media screen and (min-width: 768px) {
+@media screen and (min-width: 600px) {
   .q-footer {
     display: none;
   }

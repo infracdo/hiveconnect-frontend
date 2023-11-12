@@ -21,6 +21,11 @@ const routes: RouteRecordRaw[] = [
         props: true,
       },
       {
+        path: "provisioned",
+        component: () => import("../pages/HiveProvisioned.vue"),
+        props: true,
+      },
+      {
         path: "troubleshooting",
         component: () => import("../pages/TroubleShooting.vue"),
         props: true,

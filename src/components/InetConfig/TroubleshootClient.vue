@@ -214,7 +214,7 @@ const getInfoApiPrometheus = async (deviceName: string, id: number) => {
 
       try {
         const oltSitePo = await checkOltSiteByIp(clientInfo.oltIp);
-        clientInfo.oltSite = oltSitePo.olt_site;
+        clientInfo.oltSite = oltSitePo.olt_name;
         const responsePo = await checkPackageBandwidth(packageTypeId);
         const { upstream, downstream } = responsePo;
 

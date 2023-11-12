@@ -2,12 +2,12 @@
 <template>
   <q-page padding>
     <q-table
-      class="my-sticky-last-column-table"
       :rows="rows"
+      class="my-sticky-last-column-table"
       title="For Provision"
       row-key="name"
       :columns="columns"
-      :loading="loading"
+      :loading="loading || rows.length === 0"
       :pagination="{
         rowsPerPage: 10,
       }"
@@ -54,39 +54,42 @@
         </q-td>
       </template>
       <template #top-right>
-        <q-select
-          v-model="visibleColumns"
-          multiple
-          outlined
-          dense
-          options-dense
-          :display-value="$q.lang.table.columns"
-          emit-value
-          map-options
-          :options="columns"
-          option-value="name"
-          options-cover
-          style="min-width: 150px"
-        />
-        <q-input
-          v-model="filter"
-          filled
-          dense
-          label="Search"
-          debounce="300"
-          color="primary"
-        >
-          <template #append>
-            <q-icon name="search" />
-          </template>
-        </q-input>
-        <q-icon
-          name="autorenew"
-          class="cursor-pointer q-ma-sm"
-          size="sm"
-          @click="refreshTable"
-          flat
-        />
+        <div class="table-top-right">
+          <q-select
+            v-model="visibleColumns"
+            multiple
+            outlined
+            dense
+            options-dense
+            :display-value="$q.lang.table.columns"
+            emit-value
+            map-options
+            :options="columns"
+            option-value="name"
+            options-cover
+            style="min-width: 150px"
+          />
+          <q-input
+            v-model="filter"
+            filled
+            dense
+            label="Search"
+            debounce="300"
+            color="primary"
+            clearable
+          >
+            <template #append>
+              <q-icon name="search" />
+            </template>
+          </q-input>
+          <q-icon
+            name="autorenew"
+            class="cursor-pointer q-ma-sm"
+            size="sm"
+            @click="refreshTable"
+            flat
+          />
+        </div>
       </template>
     </q-table>
 
@@ -128,6 +131,7 @@ const $q = useQuasar();
 const store = useSubscriberStore();
 const dataId = ref<string>();
 const rows = ref<IClient[]>([]);
+
 const visibleColumns = ref([
   "id",
   "accountNumber",
@@ -183,22 +187,23 @@ const closeTroubleShootModal = () => {
   openTroubleShootModal.value = !openTroubleShootModal.value;
 };
 const refreshTable = async () => {
-  rows.value = [];
-  rows.value = await getClients();
+  filter.value = "";
+  loading.value = true;
+  try {
+    rows.value = await getClients();
+  } finally {
+    loading.value = false;
+  }
 };
 
 const getAllClients = async () => {
   try {
-    loading.value = true;
-    rows.value = await getClients();
+    await refreshTable();
   } catch (error) {
     throw new Error("Cannot get Clients info.");
   }
-  loading.value = false;
 };
-onMounted(async () => {
-  getAllClients();
-});
+onMounted(getAllClients);
 </script>
 
 <style scoped lang="sass"></style>
