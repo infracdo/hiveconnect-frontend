@@ -71,7 +71,13 @@ module.exports = configure(function (ctx) {
       env: {
         PROVISION_API_URL: ctx.dev
           ? 'http://172.91.10.108:8080'
-          : 'https://autoprov-test.apolloglobal.net:8081'
+          : 'https://autoprov-test.apolloglobal.net:8081',
+
+        VUE_APP_KEYCLOAK_URL: 'https://wcdssi.apolloglobal.net:8443/auth',
+        VUE_APP_WORKCONNECT_API_URL: "http://localhost:7500",
+        VUE_APP_KEYCLOAK_REALM:'workconnect-staging',
+        VUE_APP_KEYCLOAK_URL:'https://wcdssi.apolloglobal.net:8443/auth',
+        VUE_APP_KEYCLOAK_CLIENT_ID:'apollo'
       },
       // rawDefine: {}
       // ignorePublicFolder: true,

@@ -20,7 +20,8 @@
             <q-card-section>
               <p>Client Name: {{ clientInfo.clientName }}</p>
               <p>Account Number: {{ clientInfo.accountNumber }}</p>
-              <p>Package Type: {{ clientInfo.packageTypeId }}</p>
+              <p>Package Type: {{ bandwidth.name }}</p>
+              <p>SSID Name: {{ clientInfo.SSID }}</p>
             </q-card-section>
           </q-card>
           <q-card>
@@ -37,9 +38,8 @@
               <p>ONU Serial Number: {{ clientInfo.onuSerialNumber }}</p>
               <p>ONU Mac Address: {{ clientInfo.onuMacAddress }}</p>
               <p>
-                upstream:
-                {{ bandwidth.upStream }} kbps <br />
-                downstream: {{ bandwidth.downStream }} kbps
+                UP stream: {{ bandwidth.upStream }} kbps <br />
+                Down stream: {{ bandwidth.downStream }} kbps
               </p>
             </q-card-section></q-card
           >
@@ -95,7 +95,7 @@ import {
   getClientById,
   checkOltInterface,
   checkOltSiteByIp,
-  checkPackageBandwidth,
+  checkPackageDetails,
 } from "src/api/HiveConnectApis/hiveConnect";
 import { useQuasar } from "quasar";
 const $q = useQuasar();
@@ -136,10 +136,12 @@ const clientInfo = reactive({
   packageTypeId: "",
   oltSite: "",
   oltInterface: "",
+  SSID: "",
 });
 const bandwidth = reactive({
   upStream: "",
   downStream: "",
+  name: "",
 });
 
 const timeOptions = [
@@ -173,7 +175,7 @@ const getInfoApiPrometheus = async (deviceName: string, id: number) => {
       return;
     }
 
-    // NETBOX
+    // Prometheus
     const onuInfoResponse = await axios.get(
       `http://172.91.0.156:9090/api/v1/query?query=lo_status{job=%22ip_address%22,site_tenant=%22DCTECH%22,device_name="${deviceName}"}`
     );
@@ -182,11 +184,10 @@ const getInfoApiPrometheus = async (deviceName: string, id: number) => {
     onuStatus.value = onuInfoResponse.data.data.result[0].value[1];
 
     const OltDeviceName = onuInfo.value.olt_ip;
-    // NETBOX
+    // Prometheus
     const oltInfoResponse = await axios.get(
       `http://172.91.0.156:9090/api/v1/query?query=lo_status{job=%22ip_address%22,site_tenant=%22DCTECH%22,device_name="OLT-${OltDeviceName}"}`
     );
-    console.log(OltDeviceName);
 
     oltStatus.value = oltInfoResponse.data.data.result[0].value[1];
 
@@ -201,13 +202,13 @@ const getInfoApiPrometheus = async (deviceName: string, id: number) => {
       onuMacAddress,
       packageTypeId,
       ssidName,
-      ssidPw,
     } = await getClientById(id);
 
     clientInfo.accountNumber = accountNumber;
     clientInfo.clientName = clientName;
     clientInfo.ipAssigned = ipAssigned;
     clientInfo.oltIp = oltIp;
+    clientInfo.SSID = ssidName;
     clientInfo.oltInterface = oltInterface;
     clientInfo.onuDeviceName = onuDeviceName;
     clientInfo.onuMacAddress = onuMacAddress;
@@ -216,10 +217,12 @@ const getInfoApiPrometheus = async (deviceName: string, id: number) => {
 
     try {
       const oltSitePo = await checkOltSiteByIp(clientInfo.oltIp);
-      clientInfo.oltSite = oltSitePo.olt_name;
-      const responsePo = await checkPackageBandwidth(packageTypeId);
-      const { upstream, downstream } = responsePo;
+      clientInfo.oltSite = oltSitePo.oltName;
+      const { upstream, downstream, name } = await checkPackageDetails(
+        packageTypeId
+      );
 
+      bandwidth.name = name;
       bandwidth.upStream = upstream;
       bandwidth.downStream = downstream;
     } catch (err) {
@@ -278,4 +281,3 @@ watch(confirm, () => {
   }
 }
 </style>
-src/api/HiveConnectApis/networkAddressAPIs

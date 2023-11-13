@@ -5,6 +5,8 @@ import {
   IRogueDevices,
   IipAddressesOfCidrBlock,
   IOltSiteByIp,
+  IOlt,
+  IPackageDetails,
 } from "./types";
 const store = useDevicesStore();
 
@@ -184,9 +186,11 @@ export const getOneAvailableIpAddress = async () => {
   }
 };
 
-export const checkPackageBandwidth = async (packageType: string) => {
+export const checkPackageDetails = async (
+  packageType: string
+): Promise<IPackageDetails> => {
   try {
-    const { data } = await api.get("/checkPackageBandwidth/" + packageType);
+    const { data } = await api.get("/checkPackageDetails/" + packageType);
     return data;
   } catch (error) {
     console.log("Could not retrieve Bandwidth Data!", error);
@@ -214,4 +218,9 @@ export const checkOltInterface = async (deviceName: string) => {
     console.log("Could not retrieve Olt Interface Data!", error);
     throw error;
   }
+};
+
+export const getAllOlts = async (): Promise<IOlt[]> => {
+  const { data } = await api.get("/getAllOlts");
+  return data;
 };

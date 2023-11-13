@@ -28,7 +28,6 @@ export interface IClient {
   onuDeviceName: string;
   packageTypeId: string;
   ssidName: string;
-  ssidPw: string;
 }
 
 export interface IRogueDevices {
@@ -60,6 +59,21 @@ export interface IipAddressesOfCidrBlock {
 
 export interface IOltSiteByIp {
   id: number;
-  olt_name: string;
-  olt_ip: string;
+  oltName: string;
+  oltIp: string;
+}
+
+export interface IOlt {
+  id: number;
+  oltName: string;
+  oltIp: string;
+  nodeId: string;
+}
+
+export interface IPackageDetails {
+  downstream: string;
+  upstream: string;
+  name: string;
+  id: number;
+  packageTypeId: string;
 }

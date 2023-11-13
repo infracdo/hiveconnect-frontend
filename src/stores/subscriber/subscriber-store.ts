@@ -86,13 +86,6 @@ export const useSubscriberStore = defineStore("subsciber", {
         sortable: true,
       },
       {
-        name: "ssidPw",
-        label: "Password",
-        field: "ssidPw",
-        align: "left",
-        sortable: true,
-      },
-      {
         name: "actions",
         label: "Actions",
         field: "",

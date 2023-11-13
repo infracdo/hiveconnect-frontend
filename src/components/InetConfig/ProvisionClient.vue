@@ -97,8 +97,8 @@
             :options="filteredOptions"
             label="OLT IP"
             clearable
-            option-label="HOSTNAME"
-            option-value="IP"
+            option-label="oltName"
+            option-value="oltIp"
             input-debounce="0"
             use-input
             emit-value
@@ -197,12 +197,13 @@ import { toRefs, reactive, ref, watchEffect, onUpdated, watch } from "vue";
 import {
   executeAutoConfig,
   executeMonitoring,
+  getAllOlts,
   testError,
 } from "src/api/HiveConnectApis/hiveConnect";
 import { IsubsriberType, IserialAndMac } from "../models";
 import { QrcodeStream } from "vue-qrcode-reader";
 import { useQuasar } from "quasar";
-import oltjson from "src/assets/CDO OLT IPs - olt.json";
+import { IOlt } from "src/api/HiveConnectApis/types";
 
 //////////////////////
 ////VARIABLES AREA////
@@ -235,7 +236,8 @@ const scannerOptions = [
   "itf",
   "qr_code",
 ];
-const optionsOltIp = oltjson;
+const optionsOltIp = ref<IOlt[]>([]);
+const filteredOptions = ref<IOlt[]>([]);
 
 const responses = reactive({
   autoConfig: "",
@@ -246,20 +248,6 @@ const responseStatus = reactive({
   monitoring: false,
 });
 
-const filteredOptions = ref<
-  {
-    LOCATION: string;
-    IP: string;
-    HOSTNAME: string;
-    TYPE: string;
-    MANUFACTURER: string;
-    STATUS: string;
-    MODEL: string;
-    SNMP: string;
-    FIELD9: string;
-    FIELD10: string;
-  }[]
->([]);
 const result = ref("");
 const NewClient = reactive({
   clientId: 0,
@@ -281,13 +269,13 @@ const NewClient = reactive({
 const filterSelect = (val: string, update: any) => {
   if (val === "") {
     update(() => {
-      filteredOptions.value = optionsOltIp;
+      filteredOptions.value = optionsOltIp.value;
     });
   }
   update(() => {
     const needle = val.toLowerCase();
-    filteredOptions.value = optionsOltIp.filter((options) => {
-      return options.HOSTNAME.toLowerCase().includes(needle);
+    filteredOptions.value = optionsOltIp.value.filter((options: IOlt) => {
+      return options.oltName.toLowerCase().includes(needle);
     });
   });
 };
@@ -399,9 +387,11 @@ const notifForMissingInRogue = (): void => {
 /////////////////////
 ///LIFECYCLE HOOKS///
 /////////////////////
-onUpdated(() => {
+onUpdated(async () => {
   NewClient.serialAndMac.serialNum.label = props.client?.onuSerialNumber;
   NewClient.serialAndMac.macAddress = props.client?.onuMacAddress;
+  optionsOltIp.value = await getAllOlts();
+  console.log(optionsOltIp.value);
 });
 watchEffect(() => {
   NewClient.clientId = props.client?.id;
