@@ -24,7 +24,7 @@
             icon="assignment"
             @click="openModal(props.row.id)"
           />
-          <q-btn
+          <!-- <q-btn
             dense
             round
             flat
@@ -50,7 +50,7 @@
             >
               Device Name Missing!
             </q-tooltip>
-          </q-btn>
+          </q-btn> -->
         </q-td>
       </template>
       <template #top-right>
@@ -100,12 +100,12 @@
       :client="client"
       :close-modal="closeModal"
     />
-    <troubleshoot-client
+    <!-- <troubleshoot-client
       :confirm="openTroubleShootModal"
       :close-modal="closeTroubleShootModal"
       :device-name="deviceName"
       :clientId="clientId"
-    ></troubleshoot-client>
+    ></troubleshoot-client> -->
     <subscriber-modal :data-id="dataId" :get-subsribers="refreshTable" />
   </q-page>
 </template>
@@ -187,6 +187,7 @@ const closeTroubleShootModal = () => {
   openTroubleShootModal.value = !openTroubleShootModal.value;
 };
 const refreshTable = async () => {
+  rows.value = [];
   filter.value = "";
   loading.value = true;
   try {

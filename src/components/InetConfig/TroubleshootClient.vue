@@ -33,7 +33,7 @@
                   >{{ onuStatus === "1" ? "UP" : "Down" }}</span
                 >
               </p>
-              <p>ONU IP: {{ onuInfo.instance }}</p>
+              <p>ONU IP: {{ clientInfo.ipAssigned }}</p>
               <p>ONU Serial Number: {{ clientInfo.onuSerialNumber }}</p>
               <p>ONU Mac Address: {{ clientInfo.onuMacAddress }}</p>
               <p>
@@ -189,47 +189,42 @@ const getInfoApiPrometheus = async (deviceName: string, id: number) => {
     console.log(OltDeviceName);
 
     oltStatus.value = oltInfoResponse.data.data.result[0].value[1];
-    const client = await getClientById(id);
 
-    if (client) {
-      const {
-        accountNumber,
-        clientName,
-        ipAssigned,
+    const {
+      accountNumber,
+      clientName,
+      ipAssigned,
+      onuSerialNumber,
+      oltInterface,
+      oltIp,
+      onuDeviceName,
+      onuMacAddress,
+      packageTypeId,
+      ssidName,
+      ssidPw,
+    } = await getClientById(id);
 
-        onuDeviceName,
-        onuMacAddress,
-        onuSerialNumber,
-        packageTypeId,
-      } = client;
+    clientInfo.accountNumber = accountNumber;
+    clientInfo.clientName = clientName;
+    clientInfo.ipAssigned = ipAssigned;
+    clientInfo.oltIp = oltIp;
+    clientInfo.oltInterface = oltInterface;
+    clientInfo.onuDeviceName = onuDeviceName;
+    clientInfo.onuMacAddress = onuMacAddress;
+    clientInfo.onuSerialNumber = onuSerialNumber;
+    clientInfo.packageTypeId = packageTypeId;
 
-      clientInfo.accountNumber = accountNumber;
-      clientInfo.clientName = clientName;
-      clientInfo.ipAssigned = ipAssigned;
-      clientInfo.oltIp = OltDeviceName;
-      clientInfo.onuDeviceName = onuDeviceName;
-      clientInfo.onuMacAddress = onuMacAddress;
-      clientInfo.onuSerialNumber = onuSerialNumber;
-      clientInfo.packageTypeId = packageTypeId;
+    try {
+      const oltSitePo = await checkOltSiteByIp(clientInfo.oltIp);
+      clientInfo.oltSite = oltSitePo.olt_name;
+      const responsePo = await checkPackageBandwidth(packageTypeId);
+      const { upstream, downstream } = responsePo;
 
-      try {
-        const oltSitePo = await checkOltSiteByIp(clientInfo.oltIp);
-        clientInfo.oltSite = oltSitePo.olt_name;
-        const responsePo = await checkPackageBandwidth(packageTypeId);
-        const { upstream, downstream } = responsePo;
-
-        bandwidth.upStream = upstream;
-        bandwidth.downStream = downstream;
-      } catch (err) {
-        throw err;
-      }
-    } else {
-      throw new Error("Error fetching client data");
+      bandwidth.upStream = upstream;
+      bandwidth.downStream = downstream;
+    } catch (err) {
+      throw err;
     }
-
-    const oltInterfaceResponse = await checkOltInterface(deviceName);
-    clientInfo.oltInterface = oltInterfaceResponse;
-    console.log(clientInfo.oltInterface);
 
     doneApiCalls.value = true;
   } catch (err) {
@@ -244,7 +239,7 @@ const closeModalAndShowNotif = () => {
   showNotif();
 };
 
-watch(confirm, (newVal) => {
+watch(confirm, () => {
   if (confirm.value === true) {
     getInfoApiPrometheus(props.deviceName, props.clientId);
   }

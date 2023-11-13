@@ -136,6 +136,7 @@ onMounted(async () => {
 });
 
 const getProvisioned = async (): Promise<void> => {
+  filter.value = "";
   loading.value = true;
   rowsHive.value = [];
   rowsHive.value = await getHiveClients();

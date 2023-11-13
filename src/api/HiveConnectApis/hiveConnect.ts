@@ -67,7 +67,7 @@ export const getHiveClients = async (): Promise<IClient[]> => {
     throw error;
   }
 };
-export const getClientById = async (id: number) => {
+export const getClientById = async (id: number): Promise<IClient> => {
   try {
     const { data } = await api.get("/getClientById/" + id);
     return data;

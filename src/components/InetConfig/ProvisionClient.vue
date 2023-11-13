@@ -372,11 +372,10 @@ const provisionClient = async (): Promise<void> => {
       responseStatus.monitoring = true;
     }
   } catch (error: any) {
-    if (error.response && error.response.data) {
-      const responseData = error.response.data.message;
-      responses.monitoring = `Error: ${responseData ? responseData : error}`;
+    if (error.response.data.message !== "") {
+      responses.monitoring = error.response.data.message;
     } else {
-      responses.monitoring = error;
+      responses.monitoring = "Something went wrong!";
     }
     return stopProvisionFunction();
   }
@@ -393,7 +392,7 @@ const stopProvisionFunction = () => {
 const notifForMissingInRogue = (): void => {
   $q.notify({
     message: "Scanned Value is not in rogue devices!",
-    color: "danger",
+    color: "negative",
     position: "top",
   });
 };

@@ -4,18 +4,13 @@
     <div class="select">
       <q-select
         v-model="selectSubscriber"
-        :options="
-          deviceNames.map((item) => ({
-            label: item.onuDeviceName,
-            id: item.id,
-          }))
-        "
+        :options="select"
         label="Select Subscriber"
         filled
         class="select-subscriber"
         map-option
         @update:model-value="
-          getInfoApiPrometheus(selectSubscriber.label, selectSubscriber.id)
+          getInfoApiPrometheus(selectSubscriber, selectSubscriber.id)
         "
       />
       <q-select
@@ -98,7 +93,7 @@
       <div class="grafana" v-if="doneApiCalls && selectTime !== ''">
         <div>
           <iframe
-            :src="`http://172.91.10.151:3000/d-solo/d94d1e0e-a6e4-45c4-847f-6603e1c31ccb/subscribers-traffic-rate-and-uptime?orgId=1&from=now-${selectTime}&to=now&var-Subscriber=${selectSubscriber.label}&panelId=3`"
+            :src="`http://172.91.10.151:3000/d-solo/d94d1e0e-a6e4-45c4-847f-6603e1c31ccb/subscribers-traffic-rate-and-uptime?orgId=1&from=now-${selectTime}&to=now&var-Subscriber=${selectSubscriber}&panelId=3`"
             class="grafana-panel"
             frameborder="0"
           ></iframe>
@@ -123,12 +118,13 @@ const selectSubscriber = ref({
   label: "",
   id: 0,
 });
+const select = ["Stefani_Germanotta_bw1-100.126.0.3"];
 const bar = ref<{
   start(): void;
   stop(): void;
 }>();
 const doneApiCalls = ref(false);
-const selectTime = ref("");
+const selectTime = ref("2d");
 
 const deviceNames = ref<{ onuDeviceName: string; id: number }[]>([]);
 const onuInfo = ref({
@@ -187,6 +183,8 @@ const ayy = async () => {
 };
 
 const getInfoApiPrometheus = async (deviceName: string, id: number) => {
+  console.log(deviceName);
+
   const barRef = bar.value;
   barRef?.start();
 
@@ -196,42 +194,42 @@ const getInfoApiPrometheus = async (deviceName: string, id: number) => {
 
   onuInfo.value = response.data.data.result[0].metric;
   onuStatus.value = response.data.data.result[0].value[1];
-  const oltInfo = await axios.get(
-    `http://172.91.10.129:9090/api/v1/query?query=lo_status{job=%22ip_address%22,site_tenant=%22DCTECH%22,device_name="${onuInfo.value.site_name}"}`
-  );
-  oltStatus.value = oltInfo.data.data.result[0].value[1];
+  // const oltInfo = await axios.get(
+  //   `http://172.91.10.129:9090/api/v1/query?query=lo_status{job=%22ip_address%22,site_tenant=%22DCTECH%22,device_name="${onuInfo.value.site_name}"}`
+  // );
+  // oltStatus.value = oltInfo.data.data.result[0].value[1];
 
-  const client = await getClientById(id);
-  const {
-    accountNumber,
-    clientName,
-    ipAssigned,
-    oltIp,
-    onuDeviceName,
-    onuMacAddress,
-    onuSerialNumber,
-    packageTypeId,
-  } = client;
-  clientInfo.accountNumber = accountNumber;
-  clientInfo.clientName = clientName;
-  clientInfo.ipAssigned = ipAssigned;
-  clientInfo.oltIp = oltIp;
-  clientInfo.onuDeviceName = onuDeviceName;
-  clientInfo.onuMacAddress = onuMacAddress;
-  clientInfo.onuSerialNumber = onuSerialNumber;
-  clientInfo.packageTypeId = packageTypeId;
+  // const client = await getClientById(id);
+  // const {
+  //   accountNumber,
+  //   clientName,
+  //   ipAssigned,
+  //   oltIp,
+  //   onuDeviceName,
+  //   onuMacAddress,
+  //   onuSerialNumber,
+  //   packageTypeId,
+  // } = client;
+  // clientInfo.accountNumber = accountNumber;
+  // clientInfo.clientName = clientName;
+  // clientInfo.ipAssigned = ipAssigned;
+  // clientInfo.oltIp = oltIp;
+  // clientInfo.onuDeviceName = onuDeviceName;
+  // clientInfo.onuMacAddress = onuMacAddress;
+  // clientInfo.onuSerialNumber = onuSerialNumber;
+  // clientInfo.packageTypeId = packageTypeId;
 
-  const oltSitePo = await checkOltSiteByIp(oltIp);
-  const { olt_site } = oltSitePo;
-  clientInfo.oltSite = olt_site;
+  // const oltSitePo = await checkOltSiteByIp(oltIp);
+  // const { olt_name } = oltSitePo;
+  // clientInfo.oltSite = olt_name;
 
-  const responsePo = await checkPackageBandwidth(packageTypeId);
-  const { upstream, downstream } = responsePo;
-  bandwidth.upStream = upstream;
-  bandwidth.downStream = downstream;
+  // const responsePo = await checkPackageBandwidth(packageTypeId);
+  // const { upstream, downstream } = responsePo;
+  // bandwidth.upStream = upstream;
+  // bandwidth.downStream = downstream;
 
-  const oltInterfaceResponse = await checkOltInterface(deviceName);
-  clientInfo.oltInterface = oltInterfaceResponse;
+  // const oltInterfaceResponse = await checkOltInterface(deviceName);
+  // clientInfo.oltInterface = oltInterfaceResponse;
   barRef?.stop();
   doneApiCalls.value = true;
 };
