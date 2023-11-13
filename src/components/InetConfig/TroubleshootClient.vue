@@ -182,7 +182,7 @@ const getInfoApiPrometheus = async (deviceName: string, id: number) => {
       return;
     }
 
-    // Prometheus
+    //Prometheus
     const onuInfoResponse = await axios.get(
       `http://172.91.0.156:9090/api/v1/query?query=lo_status{job=%22ip_address%22,site_tenant=%22DCTECH%22,device_name="${deviceName}"}`
     );

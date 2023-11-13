@@ -90,7 +90,7 @@
       </q-card>
     </div>
     <div class="grafana-main">
-      <div class="grafana" v-if="doneApiCalls && selectTime !== ''">
+      <div class="grafana" v-if="!doneApiCalls">
         <div>
           <iframe
             :src="`http://172.91.10.151:3000/d-solo/d94d1e0e-a6e4-45c4-847f-6603e1c31ccb/subscribers-traffic-rate-and-uptime?orgId=1&from=now-${selectTime}&to=now&var-Subscriber=${selectSubscriber}&panelId=3`"
@@ -118,7 +118,10 @@ const selectSubscriber = ref({
   label: "",
   id: 0,
 });
-const select = ["Stefani_Germanotta_bw1-100.126.0.3"];
+const select = [
+  "Stefani_Germanotta_bw1-100.126.0.3",
+  "Mike_Stronghold_bw1-100.126.0.3",
+];
 const bar = ref<{
   start(): void;
   stop(): void;
@@ -184,7 +187,7 @@ const ayy = async () => {
 
 const getInfoApiPrometheus = async (deviceName: string, id: number) => {
   console.log(deviceName);
-
+  doneApiCalls.value = false;
   const barRef = bar.value;
   barRef?.start();
 
