@@ -27,10 +27,7 @@ module.exports = configure(function (ctx) {
     // app boot file (/src/boot)
     // --> boot files are part of "main.js"
     // https://v2.quasar.dev/quasar-cli-vite/boot-files
-    boot: [
-
-      'axios'
-    ],
+    boot: ['keycloak'],
 
     // https://v2.quasar.dev/quasar-cli-vite/quasar-config-js#css
     css: [
@@ -73,10 +70,8 @@ module.exports = configure(function (ctx) {
           ? 'http://172.91.10.108:8080'
           : 'https://autoprov-test.apolloglobal.net:8081',
 
-        VUE_APP_KEYCLOAK_URL: 'https://wcdssi.apolloglobal.net:8443/auth',
-        VUE_APP_WORKCONNECT_API_URL: "http://localhost:7500",
-        VUE_APP_KEYCLOAK_REALM:'workconnect-staging',
         VUE_APP_KEYCLOAK_URL:'https://wcdssi.apolloglobal.net:8443/auth',
+        VUE_APP_KEYCLOAK_REALM:'hive-connect',
         VUE_APP_KEYCLOAK_CLIENT_ID:'apollo'
       },
       // rawDefine: {}

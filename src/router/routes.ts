@@ -6,7 +6,7 @@ const routes: RouteRecordRaw[] = [
     component: () => import("layouts/MainLayout.vue"),
     children: [
       // { path: '', component: () => import('pages/IndexPage.vue') },
-      { path: "", component: () => import("pages/InetConfig.vue") },
+      { path: "inet-config", component: () => import("pages/InetConfig.vue") },
       {
         path: "rogue-devices",
         component: () => import("pages/ACSRougeTable.vue"),
@@ -32,7 +32,8 @@ const routes: RouteRecordRaw[] = [
       },
       {
         path: "/:catchAll(.*)*",
-        component: () => import("pages/ErrorNotFound.vue"),
+        // component: () => import("pages/ErrorNotFound.vue"),
+        redirect: "/inet-config",
       },
     ],
   },

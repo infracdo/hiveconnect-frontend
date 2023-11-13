@@ -93,11 +93,14 @@ import { toRefs, ref, reactive, watch } from "vue";
 import axios from "axios";
 import {
   getClientById,
-  checkOltInterface,
   checkOltSiteByIp,
   checkPackageDetails,
 } from "src/api/HiveConnectApis/hiveConnect";
 import { useQuasar } from "quasar";
+
+/////////////////
+// Variables ///
+//////////////////
 const $q = useQuasar();
 const props = defineProps<{
   confirm: boolean;
@@ -143,6 +146,10 @@ const bandwidth = reactive({
   downStream: "",
   name: "",
 });
+
+////////////////
+//// Methods ///
+////////////////
 
 const timeOptions = [
   { label: "Last 5 minutes", value: "5m" },

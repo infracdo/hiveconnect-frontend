@@ -13,6 +13,7 @@
         />
 
         <q-toolbar-title class="text-center"> Hive Connect </q-toolbar-title>
+        <Logout />
       </q-toolbar>
     </q-header>
 
@@ -45,6 +46,7 @@
 </template>
 
 <script setup lang="ts">
+import Logout from "src/components/Logout.vue";
 import { ref } from "vue";
 import EssentialLink, {
   EssentialLinkProps,
@@ -54,7 +56,7 @@ const essentialLinks: EssentialLinkProps[] = [
   {
     title: "Provision",
     icon: "settings",
-    link: "/",
+    link: "/inet-config",
   },
   {
     title: "Hive Provisioned",

@@ -187,10 +187,10 @@ export const getOneAvailableIpAddress = async () => {
 };
 
 export const checkPackageDetails = async (
-  packageType: string
+  packageTypeId: string
 ): Promise<IPackageDetails> => {
   try {
-    const { data } = await api.get("/checkPackageDetails/" + packageType);
+    const { data } = await api.get("/checkPackageDetails/" + packageTypeId);
     return data;
   } catch (error) {
     console.log("Could not retrieve Bandwidth Data!", error);
@@ -210,15 +210,15 @@ export const checkOltSiteByIp = async (
   }
 };
 
-export const checkOltInterface = async (deviceName: string) => {
-  try {
-    const { data } = await api.get("/checkOltInterface/" + deviceName);
-    return data;
-  } catch (error) {
-    console.log("Could not retrieve Olt Interface Data!", error);
-    throw error;
-  }
-};
+// export const checkOltInterface = async (deviceName: string) => {
+//   try {
+//     const { data } = await api.get("/checkOltInterface/" + deviceName);
+//     return data;
+//   } catch (error) {
+//     console.log("Could not retrieve Olt Interface Data!", error);
+//     throw error;
+//   }
+// };
 
 export const getAllOlts = async (): Promise<IOlt[]> => {
   const { data } = await api.get("/getAllOlts");
