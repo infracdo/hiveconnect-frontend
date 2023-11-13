@@ -175,7 +175,7 @@ const getInfoApiPrometheus = async (deviceName: string, id: number) => {
 
     // NETBOX
     const onuInfoResponse = await axios.get(
-      `http://172.91.10.129:9090/api/v1/query?query=lo_status{job=%22ip_address%22,site_tenant=%22DCTECH%22,device_name="${deviceName}"}`
+      `http://172.91.0.156:9090/api/v1/query?query=lo_status{job=%22ip_address%22,site_tenant=%22DCTECH%22,device_name="${deviceName}"}`
     );
 
     onuInfo.value = onuInfoResponse.data.data.result[0].metric;
@@ -184,7 +184,7 @@ const getInfoApiPrometheus = async (deviceName: string, id: number) => {
     const OltDeviceName = onuInfo.value.olt_ip;
     // NETBOX
     const oltInfoResponse = await axios.get(
-      `http://172.91.10.129:9090/api/v1/query?query=lo_status{job=%22ip_address%22,site_tenant=%22DCTECH%22,device_name="OLT-${OltDeviceName}"}`
+      `http://172.91.0.156:9090/api/v1/query?query=lo_status{job=%22ip_address%22,site_tenant=%22DCTECH%22,device_name="OLT-${OltDeviceName}"}`
     );
     console.log(OltDeviceName);
 
