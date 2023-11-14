@@ -73,7 +73,7 @@ module.exports = configure(function (ctx) {
           : 'https://autoprov-test.apolloglobal.net:8081',
 
         PROVISION_API_PROMETHEUS: 'https://dctech-prometheus.apolloglobal.net',
-        PROVISION_API_GRAFANA: 'https://dtech-grafana.apollogloba.net',
+        PROVISION_API_GRAFANA: 'https://dctech-grafana.apolloglobal.net',
         VUE_APP_KEYCLOAK_URL:'https://wcdssi.apolloglobal.net:8443/auth',
         VUE_APP_KEYCLOAK_REALM:'hive-connect',
         VUE_APP_KEYCLOAK_CLIENT_ID:'apollo'

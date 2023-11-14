@@ -90,9 +90,16 @@
     <div class="grafana-main">
       <div class="grafana" v-if="!doneApiCalls">
         <div>
-          <iframe
+          <!-- <iframe
             :src="`${grafanaApi}/d-solo/d94d1e0e-a6e4-45c4-847f-6603e1c31ccb/subscribers-traffic-rate-and-uptime?orgId=1&from=now-${selectTime}&to=now&var-Subscriber=${selectSubscriber}&panelId=3`"
             class="grafana-panel"
+            frameborder="0"
+          ></iframe> -->
+
+          <iframe
+            :src="`https://dctech-grafana.apolloglobal.net/d-solo/d94d1e0e-a6e4-45c4-847f-6603e1c31ccb/subscribers-traffic-rate-and-uptime?orgId=1&var-Subscriber=Eef_Elsie_bw1-100.126.0.4&panelId=3`"
+            width="450"
+            height="200"
             frameborder="0"
           ></iframe>
         </div>
