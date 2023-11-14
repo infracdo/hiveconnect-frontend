@@ -13,6 +13,7 @@
         />
 
         <q-toolbar-title class="text-center"> Hive Connect </q-toolbar-title>
+        <q-toggle v-model="isDarkMode" keep-color color="dark" />
         <Logout />
       </q-toolbar>
     </q-header>
@@ -47,11 +48,14 @@
 
 <script setup lang="ts">
 import Logout from "src/components/Logout.vue";
-import { ref } from "vue";
+import { ref, watch } from "vue";
 import EssentialLink, {
   EssentialLinkProps,
 } from "components/EssentialLink.vue";
 
+import { useQuasar } from "quasar";
+
+const $q = useQuasar();
 const essentialLinks: EssentialLinkProps[] = [
   {
     title: "Provision",
@@ -81,6 +85,18 @@ const essentialLinks: EssentialLinkProps[] = [
 ];
 
 const leftDrawerOpen = ref(false);
+const isDarkMode = ref(false);
+
+watch(
+  () => isDarkMode.value,
+  () => {
+    if (isDarkMode.value === true) {
+      $q.dark.toggle();
+    } else {
+      $q.dark.toggle();
+    }
+  }
+);
 
 function toggleLeftDrawer() {
   leftDrawerOpen.value = !leftDrawerOpen.value;

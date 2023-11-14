@@ -122,7 +122,7 @@ export const testError = async () => {
 //   });
 //   return data;
 // };
-export const prepovisionCheck = async (
+export const preprovisionCheck = async (
   accNum: string,
   clientName: string,
   serialNum: string,
@@ -130,7 +130,7 @@ export const prepovisionCheck = async (
   olt: string,
   packageType: string
 ) => {
-  const { data } = await api.post("/prepovisionCheck", {
+  const { data } = await api.post("/preprovisionCheck", {
     accountNo: accNum,
     clientName: clientName,
     serialNumber: serialNum,

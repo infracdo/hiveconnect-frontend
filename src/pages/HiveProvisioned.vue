@@ -16,6 +16,20 @@
     >
       <template #top-right>
         <div class="table-top-right">
+          <q-input
+            v-model="filter"
+            filled
+            dense
+            label="Search"
+            debounce="300"
+            color="primary"
+            clearable
+          >
+            <template #append>
+              <q-icon name="search" />
+            </template>
+          </q-input>
+
           <q-select
             v-model="visibleColumns"
             multiple
@@ -30,19 +44,6 @@
             options-cover
             style="min-width: 150px"
           />
-          <q-input
-            v-model="filter"
-            filled
-            dense
-            label="Search"
-            debounce="300"
-            color="primary"
-            clearable
-          >
-            <template #append>
-              <q-icon name="search" />
-            </template>
-          </q-input>
 
           <q-icon
             name="autorenew"

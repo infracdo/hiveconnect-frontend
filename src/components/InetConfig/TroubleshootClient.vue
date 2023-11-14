@@ -31,7 +31,7 @@
                 ONU Status:
                 <span
                   :style="onuStatus === '1' ? 'color: green' : 'color: red'"
-                  >{{ onuStatus === "1" ? "UP" : "Down" }}</span
+                  >{{ onuStatus === "1" ? "Online" : "Offline" }}</span
                 >
               </p>
               <p>ONU IP: {{ clientInfo.ipAssigned }}</p>
@@ -51,7 +51,7 @@
                 <span
                   :style="oltStatus === '1' ? 'color: green' : 'color: red'"
                 >
-                  {{ oltStatus === "1" ? "UP" : "Down" }}</span
+                  {{ oltStatus === "1" ? "Online" : "Offline" }}</span
                 >
               </p>
               <p>
@@ -101,6 +101,7 @@ import { useQuasar } from "quasar";
 /////////////////
 // Variables ///
 //////////////////
+const testmodal = ref(true);
 const $q = useQuasar();
 const props = defineProps<{
   confirm: boolean;

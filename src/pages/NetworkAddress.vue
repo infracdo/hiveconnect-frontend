@@ -74,6 +74,9 @@ watchEffect(async () => {
 </script>
 
 <style scoped>
+.body--dark .ip-link {
+  color: white;
+}
 .ip-link {
   cursor: pointer;
   text-decoration: none;
@@ -84,6 +87,3 @@ watchEffect(async () => {
   text-decoration: underline;
 }
 </style>
-src/api/NetworkAddressAPI/networkAddressAPIs
-src/api/NetworkAddressAPI/networkAddressAPIs
-src/api/HiveConnectApis/networkAddressAPIs

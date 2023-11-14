@@ -143,6 +143,17 @@
               >
             </p> -->
             <p>
+              Preprovision Checking:
+              <span
+                :class="
+                  responseStatus.provisionCheck
+                    ? 'text-positive'
+                    : 'text-warning'
+                "
+                >{{ responses.provisionCheck }}</span
+              >
+            </p>
+            <p>
               Auto Config:
               <span
                 :class="
@@ -182,11 +193,11 @@
             </div>
           </div>
         </q-banner>
-        <q-img
+        <!-- <q-img
           v-if="showSkeletonDancing"
           src="~assets/dance.gif"
           class="skeleton-dance"
-        ></q-img>
+        ></q-img> -->
       </q-card>
     </q-dialog>
   </q-page>
@@ -199,7 +210,7 @@ import {
   executeMonitoring,
   getAllOlts,
   testError,
-  prepovisionCheck,
+  preprovisionCheck,
 } from "src/api/HiveConnectApis/hiveConnect";
 import { IsubsriberType, IserialAndMac } from "../models";
 import { QrcodeStream } from "vue-qrcode-reader";
@@ -243,10 +254,12 @@ const filteredOptions = ref<IOlt[]>([]);
 const responses = reactive({
   autoConfig: "",
   monitoring: "",
+  provisionCheck: "",
 });
 const responseStatus = reactive({
   autoConfig: false,
   monitoring: false,
+  provisionCheck: false,
 });
 
 const result = ref("");
@@ -325,7 +338,8 @@ const provisionClient = async (): Promise<void> => {
   responses.monitoring = "";
 
   try {
-    const response = await prepovisionCheck(
+    responses.provisionCheck = "Preprovision checking ...";
+    const response = await preprovisionCheck(
       NewClient.accountNumber,
       NewClient.clientName,
       NewClient.serialAndMac.serialNum.label,
@@ -333,9 +347,10 @@ const provisionClient = async (): Promise<void> => {
       NewClient.oltIp,
       NewClient.packageType
     );
-    console.log(response.message);
-  } catch (error) {
-    console.log(error);
+    responses.provisionCheck = response.message;
+    responseStatus.provisionCheck = true;
+  } catch (error: any) {
+    responses.provisionCheck = error.response.data.message;
     return stopProvisionFunction();
   }
 
@@ -383,8 +398,8 @@ const provisionClient = async (): Promise<void> => {
     return stopProvisionFunction();
   }
 
-  showProvisionResult.value = true;
   stopProvisionFunction();
+  showProvisionResult.value = true;
 };
 
 const stopProvisionFunction = () => {
