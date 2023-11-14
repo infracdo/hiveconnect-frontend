@@ -26,11 +26,11 @@
           />
         </q-td>
       </template>
-      <template #body-cell-packageTypeId="props">
+      <!-- <template #body-cell-packageTypeId="props">
         <q-td :props="props">
-          {{ checkPackageDetails(props.row.packageTypeId).name }}
+          {{ packageType(props.row.packageTypeId) }}
         </q-td>
-      </template>
+      </template> -->
       <template #top-right>
         <div class="table-top-right">
           <q-select
@@ -90,7 +90,7 @@
 
 <script setup lang="ts">
 import { QTableProps } from "quasar";
-import { ref, watchEffect, watch, onMounted } from "vue";
+import { ref, watchEffect, watch, onMounted, computed } from "vue";
 import { useSubscriberStore } from "src/stores/subscriber/subscriber-store";
 import TroubleshootClient from "src/components/InetConfig/TroubleshootClient.vue";
 import SubscriberModal from "src/components/InetConfig/SubscriberModal.vue";
@@ -159,6 +159,13 @@ const openModal = async (id: number) => {
   modalOpen.value = !modalOpen.value;
   $q.loading.hide();
 };
+
+// const packageType = computed(() => {
+//   return async (packageTypeId: string) => {
+//     const response = await checkPackageDetails(packageTypeId);
+//     return response.name;
+//   };
+// });
 
 const closeModal = () => {
   modalOpen.value = !modalOpen.value;

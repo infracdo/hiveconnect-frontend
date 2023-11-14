@@ -91,7 +91,7 @@
       <div class="grafana" v-if="!doneApiCalls">
         <div>
           <iframe
-            :src="`http://172.91.10.151:3000/d-solo/d94d1e0e-a6e4-45c4-847f-6603e1c31ccb/subscribers-traffic-rate-and-uptime?orgId=1&from=now-${selectTime}&to=now&var-Subscriber=${selectSubscriber}&panelId=3`"
+            :src="`${grafanaApi}/d-solo/d94d1e0e-a6e4-45c4-847f-6603e1c31ccb/subscribers-traffic-rate-and-uptime?orgId=1&from=now-${selectTime}&to=now&var-Subscriber=${selectSubscriber}&panelId=3`"
             class="grafana-panel"
             frameborder="0"
           ></iframe>
@@ -136,8 +136,8 @@ const onuInfo = ref({
 });
 const onuStatus = ref("");
 const oltStatus = ref("");
-const grafanaApi = process.env.PROVISION_API_GRAFANA;
 const prometheusApi = process.env.PROVISION_API_PROMETHEUS;
+const grafanaApi = process.env.PROVISION_API_GRAFANA;
 const timeOptions = [
   { label: "Last 5 minutes", value: "5m" },
   { label: "Last 15 minutes", value: "15m" },
@@ -187,7 +187,7 @@ const getInfoApiPrometheus = async (deviceName: string) => {
   barRef?.start();
 
   const response = await axios.get(
-    `${grafanaApi}/api/v1/query?query=lo_status{job=%22ip_address%22,site_tenant=%22DCTECH%22,device_name="${deviceName}"}`
+    `${prometheusApi}/api/v1/query?query=lo_status{job=%22ip_address%22,site_tenant=%22DCTECH%22,device_name="${deviceName}"}`
   );
 
   onuInfo.value = response.data.data.result[0].metric;
