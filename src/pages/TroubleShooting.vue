@@ -9,9 +9,7 @@
         filled
         class="select-subscriber"
         map-option
-        @update:model-value="
-          getInfoApiPrometheus(selectSubscriber, selectSubscriber.id)
-        "
+        @update:model-value="getInfoApiPrometheus(selectSubscriber)"
       />
       <q-select
         v-model="selectTime"
@@ -37,7 +35,7 @@
       skip-hijack
     />
 
-    <div class="my-cards" v-if="doneApiCalls">
+    <div class="my-cards">
       <q-card>
         <q-banner class="bg-primary text-white"> Client Details </q-banner>
         <q-card-section>
@@ -52,7 +50,7 @@
           <p class="">
             ONU Status:
             <span
-              v-if="selectSubscriber.label !== ''"
+              v-if="selectSubscriber !== ''"
               :class="onuStatus === '1' ? 'up' : 'down'"
               >{{ onuStatus === "1" ? "UP" : "Down" }}</span
             >
@@ -75,7 +73,7 @@
           <p class="">
             OLT Status:
             <span
-              v-if="selectSubscriber.label !== ''"
+              v-if="selectSubscriber !== ''"
               :class="oltStatus === '1' ? 'up' : 'down'"
               >{{ oltStatus === "1" ? "UP" : "Down" }}</span
             >
@@ -109,18 +107,14 @@ import axios from "axios";
 import {
   getClients,
   getClientById,
-  checkPackageBandwidth,
   checkOltSiteByIp,
-  checkOltInterface,
 } from "src/api/HiveConnectApis/hiveConnect";
 import { IClient } from "src/api/HiveConnectApis/types";
-const selectSubscriber = ref({
-  label: "",
-  id: 0,
-});
+const selectSubscriber = ref("");
 const select = [
   "Stefani_Germanotta_bw1-100.126.0.3",
   "Mike_Stronghold_bw1-100.126.0.3",
+  "Eef_Elsie_bw1-100.126.0.4",
 ];
 const bar = ref<{
   start(): void;
@@ -142,7 +136,8 @@ const onuInfo = ref({
 });
 const onuStatus = ref("");
 const oltStatus = ref("");
-
+const grafanaApi = process.env.PROVISION_API_GRAFANA;
+const prometheusApi = process.env.PROVISION_API_PROMETHEUS;
 const timeOptions = [
   { label: "Last 5 minutes", value: "5m" },
   { label: "Last 15 minutes", value: "15m" },
@@ -185,22 +180,23 @@ const ayy = async () => {
     }));
 };
 
-const getInfoApiPrometheus = async (deviceName: string, id: number) => {
+const getInfoApiPrometheus = async (deviceName: string) => {
   console.log(deviceName);
   doneApiCalls.value = false;
   const barRef = bar.value;
   barRef?.start();
 
   const response = await axios.get(
-    `http://172.91.10.129:9090/api/v1/query?query=lo_status{job=%22ip_address%22,site_tenant=%22DCTECH%22,device_name="${deviceName}"}`
+    `${grafanaApi}/api/v1/query?query=lo_status{job=%22ip_address%22,site_tenant=%22DCTECH%22,device_name="${deviceName}"}`
   );
 
   onuInfo.value = response.data.data.result[0].metric;
   onuStatus.value = response.data.data.result[0].value[1];
-  // const oltInfo = await axios.get(
-  //   `http://172.91.10.129:9090/api/v1/query?query=lo_status{job=%22ip_address%22,site_tenant=%22DCTECH%22,device_name="${onuInfo.value.site_name}"}`
-  // );
-  // oltStatus.value = oltInfo.data.data.result[0].value[1];
+
+  const oltInfo = await axios.get(
+    `${prometheusApi}/api/v1/query?query=lo_status{job=%22ip_address%22,site_tenant=%22DCTECH%22,device_name="${onuInfo.value.site_name}"}`
+  );
+  oltStatus.value = oltInfo.data.data.result[0].value[1];
 
   // const client = await getClientById(id);
   // const {

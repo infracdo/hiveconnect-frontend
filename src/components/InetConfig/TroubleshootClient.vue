@@ -72,7 +72,7 @@
           emit-value
           map-options />
         <iframe
-          :src="`http://172.91.0.174:3000/d-solo/d94d1e0e-a6e4-45c4-847f-6603e1c31ccb/subscribers-traffic-rate-and-uptime?orgId=1&from=now-${selectTime}&to=now&var-Subscriber=${deviceName}&panelId=3`"
+          :src="`${grafanaApi}/d-solo/d94d1e0e-a6e4-45c4-847f-6603e1c31ccb/subscribers-traffic-rate-and-uptime?orgId=1&from=now-${selectTime}&to=now&var-Subscriber=${deviceName}&panelId=3`"
           class="grafana-panel"
           frameborder="0"
         ></iframe>
@@ -163,7 +163,8 @@ const timeOptions = [
   { label: "Last 2 days", value: "2d" },
   { label: "Last 90 days", value: "90d" },
 ];
-
+const prometheusApi = process.env.PROVISION_API_PROMETHEUS;
+const grafanaApi = process.env.PROVISION_API_GRAFANA;
 const showNotif = () => {
   $q.notify({
     message: "Gathering SNMP Data! Please wait for a moment.",
@@ -184,7 +185,7 @@ const getInfoApiPrometheus = async (deviceName: string, id: number) => {
 
     //Prometheus
     const onuInfoResponse = await axios.get(
-      `http://172.91.0.156:9090/api/v1/query?query=lo_status{job=%22ip_address%22,site_tenant=%22DCTECH%22,device_name="${deviceName}"}`
+      `${prometheusApi}/api/v1/query?query=lo_status{job=%22ip_address%22,site_tenant=%22DCTECH%22,device_name="${deviceName}"}`
     );
 
     onuInfo.value = onuInfoResponse.data.data.result[0].metric;
@@ -193,7 +194,7 @@ const getInfoApiPrometheus = async (deviceName: string, id: number) => {
     const OltDeviceName = onuInfo.value.olt_ip;
     // Prometheus
     const oltInfoResponse = await axios.get(
-      `http://172.91.0.156:9090/api/v1/query?query=lo_status{job=%22ip_address%22,site_tenant=%22DCTECH%22,device_name="OLT-${OltDeviceName}"}`
+      `${prometheusApi}/api/v1/query?query=lo_status{job=%22ip_address%22,site_tenant=%22DCTECH%22,device_name="OLT-${OltDeviceName}"}`
     );
 
     oltStatus.value = oltInfoResponse.data.data.result[0].value[1];

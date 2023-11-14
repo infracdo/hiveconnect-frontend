@@ -27,7 +27,9 @@ module.exports = configure(function (ctx) {
     // app boot file (/src/boot)
     // --> boot files are part of "main.js"
     // https://v2.quasar.dev/quasar-cli-vite/boot-files
-    boot: ['keycloak'],
+    boot: [
+      // 'keycloak'
+    ],
 
     // https://v2.quasar.dev/quasar-cli-vite/quasar-config-js#css
     css: [
@@ -70,6 +72,8 @@ module.exports = configure(function (ctx) {
           ? 'http://172.91.10.108:8080'
           : 'https://autoprov-test.apolloglobal.net:8081',
 
+        PROVISION_API_PROMETHEUS: 'https://dctech-prometheus.apolloglobal.net',
+        PROVISION_API_GRAFANA: 'https://dtech-grafana.apollogloba.net',
         VUE_APP_KEYCLOAK_URL:'https://wcdssi.apolloglobal.net:8443/auth',
         VUE_APP_KEYCLOAK_REALM:'hive-connect',
         VUE_APP_KEYCLOAK_CLIENT_ID:'apollo'
@@ -90,13 +94,15 @@ module.exports = configure(function (ctx) {
 
     // Full list of options: https://v2.quasar.dev/quasar-cli-vite/quasar-config-js#devServer
     devServer: {
-      // https: true
+      // https: true,
       open: false // opens browser window automatically
     },
 
     // https://v2.quasar.dev/quasar-cli-vite/quasar-config-js#framework
     framework: {
-      config: {},
+      config: {
+        // dark: "auto"
+      },
 
       // iconSet: 'material-icons', // Quasar icon set
       // lang: 'en-US', // Quasar language pack

@@ -199,6 +199,7 @@ import {
   executeMonitoring,
   getAllOlts,
   testError,
+  prepovisionCheck,
 } from "src/api/HiveConnectApis/hiveConnect";
 import { IsubsriberType, IserialAndMac } from "../models";
 import { QrcodeStream } from "vue-qrcode-reader";
@@ -323,7 +324,21 @@ const provisionClient = async (): Promise<void> => {
   responses.autoConfig = "";
   responses.monitoring = "";
 
-  //TODO: CHECKING API
+  try {
+    const response = await prepovisionCheck(
+      NewClient.accountNumber,
+      NewClient.clientName,
+      NewClient.serialAndMac.serialNum.label,
+      NewClient.serialAndMac.macAddress,
+      NewClient.oltIp,
+      NewClient.packageType
+    );
+    console.log(response.message);
+  } catch (error) {
+    console.log(error);
+    return stopProvisionFunction();
+  }
+
   try {
     responses.autoConfig = "Executing Auto Config...";
     const response = await executeAutoConfig(

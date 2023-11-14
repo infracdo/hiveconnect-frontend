@@ -122,6 +122,25 @@ export const testError = async () => {
 //   });
 //   return data;
 // };
+export const prepovisionCheck = async (
+  accNum: string,
+  clientName: string,
+  serialNum: string,
+  macaddress: string,
+  olt: string,
+  packageType: string
+) => {
+  const { data } = await api.post("/prepovisionCheck", {
+    accountNo: accNum,
+    clientName: clientName,
+    serialNumber: serialNum,
+    macAddress: macaddress,
+    olt: olt,
+    packageType: packageType,
+  });
+  return data;
+};
+
 export const executeAutoConfig = async (
   accNum: string,
   clientName: string,

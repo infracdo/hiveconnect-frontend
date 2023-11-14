@@ -24,33 +24,11 @@
             icon="assignment"
             @click="openModal(props.row.id)"
           />
-          <!-- <q-btn
-            dense
-            round
-            flat
-            icon="build"
-            @click="
-              openTroubleshootModal(
-                props.row.onuDeviceName + '-' + props.row.ipAssigned,
-                props.row.id
-              )
-            "
-            :disable="
-              props.row.onuDeviceName === null || props.row.onuDeviceName === ''
-            "
-          >
-            <q-tooltip
-              v-if="
-                props.row.onuDeviceName === null ||
-                props.row.onuDeviceName === ''
-              "
-              anchor="center left"
-              self="center right"
-              :offset="[10, 10]"
-            >
-              Device Name Missing!
-            </q-tooltip>
-          </q-btn> -->
+        </q-td>
+      </template>
+      <template #body-cell-packageTypeId="props">
+        <q-td :props="props">
+          {{ checkPackageDetails(props.row.packageTypeId).name }}
         </q-td>
       </template>
       <template #top-right>
@@ -64,7 +42,7 @@
             :display-value="$q.lang.table.columns"
             emit-value
             map-options
-            :options="columns"
+            :options="optionColumns"
             option-value="name"
             options-cover
             style="min-width: 150px"
@@ -120,6 +98,7 @@ import {
   getClients,
   getClientById,
   getDevices,
+  checkPackageDetails,
 } from "src/api/HiveConnectApis/hiveConnect";
 import { IClient } from "src/api/HiveConnectApis/types";
 import addNewClient from "../components/InetConfig/ProvisionClient.vue";
@@ -131,13 +110,19 @@ const $q = useQuasar();
 const store = useSubscriberStore();
 const dataId = ref<string>();
 const rows = ref<IClient[]>([]);
-
+const optionColumns = [
+  "id",
+  "accountNumber",
+  "clientName",
+  "packageTypeId",
+  "actions",
+];
 const visibleColumns = ref([
   "id",
   "accountNumber",
-  "actions",
   "clientName",
   "packageTypeId",
+  "actions",
 ]);
 
 const filter = ref("");
