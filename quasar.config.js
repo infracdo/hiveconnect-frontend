@@ -74,9 +74,10 @@ module.exports = configure(function (ctx) {
 
         PROVISION_API_PROMETHEUS: 'https://dctech-prometheus.apolloglobal.net',
         PROVISION_API_GRAFANA: 'https://dctech-grafana.apolloglobal.net',
-        VUE_APP_KEYCLOAK_URL:'https://wcdssi.apolloglobal.net:8443/auth',
+
+        VUE_APP_KEYCLOAK_URL:'https://keycloak.dataconnect.com.ph/auth',
         VUE_APP_KEYCLOAK_REALM:'hive-connect',
-        VUE_APP_KEYCLOAK_CLIENT_ID:'apollo'
+        VUE_APP_KEYCLOAK_CLIENT_ID:'hiveApp'
       },
       // rawDefine: {}
       // ignorePublicFolder: true,

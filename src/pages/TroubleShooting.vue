@@ -52,7 +52,7 @@
             <span
               v-if="selectSubscriber !== ''"
               :class="onuStatus === '1' ? 'up' : 'down'"
-              >{{ onuStatus === "1" ? "UP" : "Down" }}</span
+              >{{ onuStatus === "1" ? "Online" : "Offline" }}</span
             >
           </p>
           <p class="">
@@ -75,7 +75,7 @@
             <span
               v-if="selectSubscriber !== ''"
               :class="oltStatus === '1' ? 'up' : 'down'"
-              >{{ oltStatus === "1" ? "UP" : "Down" }}</span
+              >{{ oltStatus === "1" ? "Online" : "Offline" }}</span
             >
           </p>
           <p class="">

@@ -43,10 +43,16 @@
             readonly
           />
 
-          <q-input
+          <q-select
             v-model="NewClient.serialAndMac.serialNum.label"
-            label="Barcode Scan"
+            label="ONU Serial Number"
             outlined
+            :options="serialAndMac"
+            option-label="serial_number"
+            option-value="serial_number"
+            @update:model-value="
+              serialSelect(NewClient.serialAndMac.serialNum.label)
+            "
           >
             <template #append>
               <q-icon
@@ -69,7 +75,7 @@
               </q-dialog>
               <q-tooltip> Scan Barcode </q-tooltip>
             </template>
-          </q-input>
+          </q-select>
           <!-- <q-select
             outlined
             v-model="NewClient.serialAndMac.serialNum"
@@ -307,6 +313,8 @@ const findSerialInRogue = (
 
 const onDetect = (detectedCodes: any): void => {
   const resultQr = detectedCodes.map((code: any) => code.rawValue);
+  console.log(resultQr);
+
   openQRCamera.value = false;
   result.value = resultQr[0];
   const { serial, mac } = findSerialInRogue(resultQr[0], props.serialAndMac);
@@ -315,6 +323,18 @@ const onDetect = (detectedCodes: any): void => {
     NewClient.serialAndMac.serialNum.label = serial;
   } else {
     notifForMissingInRogue();
+  }
+};
+
+const serialSelect = (serialNum: {
+  serial_number: string;
+  mac_address: string;
+}) => {
+  for (const obj of props.serialAndMac) {
+    if (obj.serial_number === serialNum.serial_number) {
+      NewClient.serialAndMac.macAddress = obj.mac_address;
+      NewClient.serialAndMac.serialNum.label = obj.serial_number;
+    }
   }
 };
 const paintBoundingBox = (detectedCodes: any, ctx: any): void => {
