@@ -20,6 +20,7 @@
             <q-card-section>
               <p>Client Name: {{ clientInfo.clientName }}</p>
               <p>Account Number: {{ clientInfo.accountNumber }}</p>
+              <p>Payment StatusL {{ clientInfo.otcStatus }}</p>
               <p>Package Type: {{ bandwidth.name }}</p>
             </q-card-section>
           </q-card>
@@ -72,7 +73,7 @@
           emit-value
           map-options />
         <iframe
-          :src="`${grafanaApi}/d-solo/d94d1e0e-a6e4-45c4-847f-6603e1c31ccb/subscribers-traffic-rate-and-uptime?orgId=1&from=now-${selectTime}&to=now&var-Subscriber=${deviceName}&panelId=3&refresh=1m`"
+          :src="`${grafanaApi}/d-solo/d94d1e0e-a6e4-45c4-847f-6603e1c31ccb/subscribers-traffic-rate-and-uptime?orgId=1&from=now-${selectTime}&to=now&var-Subscriber=${deviceName}&panelId=3`"
           class="grafana-panel"
           frameborder="0"
         ></iframe>
@@ -95,6 +96,7 @@ import {
   getClientById,
   checkOltSiteByIp,
   checkPackageDetails,
+  getOtcStatus,
 } from "src/api/HiveConnectApis/hiveConnect";
 import { useQuasar } from "quasar";
 
@@ -141,6 +143,7 @@ const clientInfo = reactive({
   oltSite: "",
   oltInterface: "",
   SSID: "",
+  otcStatus: "",
 });
 const bandwidth = reactive({
   upStream: "",
@@ -212,6 +215,9 @@ const getInfoApiPrometheus = async (deviceName: string, id: number) => {
       packageTypeId,
       ssidName,
     } = await getClientById(id);
+
+    const response = await getOtcStatus(id);
+    clientInfo.otcStatus = response;
 
     clientInfo.accountNumber = accountNumber;
     clientInfo.clientName = clientName;

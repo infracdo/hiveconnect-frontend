@@ -243,3 +243,8 @@ export const getAllOlts = async (): Promise<IOlt[]> => {
   const { data } = await api.get("/getAllOlts");
   return data;
 };
+
+export const getOtcStatus = async (clientId: number) => {
+  const { data } = await api.get("/getOtcStatus/" + clientId);
+  return data;
+};
