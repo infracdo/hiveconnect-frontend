@@ -13,7 +13,12 @@
         />
 
         <q-toolbar-title class="text-center"> Hive Connect </q-toolbar-title>
-        <q-toggle v-model="isDarkMode" keep-color color="dark" />
+        <q-toggle
+          v-model="isDarkMode"
+          keep-color
+          :color="$q.dark.isActive ? 'dark' : 'accent'"
+          :icon="$q.dark.isActive ? 'dark_mode' : 'light_mode'"
+        />
         <Logout />
       </q-toolbar>
     </q-header>

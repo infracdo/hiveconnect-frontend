@@ -28,7 +28,16 @@
     }
   }
 }
-
+.body--light {
+  .my-sticky-last-column-table {
+    
+    th:last-child,
+    td:last-child {
+      background-color: white;
+     
+    }
+  }
+}
 .my-sticky-last-column-table {
   thead tr:last-child th:last-child {
     background-color: white;

@@ -28,7 +28,7 @@ module.exports = configure(function (ctx) {
     // --> boot files are part of "main.js"
     // https://v2.quasar.dev/quasar-cli-vite/boot-files
     boot: [
-      // 'keycloak'
+      'keycloak'
     ],
 
     // https://v2.quasar.dev/quasar-cli-vite/quasar-config-js#css
@@ -75,7 +75,7 @@ module.exports = configure(function (ctx) {
         PROVISION_API_PROMETHEUS: 'https://dctech-prometheus.apolloglobal.net',
         PROVISION_API_GRAFANA: 'https://dctech-grafana.apolloglobal.net',
 
-        VUE_APP_KEYCLOAK_URL:'https://keycloak.dataconnect.com.ph/auth',
+        VUE_APP_KEYCLOAK_URL:'https://keycloak.dataconnect.com.ph/auth/',
         VUE_APP_KEYCLOAK_REALM:'hive-connect',
         VUE_APP_KEYCLOAK_CLIENT_ID:'hiveApp'
       },
