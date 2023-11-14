@@ -1,1 +1,79 @@
 // app global css in SCSS form
+.body--dark {
+  .my-sticky-last-column-table {
+    thead tr:last-child th:last-child {
+      background-color: #1D1D1D;
+    }
+
+    td:last-child {
+      background-color: #1D1D1D;
+      border-left: 1px solid rgba(255, 255, 255, 0.5);
+    }
+
+    th:last-child,
+    td:last-child {
+      border-left: 1px solid rgba(255, 255, 255, 0.5);
+    }
+
+    @media (min-width: 1200px) {
+      thead tr:last-child th:last-child,
+      td:last-child {
+        background-color: none;
+      }
+      th:last-child,
+      td:last-child {
+        border-left: none
+      }
+  
+    }
+  }
+}
+
+.my-sticky-last-column-table {
+  thead tr:last-child th:last-child {
+    background-color: white;
+  }
+
+  th:last-child,
+  td:last-child {
+    background-color: white;
+    border-left: 1.5px solid rgba(0, 0, 0, 0.5);
+    position: sticky;
+    right: 0;
+    z-index: 1;
+  }
+  @media (min-width: 1200px) {
+    th:last-child,
+    td:last-child {
+      border-left: none
+    }
+
+  }
+}
+.table-top-right {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5em;
+
+  @media (min-width: 480px) {
+    flex-direction: row;
+    gap: 1em;
+  }
+
+  @media (min-width: 1200px) {
+    .my-sticky-last-column-table {
+      thead tr:last-child th:last-child,
+      td:last-child {
+        background-color: white;
+      }
+
+      th:last-child,
+      td:last-child {
+        border-left: none;
+        position: relative;
+        right: 0;
+        z-index: 0;
+      }
+    }
+  }
+}
