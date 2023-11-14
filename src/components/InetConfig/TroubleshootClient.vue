@@ -21,7 +21,6 @@
               <p>Client Name: {{ clientInfo.clientName }}</p>
               <p>Account Number: {{ clientInfo.accountNumber }}</p>
               <p>Package Type: {{ bandwidth.name }}</p>
-              <p>SSID Name: {{ clientInfo.SSID }}</p>
             </q-card-section>
           </q-card>
           <q-card>
@@ -35,6 +34,7 @@
                 >
               </p>
               <p>ONU IP: {{ clientInfo.ipAssigned }}</p>
+              <p>SSID Name: {{ clientInfo.SSID }}</p>
               <p>ONU Serial Number: {{ clientInfo.onuSerialNumber }}</p>
               <p>ONU Mac Address: {{ clientInfo.onuMacAddress }}</p>
               <p>
@@ -72,7 +72,7 @@
           emit-value
           map-options />
         <iframe
-          :src="`${grafanaApi}/d-solo/d94d1e0e-a6e4-45c4-847f-6603e1c31ccb/subscribers-traffic-rate-and-uptime?orgId=1&from=now-${selectTime}&to=now&var-Subscriber=${deviceName}&panelId=3`"
+          :src="`${grafanaApi}/d-solo/d94d1e0e-a6e4-45c4-847f-6603e1c31ccb/subscribers-traffic-rate-and-uptime?orgId=1&from=now-${selectTime}&to=now&var-Subscriber=${deviceName}&panelId=3&refresh=1m`"
           class="grafana-panel"
           frameborder="0"
         ></iframe>
@@ -226,6 +226,8 @@ const getInfoApiPrometheus = async (deviceName: string, id: number) => {
 
     try {
       const oltSitePo = await checkOltSiteByIp(clientInfo.oltIp);
+      console.log(oltSitePo);
+
       clientInfo.oltSite = oltSitePo.oltName;
       const { upstream, downstream, name } = await checkPackageDetails(
         packageTypeId

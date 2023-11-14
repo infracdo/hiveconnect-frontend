@@ -276,7 +276,6 @@ const NewClient = reactive({
   serialAndMac: {
     serialNum: {
       label: "",
-      idx: 0,
     },
     macAddress: "",
   },
