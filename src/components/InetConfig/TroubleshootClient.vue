@@ -242,7 +242,7 @@ const getInfoApiPrometheus = async (deviceName: string, id: number) => {
     clientInfo.packageTypeId = packageTypeId;
     clientInfo.oltUpstream = oltReportedUpstream;
     clientInfo.oltDownstream = oltReportedDownstream;
-    console.log(oltReportedUpstream, oltReportedDownstream);
+    // console.log(oltReportedUpstream, oltReportedDownstream=);
 
     try {
       const oltSitePo = await checkOltSiteByIp(clientInfo.oltIp);
