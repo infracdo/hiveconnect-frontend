@@ -20,7 +20,7 @@
             <q-card-section>
               <p>Client Name: {{ clientInfo.clientName }}</p>
               <p>Account Number: {{ clientInfo.accountNumber }}</p>
-              <p>Payment StatusL {{ clientInfo.otcStatus }}</p>
+              <p>Payment Status: {{ clientInfo.otcStatus }}</p>
               <p>Package Type: {{ bandwidth.name }}</p>
             </q-card-section>
           </q-card>
@@ -61,6 +61,8 @@
               </p>
               <p>OLT Site: {{ clientInfo.oltSite }}</p>
               <p>OLT Interface: {{ clientInfo.oltInterface }}</p>
+              <p>OLT Up Stream: {{ clientInfo.oltUpstream }}</p>
+              <p>OLT Down Stream: {{ clientInfo.oltDownstream }}</p>
             </q-card-section>
           </q-card>
         </div>
@@ -127,6 +129,8 @@ const onuInfo = ref({
   site_status: "",
   site_tenant: "",
   olt_ip: "",
+  vlan_690_ip: "",
+  provisioned_by: "",
 });
 const selectTime = ref("2d");
 const onuStatus = ref("");
@@ -144,6 +148,8 @@ const clientInfo = reactive({
   oltInterface: "",
   SSID: "",
   otcStatus: "",
+  oltUpstream: "",
+  oltDownstream: "",
 });
 const bandwidth = reactive({
   upStream: "",
@@ -191,6 +197,7 @@ const getInfoApiPrometheus = async (deviceName: string, id: number) => {
     const onuInfoResponse = await axios.get(
       `${prometheusApi}/api/v1/query?query=lo_status{job=%22ip_address%22,site_tenant=%22DCTECH%22,device_name="${deviceName}"}`
     );
+    console.log("ONU Prometheus: ", onuInfoResponse.data.data.result[0].metric);
 
     onuInfo.value = onuInfoResponse.data.data.result[0].metric;
     onuStatus.value = onuInfoResponse.data.data.result[0].value[1];
@@ -214,9 +221,13 @@ const getInfoApiPrometheus = async (deviceName: string, id: number) => {
       onuMacAddress,
       packageTypeId,
       ssidName,
+      oltReportedDownstream,
+      oltReportedUpstream,
     } = await getClientById(id);
 
     const response = await getOtcStatus(id);
+    // console.log(response);
+
     clientInfo.otcStatus = response;
 
     clientInfo.accountNumber = accountNumber;
@@ -229,10 +240,13 @@ const getInfoApiPrometheus = async (deviceName: string, id: number) => {
     clientInfo.onuMacAddress = onuMacAddress;
     clientInfo.onuSerialNumber = onuSerialNumber;
     clientInfo.packageTypeId = packageTypeId;
+    clientInfo.oltUpstream = oltReportedUpstream;
+    clientInfo.oltDownstream = oltReportedDownstream;
+    console.log(oltReportedUpstream, oltReportedDownstream);
 
     try {
       const oltSitePo = await checkOltSiteByIp(clientInfo.oltIp);
-      console.log(oltSitePo);
+      // console.log(oltSitePo);
 
       clientInfo.oltSite = oltSitePo.oltName;
       const { upstream, downstream, name } = await checkPackageDetails(

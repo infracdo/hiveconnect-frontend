@@ -27,6 +27,8 @@ export interface IClient {
   onuMacAddress: string;
   onuDeviceName: string;
   packageTypeId: string;
+  oltReportedUpstream: string;
+  oltReportedDownstream: string;
   ssidName: string;
 }
 
