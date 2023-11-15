@@ -95,7 +95,7 @@
 import { toRefs, ref, reactive, watch } from "vue";
 import axios from "axios";
 import {
-  getClientById,
+  getHiveClientById,
   checkOltSiteByIp,
   checkPackageDetails,
   getOtcStatus,
@@ -223,7 +223,7 @@ const getInfoApiPrometheus = async (deviceName: string, id: number) => {
       ssidName,
       oltReportedDownstream,
       oltReportedUpstream,
-    } = await getClientById(id);
+    } = await getHiveClientById(id);
 
     const response = await getOtcStatus(id);
     // console.log(response);
@@ -242,11 +242,11 @@ const getInfoApiPrometheus = async (deviceName: string, id: number) => {
     clientInfo.packageTypeId = packageTypeId;
     clientInfo.oltUpstream = oltReportedUpstream;
     clientInfo.oltDownstream = oltReportedDownstream;
-    // console.log(oltReportedUpstream, oltReportedDownstream=);
+    console.log(oltReportedUpstream, oltReportedDownstream);
 
     try {
       const oltSitePo = await checkOltSiteByIp(clientInfo.oltIp);
-      // console.log(oltSitePo);
+      console.log(oltSitePo);
 
       clientInfo.oltSite = oltSitePo.oltName;
       const { upstream, downstream, name } = await checkPackageDetails(
