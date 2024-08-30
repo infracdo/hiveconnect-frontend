@@ -34,6 +34,20 @@ export const useIpAddressStore = defineStore('ip-address', {
         sortable: true,
       },
       {
+        name: 'Type',
+        label: 'Type',
+        field: 'type',
+        align: 'left',
+        sortable: true,
+      },
+      {
+        name: 'vlanId',
+        label: 'Vlan ID',
+        field: 'vlanId',
+        align: 'left',
+        sortable: true,
+      },
+      {
         name: 'actions',
         label: 'Actions',
         field: 'actions',

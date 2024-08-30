@@ -2,7 +2,7 @@
   <q-page padding>
     <q-table
       class="my-sticky-last-column-table"
-      title="Hive Connect Provisioned"
+      title="Disconnection Test"
       row-key="name"
       :columns="columns"
       :rows="rowsHive"
@@ -111,13 +111,13 @@ const clientId = ref(0);
 const openTroubleShootModal = ref(false);
 const filter = ref("");
 const visibleColumns = ref([
-  "subscriberAccountNumber",
-  "subscriberName",
+  "accountNumber",
+  "clientName",
   "ipAssigned",
   "onuSerialNumber",
   "onuMacAddress",
   "oltIp",
-  "packageType",
+  "packageTypeId",
   "ssidName",
   "actions",
 ]);

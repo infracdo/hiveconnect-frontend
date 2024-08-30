@@ -1,29 +1,80 @@
 <template>
-  <q-layout view="hHh lpR lFf" style="min-height: 0">
-    <q-header>
-      <q-toolbar>
+  <q-layout view="hHh lpR lFf">
+    <q-header elevated>
+      <q-toolbar class="items-center q-pa-sm q-gutter-xs">
         <q-btn
           flat
           dense
           round
-          class="header-btn"
           icon="menu"
           aria-label="Menu"
+          size="18px"
           @click="toggleLeftDrawer"
         />
 
-        <q-toolbar-title class="text-center"> Hive Connect </q-toolbar-title>
-        <q-toggle
-          v-model="isDarkMode"
-          keep-color
-          :color="$q.dark.isActive ? 'dark' : 'accent'"
-          :icon="$q.dark.isActive ? 'dark_mode' : 'light_mode'"
-        />
-        <Logout />
+        <q-toolbar-title class="text-left">
+          Hive Connect
+        </q-toolbar-title>
+
+        <div>
+          <q-btn
+            label="John Doe dela Santos"
+            icon-right="bi-person"
+            align="between"
+            flat
+            no-caps
+
+          >
+            <q-menu
+              fit
+              style="width: 210px;"
+              transition-show="jump-down"
+              transition-hide="jump-up"
+            >
+              <q-list class="text-grey-9">
+                <q-item clickable>
+                  <q-item-section avatar>
+                    <div class="row items-end">
+                      <q-icon name="bi-person" size="20px" class="q-mr-md"/>
+                      <q-item-label>Profile</q-item-label>
+                    </div>
+                  </q-item-section>
+                </q-item>
+                <q-item clickable>
+                  <q-item-section avatar>
+                    <div class="row items-center">
+                      <q-icon name="bi-gear" size="20px" class="q-mr-md"/>
+                      <q-item-label>Settings</q-item-label>
+                    </div>
+                  </q-item-section>
+                </q-item>
+                <q-item clickable @click="$q.dark.toggle()">
+                  <q-item-section avatar>
+                    <div class="row items-center">
+                      <q-icon :name="!$q.dark.isActive? 'bi-brightness-high' : 'bi-moon-stars'" size="20px" class="q-mr-md"/>
+                      <q-item-label>{{ $q.dark.isActive ? 'Dark' : 'Light' }} Mode</q-item-label>
+                    </div>
+                  </q-item-section>
+                </q-item>
+                <q-separator />
+                <Logout />
+              </q-list>
+            </q-menu>
+          </q-btn>
+        </div>
       </q-toolbar>
     </q-header>
 
-    <q-drawer v-model="leftDrawerOpen" show-if-above bordered>
+    <q-drawer
+      v-model="leftDrawerOpen"
+      show-if-above
+      :mini="miniState"
+      @mouseover="miniState = false"
+      @mouseout="miniState = true"
+      bordered
+      :width="300"
+      :breakpoint="500"
+    >
       <q-list>
         <q-item-label header> Navigation </q-item-label>
 
@@ -64,12 +115,12 @@ const $q = useQuasar();
 const essentialLinks: EssentialLinkProps[] = [
   {
     title: "Provision",
-    icon: "settings",
+    icon: "bi-person-fill-gear",
     link: "/inet-config",
   },
   {
     title: "Hive Provisioned",
-    icon: "how_to_reg",
+    icon: "bi-person-fill-check",
     link: "/provisioned",
   },
   {
@@ -84,13 +135,14 @@ const essentialLinks: EssentialLinkProps[] = [
   },
   {
     title: "Troubleshoot",
-    icon: "build",
+    icon: "bi-wrench",
     link: "/troubleshooting",
   },
 ];
 
 const leftDrawerOpen = ref(false);
-const isDarkMode = ref(false);
+const isDarkMode = ref(true);
+const miniState = ref(true)
 
 watch(
   () => isDarkMode.value,
@@ -109,6 +161,9 @@ function toggleLeftDrawer() {
 </script>
 
 <style scoped>
+:deep(.q-btn.btn--no-hover .q-focus-helper) {
+  display: none;
+}
 .header-btn {
   display: none;
 }
@@ -119,5 +174,8 @@ function toggleLeftDrawer() {
   .header-btn {
     display: block;
   }
+}
+.centered-dropdown .q-btn-dropdown__caret {
+  display: none;
 }
 </style>

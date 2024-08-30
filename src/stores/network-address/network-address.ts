@@ -15,9 +15,17 @@ export const useNetworkStore = defineStore('network-address', {
       },
 
       {
-        name: 'account_No',
-        label: 'Account Number',
-        field: 'AccountNumber',
+        name: 'cidrBlock',
+        label: 'CIDR BLOCK',
+        field: 'cidrBlock',
+        align: 'left',
+        sortable: true
+
+      },
+      {
+        name: 'default_gateway',
+        label: 'DEFAULT GATEWAY',
+        field: 'defaultGateway',
         align: 'left',
         sortable: true
 
@@ -25,7 +33,7 @@ export const useNetworkStore = defineStore('network-address', {
       {
         name: 'notes',
         label: 'Notes',
-        field: 'notes',
+        field: 'location',
         align: 'left',
         sortable: true
 
@@ -33,15 +41,7 @@ export const useNetworkStore = defineStore('network-address', {
       {
         name: 'site',
         label: 'Site',
-        field: 'site',
-        align: 'left',
-        sortable: true
-
-      },
-      {
-        name: 'status',
-        label: 'Status',
-        field: 'status',
+        field: 'networkName',
         align: 'left',
         sortable: true
 
@@ -49,7 +49,7 @@ export const useNetworkStore = defineStore('network-address', {
       {
         name: 'type',
         label: 'Type',
-        field: 'type',
+        field: 'networkType',
         align: 'left',
         sortable: true
 

@@ -1,4 +1,5 @@
 // app global css in SCSS form
+
 .body--dark {
   .my-sticky-last-column-table {
     thead tr:last-child th:last-child {
@@ -24,17 +25,17 @@
       td:last-child {
         border-left: none
       }
-  
+
     }
   }
 }
 .body--light {
   .my-sticky-last-column-table {
-    
+
     th:last-child,
     td:last-child {
       background-color: white;
-     
+
     }
   }
 }

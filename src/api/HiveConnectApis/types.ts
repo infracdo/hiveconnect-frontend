@@ -17,19 +17,34 @@ export interface IexecuteProvision {
 }
 
 export interface IClient {
-  id: number;
-  accountNumber: string;
-  clientName: string;
+  newSubscriberId: number;
+  bucketId: number;
+  subscriberAccountNumber: string;
+  subscriberName: string;
   ipAssigned: string;
   onuSerialNumber: string;
   oltIp: string;
   oltInterface: string;
   onuMacAddress: string;
   onuDeviceName: string;
-  packageTypeId: string;
-  oltReportedUpstream: string;
-  oltReportedDownstream: string;
+  packageType: string;
+  oltReportedUpstream: number;
+  oltReportedDownstream: number;
   ssidName: string;
+}
+
+// added new interface for OLT IP
+export interface IOltSiteByIp {
+  newOltId: number;
+  oltName: string;
+  oltIp: string;
+  oltNetworksite: string;
+}
+
+// added new interface for GroupedNetworkSite
+export interface GroupedNetworkSite {
+  oltNetworkSite: string;
+  oltIps: string[];
 }
 
 export interface IRogueDevices {
@@ -60,9 +75,10 @@ export interface IipAddressesOfCidrBlock {
 }
 
 export interface IOltSiteByIp {
-  id: number;
-  oltName: string;
+  newOltId: number;
   oltIp: string;
+  oltName: string;
+  oltNetworksite: string;
 }
 
 export interface IOlt {

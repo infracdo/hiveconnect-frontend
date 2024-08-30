@@ -1,6 +1,6 @@
 import { defineStore } from "pinia";
 import { QTableProps } from "quasar";
-export const useSubscriberStore = defineStore("subsciber", {
+export const useSubscriberStore = defineStore("subscriber", {
   state: () => ({
     subscriberDetail: {
       subscriber_name: "",
@@ -16,23 +16,30 @@ export const useSubscriberStore = defineStore("subsciber", {
     modalIsOpen: false,
     subscribercolumns: [
       {
-        name: "id",
+        name: "newSubscriberId",
         label: "ID",
-        field: "id",
+        field: "newSubscriberId",
         align: "left",
         sortable: true,
       },
       {
-        name: "accountNumber",
+        name: "subscriberAccountNumber",
         label: "Account No.",
-        field: "accountNumber",
+        field: "subscriberAccountNumber",
         align: "left",
         sortable: true,
       },
       {
-        name: "clientName",
-        label: "Client Name",
-        field: "clientName",
+        name: "subscriberName",
+        label: "Subscriber Name",
+        field: "subscriberName",
+        align: "left",
+        sortable: true,
+      },
+      {
+        name: "packageType",
+        label: "Package Type ",
+        field: "packageType",
         align: "left",
         sortable: true,
       },
@@ -68,13 +75,6 @@ export const useSubscriberStore = defineStore("subsciber", {
         name: "oltIp",
         label: "OLT IP",
         field: "oltIp",
-        align: "left",
-        sortable: true,
-      },
-      {
-        name: "packageTypeId",
-        label: "Package Type ID",
-        field: "packageTypeId",
         align: "left",
         sortable: true,
       },

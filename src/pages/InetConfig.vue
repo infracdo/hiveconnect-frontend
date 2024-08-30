@@ -4,8 +4,8 @@
     <q-table
       :rows="rows"
       class="my-sticky-last-column-table"
-      title="For Provision"
       row-key="name"
+      title="New Client Provision"
       :columns="columns"
       :loading="loading || rows.length === 0"
       :pagination="{
@@ -22,7 +22,7 @@
             round
             flat
             icon="assignment"
-            @click="openModal(props.row.id)"
+            @click="openModal(props.row.newSubscriberId)"
           />
         </q-td>
       </template>
@@ -37,7 +37,7 @@
             v-model="filter"
             filled
             dense
-            label="Search"
+            placeholder="Search"
             debounce="300"
             color="primary"
             clearable
@@ -46,7 +46,8 @@
               <q-icon name="search" />
             </template>
           </q-input>
-          <q-select
+
+          <!-- <q-select
             v-model="visibleColumns"
             multiple
             outlined
@@ -56,17 +57,50 @@
             emit-value
             map-options
             :options="optionColumns"
-            option-value="name"
-            options-cover
+            :anchor="'top right'"
+            :self="'top left'"
             style="min-width: 150px"
-          />
+          /> -->
+
+          <q-select
+            v-model="visibleColumns"
+            :options="columnOptions"
+            multiple
+            outlined
+            dense
+            options-dense
+            :display-value="$q.lang.table.columns"
+            emit-value
+            map-options
+            filled
+            :anchor="'top right'"
+            :self="'top left'"
+            style="min-width: 230px"
+            fit
+          >
+            <template
+              v-slot:option="{ itemProps, opt, selected, toggleOption }"
+            >
+              <q-item v-bind="itemProps">
+                <q-item-section side>
+                  <q-checkbox
+                    :model-value="selected"
+                    @update:model-value="(val) => toggleOption(opt)"
+                  />
+                </q-item-section>
+                <q-item-section>
+                  <q-item-label>{{ opt.label }}</q-item-label>
+                </q-item-section>
+              </q-item>
+            </template>
+          </q-select>
 
           <q-icon
             name="autorenew"
             class="cursor-pointer q-ma-sm"
             size="sm"
-            @click="refreshTable"
             flat
+            @click="refreshTable"
           />
         </div>
       </template>
@@ -74,10 +108,10 @@
 
     <add-new-client
       :is-open="modalOpen"
-      @open-modal="openModal"
       :serial-and-mac="serialAndMac"
       :client="client"
       :close-modal="closeModal"
+      @open-modal="openModal"
     />
     <!-- <troubleshoot-client
       :confirm="openTroubleShootModal"
@@ -85,49 +119,52 @@
       :device-name="deviceName"
       :clientId="clientId"
     ></troubleshoot-client> -->
-    <subscriber-modal :data-id="dataId" :get-subsribers="refreshTable" />
+    <subscriber-modal :data-id="dataId" :get-subscribers="refreshTable" />
   </q-page>
 </template>
 
 <script setup lang="ts">
-import { QTableProps } from "quasar";
+import { QTableProps, useQuasar } from "quasar";
 import { ref, watchEffect, watch, onMounted, computed } from "vue";
 import { useSubscriberStore } from "src/stores/subscriber/subscriber-store";
-import TroubleshootClient from "src/components/InetConfig/TroubleshootClient.vue";
+// import TroubleshootClient from "src/components/InetConfig/TroubleshootClient.vue";
 import SubscriberModal from "src/components/InetConfig/SubscriberModal.vue";
 import {
   getClients,
   getClientById,
   getDevices,
   checkPackageDetails,
+  getNetworkSiteOltIp,
 } from "src/api/HiveConnectApis/hiveConnect";
-import { IClient } from "src/api/HiveConnectApis/types";
+import { IClient, IOltSiteByIp, GroupedNetworkSite } from "src/api/HiveConnectApis/types";
 import addNewClient from "../components/InetConfig/ProvisionClient.vue";
 
 import { IserialAndMac, IsubsriberType } from "src/components/models";
-import { useQuasar } from "quasar";
 
+const right = ref(false);
 const $q = useQuasar();
 const store = useSubscriberStore();
 const dataId = ref<string>();
 const rows = ref<IClient[]>([]);
-const optionColumns = [
-  "id",
-  "accountNumber",
-  "clientName",
-  "packageTypeId",
-  "actions",
-];
+
 const visibleColumns = ref([
-  "id",
-  "accountNumber",
-  "clientName",
-  "packageTypeId",
+  "newSubscriberId",
+  "subscriberAccountNumber",
+  "subscriberName",
+  "packageType",
   "actions",
 ]);
 
+const columnOptions = ref([
+  { value: "newSubscriberId", label: "Subscriber ID" },
+  { value: "subscriberAccountNumber", label: "Account Number" },
+  { value: "subscriberName", label: "Subscriber Name" },
+  { value: "packageType", label: "Package Type" },
+  { value: "actions", label: "Actions" },
+]);
+
 const filter = ref("");
-const columns: QTableProps["columns"] = store.$state.subscribercolumns;
+const columns: QTableProps["columns"] = store.$state.subscribercolumns; // define all the visible columns in Provision
 const modalOpen = ref(false);
 const deviceName = ref("");
 const clientId = ref(0);
@@ -135,17 +172,23 @@ const openTroubleShootModal = ref(false);
 const loading = ref(false);
 let serialAndMac: IserialAndMac[] = [];
 const client = ref<IsubsriberType>({
-  id: 0,
-  accountNumber: "",
-  clientName: "",
+  newSubscriberId: 0,
+  bucketId: 0, //added
+  subscriberAccountNumber: "",
+  subscriberName: "",
   ipAssigned: "",
   onuSerialNumber: "",
   oltIp: "",
+  //@ts-ignore
+  ssidName: "",
   onuDeviceName: "",
   onuMacAddress: "",
-  packageTypeId: "",
+  packageType: "",
+  oltReportedUpstream: 0,
+  oltReportedDownstream: 0,
 });
-const openModal = async (id: number) => {
+
+const openModal = async (newSubscriberId: number) => {
   $q.loading.show();
   const rogueDevice = await getDevices();
 
@@ -156,7 +199,8 @@ const openModal = async (id: number) => {
     })
   );
 
-  client.value = await getClientById(id);
+  client.value = await getClientById(newSubscriberId);
+  console.log(client.value);
   modalOpen.value = !modalOpen.value;
   $q.loading.hide();
 };
@@ -164,15 +208,19 @@ const openModal = async (id: number) => {
 const closeModal = () => {
   modalOpen.value = !modalOpen.value;
 };
-const openTroubleshootModal = (onuDeviceName: string, id: number) => {
+const openTroubleshootModal = (
+  onuDeviceName: string,
+  newSubscriberId: number
+) => {
   deviceName.value = onuDeviceName;
-  clientId.value = id;
+  clientId.value = newSubscriberId;
   openTroubleShootModal.value = !openTroubleShootModal.value;
 };
 const closeTroubleShootModal = () => {
   openTroubleShootModal.value = !openTroubleShootModal.value;
 };
 const refreshTable = async () => {
+  //getClient from clients_for_activation db, Account table
   rows.value = [];
   filter.value = "";
   loading.value = true;
@@ -182,7 +230,6 @@ const refreshTable = async () => {
     loading.value = false;
   }
 };
-
 const getAllClients = async () => {
   try {
     await refreshTable();

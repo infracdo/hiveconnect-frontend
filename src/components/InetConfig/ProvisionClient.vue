@@ -76,20 +76,6 @@
               <q-tooltip> Scan Barcode </q-tooltip>
             </template>
           </q-select>
-          <!-- <q-select
-            outlined
-            v-model="NewClient.serialAndMac.serialNum"
-            :options="
-              serialAndMac.map((item, index) => ({
-                label: item.serial_number,
-                idx: index,
-              }))
-            "
-            label="ONU Seriual Number"
-            @update:model-value="assignMac"
-            :rules="[(val) => !!val || 'Field is required']"
-            class="q-pa-none"
-          /> -->
           <q-input
             v-model="NewClient.serialAndMac.macAddress"
             filled
@@ -97,19 +83,48 @@
             readonly
           >
           </q-input>
+
           <q-select
-            outlined
-            v-model="NewClient.oltIp"
-            :options="filteredOptions"
-            label="OLT IP"
+            v-model="selectedNetworkSite"
+            :options="networkSites"
+            option-label="oltNetworksite"
+            option-value="oltNetworksite"
+            label="Select Network Site"
+            map-options
             clearable
-            option-label="oltName"
-            option-value="oltIp"
-            input-debounce="0"
-            use-input
-            emit-value
-            @filter="filterSelect"
+            outlined
+            :anchor="'top right'"
+            :self="'top left'"
+            fit
           />
+
+          <q-select
+            v-if="selectedNetworkSite"
+            v-model="NewClient.oltIp"
+            :options="selectedNetworkSite.oltIps"
+            option-label="oltIp"
+            option-value="oltIp"
+            label="Select OLT IP"
+            map-options
+            emit-value
+            clearable
+            outlined
+            :anchor="'top right'"
+            :self="'top left'"
+            fit
+          >
+            <template v-slot:option="{ itemProps, opt }">
+              <q-item v-bind="itemProps">
+                <q-item-section>
+                  <q-item-label>
+                    {{ opt.oltName }}
+                  </q-item-label>
+                </q-item-section>
+              </q-item>
+            </template>
+          </q-select>
+          <!-- for revision of OLT IP selection -->
+
         </q-card-section>
         <q-separator />
         <q-card-actions align="right">
@@ -127,7 +142,7 @@
               NewClient.oltIp &&
               NewClient.serialAndMac.serialNum.label &&
               NewClient.serialAndMac.macAddress
-                ? 'OK'
+                ? 'ACTIVATE'
                 : 'Missing Inputs'
             "
             color="primary full-width"
@@ -210,18 +225,19 @@
 </template>
 
 <script setup lang="ts">
-import { toRefs, reactive, ref, watchEffect, onUpdated, watch } from "vue";
+import { toRefs, reactive, ref, watchEffect, onUpdated, watch, onMounted } from "vue";
 import {
   executeAutoConfig,
   executeMonitoring,
   getAllOlts,
   testError,
-  preprovisionCheck,
+  preProvisionCheck,
+  getNetworkSiteOltIp,
 } from "src/api/HiveConnectApis/hiveConnect";
 import { IsubsriberType, IserialAndMac } from "../models";
 import { QrcodeStream } from "vue-qrcode-reader";
 import { useQuasar } from "quasar";
-import { IOlt } from "src/api/HiveConnectApis/types";
+import { IOlt, IOltSiteByIp } from "src/api/HiveConnectApis/types";
 
 //////////////////////
 ////VARIABLES AREA////
@@ -246,14 +262,6 @@ const ssid = reactive({
 });
 const showProvisionResult = ref(false);
 const showSkeletonDancing = ref(false);
-const scannerOptions = [
-  "code_128",
-  "code_39",
-  "code_93",
-  "codabar",
-  "itf",
-  "qr_code",
-];
 const optionsOltIp = ref<IOlt[]>([]);
 const filteredOptions = ref<IOlt[]>([]);
 
@@ -270,9 +278,12 @@ const responseStatus = reactive({
 
 const result = ref("");
 const NewClient = reactive({
+  bucketId: 0,
   clientId: 0,
   accountNumber: "",
   packageType: "",
+  oltReportedUpstream: 0,
+  oltReportedDownstream: 0,
   serialAndMac: {
     serialNum: {
       label: "",
@@ -282,9 +293,54 @@ const NewClient = reactive({
   oltIp: "",
   clientName: "",
 });
+
+// added new variables for revision of OLT IP selection
+const networkSites = ref([])
+const selectedNetworkSite = ref(null)
+const selectedOltIp = ref(null)
+const networkSiteOltIp = ref<IOltSiteByIp[]>([]);
+
 //////////////////////
 ////METHODS AREA/////
 //////////////////////
+
+const transformData = async () => {
+  /**
+   * Return accumulated object by reducing the data from response data
+   * Create a children object inside to hold data with the same oltName
+   */
+   networkSiteOltIp.value = await getNetworkSiteOltIp();
+
+  const groupedData = networkSiteOltIp.value.reduce((accumulatedOlt, data) => {
+    // @ts-ignore
+    const existingSite = accumulatedOlt.find(siteName => siteName?.oltNetworksite === data?.oltNetworksite)
+    if (existingSite) {
+      // Create and merge object into one if repeated oltName
+      // @ts-ignore
+      existingSite.oltIps.push({
+        // @ts-ignore
+        id: existingSite.oltIps.length + 1,
+        oltIp: data.oltIp,
+        oltName: data.oltName
+      })
+    } else {
+      // @ts-ignore
+      accumulatedOlt.push({
+        oltNetworksite: data.oltNetworksite,
+        oltIps: [{
+          id: 1,
+          oltIp: data.oltIp,
+          oltName: data.oltName
+        }]
+      })
+    }
+    // Return new object
+    return accumulatedOlt
+  }, [])
+  networkSites.value = groupedData
+  console.log(groupedData)
+}
+
 const filterSelect = (val: string, update: any) => {
   if (val === "") {
     update(() => {
@@ -358,7 +414,8 @@ const provisionClient = async (): Promise<void> => {
 
   try {
     responses.provisionCheck = "Preprovision checking ...";
-    const response = await preprovisionCheck(
+    const response = await preProvisionCheck(
+      //send values to /preprovisionCheck API
       NewClient.accountNumber,
       NewClient.clientName,
       NewClient.serialAndMac.serialNum.label,
@@ -381,7 +438,9 @@ const provisionClient = async (): Promise<void> => {
       NewClient.serialAndMac.serialNum.label,
       NewClient.serialAndMac.macAddress,
       NewClient.oltIp,
-      NewClient.packageType
+      NewClient.packageType,
+      NewClient.oltReportedDownstream, networkSiteOltIp,
+      NewClient.oltReportedUpstream
     );
     if (response) {
       responses.autoConfig = response.message;
@@ -400,7 +459,9 @@ const provisionClient = async (): Promise<void> => {
       NewClient.serialAndMac.serialNum.label,
       NewClient.serialAndMac.macAddress,
       NewClient.oltIp,
-      NewClient.packageType
+      NewClient.packageType,
+      NewClient.oltReportedDownstream,
+      NewClient.oltReportedUpstream
     );
     if (response) {
       responses.monitoring = response.message;
@@ -433,27 +494,46 @@ const notifForMissingInRogue = (): void => {
     position: "top",
   });
 };
+
 /////////////////////
 ///LIFECYCLE HOOKS///
 /////////////////////
 onUpdated(async () => {
   NewClient.serialAndMac.serialNum.label = props.client?.onuSerialNumber;
   NewClient.serialAndMac.macAddress = props.client?.onuMacAddress;
-  optionsOltIp.value = await getAllOlts();
-  console.log(optionsOltIp.value);
 });
 watchEffect(() => {
-  NewClient.clientId = props.client?.id;
-  NewClient.accountNumber = props.client?.accountNumber;
-  NewClient.clientName = props.client?.clientName;
+  NewClient.clientId = props.client?.newSubscriberId;
+  NewClient.accountNumber = props.client?.subscriberAccountNumber;
+  NewClient.clientName = props.client?.subscriberName;
   NewClient.oltIp = props.client?.oltIp;
-  NewClient.packageType = props.client?.packageTypeId;
+  NewClient.packageType = props.client?.packageType;
+  NewClient.oltReportedDownstream = props.client?.oltReportedDownstream;
+  NewClient.oltReportedUpstream = props.client?.oltReportedUpstream;
 });
 
-watch(result, (newVal, oldVal) => {
+/**
+ * added new function to transform data
+ * added new line to reset OLT IP selected value
+ */
+watch([
+  result,
+  selectedNetworkSite,
+  networkSiteOltIp
+], ([newVal, newSelectedSite, newNetworkOlt],
+  [oldVal, oldSelectedSite, oldNetworkOlt]) => {
+
   if (oldVal !== newVal) {
     openQRCamera.value = false;
+  } else if (oldSelectedSite !== newSelectedSite) {
+    selectedOltIp.value = null;
+  } else if (oldNetworkOlt !== newNetworkOlt) {
+    console.log(networkSites.value);
   }
+});
+onMounted(async () => {
+  // added new line to get OLT IP
+  transformData();
 });
 </script>
 

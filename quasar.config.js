@@ -13,12 +13,12 @@ const { configure } = require('quasar/wrappers')
 module.exports = configure(function (ctx) {
   return {
     // eslint: {
-      // fix: true,
-      // include: [],
-      // exclude: [],
-      // rawOptions: {},
-      // warnings: true
-      // errors: true
+    // fix: true,
+    // include: [],
+    // exclude: [],
+    // rawOptions: {},
+    // warnings: true
+    // errors: true
     // },
 
     // https://v2.quasar.dev/quasar-cli-vite/prefetch-feature
@@ -45,7 +45,7 @@ module.exports = configure(function (ctx) {
       // 'themify',
       // 'line-awesome',
       // 'roboto-font-latin-ext', // this or either 'roboto-font', NEVER both!
-
+      'bootstrap-icons',
       'roboto-font', // optional, you are not bound to it
       'material-icons' // optional, you are not bound to it
     ],
@@ -70,7 +70,7 @@ module.exports = configure(function (ctx) {
       env: {
         PROVISION_API_URL: ctx.dev
           ? 'http://172.91.10.108:8080'
-          : 'https://autoprov-test.apolloglobal.net:8081',
+          : 'https://hivetest.apolloglobal.net:8081',
 
         PROVISION_API_PROMETHEUS: 'https://dctech-prometheus.apolloglobal.net',
         PROVISION_API_GRAFANA: 'https://dctech-grafana.apolloglobal.net',
@@ -112,11 +112,13 @@ module.exports = configure(function (ctx) {
       // (like functional components as one of the examples),
       // you can manually specify Quasar components/directives to be available everywhere:
       //
-      // components: [],
+      components: [
+        'QSpinnerFacebook',
+      ],
       // directives: [],
 
       // Quasar plugins
-      plugins: [ 'Notify','Loading']
+      plugins: [ 'Notify','Loading', 'Dialog', 'Dark']
     },
 
     // animations: 'all', // --- includes all animations

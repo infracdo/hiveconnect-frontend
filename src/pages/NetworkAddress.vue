@@ -1,7 +1,7 @@
 <template>
   <q-page padding>
     <q-table
-      title="Network Address"
+      title="Network Addresss"
       :rows="rows"
       :filter="filter"
       row-key="name"

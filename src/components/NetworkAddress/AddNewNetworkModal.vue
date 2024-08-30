@@ -10,7 +10,7 @@
           <q-input
             v-model="addNewNetwork.networkAddress"
             outlined
-            label="Network Address"
+            label="Network Addresss"
           />
           <q-field outlined label="Network Type" stack-label class="">
             <template #control>
@@ -38,8 +38,8 @@
           />
 
           <q-input v-model="addNewNetwork.vlanId" outlined label="VLAN ID" />
-          <q-input v-model="addNewNetwork.site" outlined label="Site" />
-          <q-input v-model="addNewNetwork.notes" outlined label="Notes" />
+          <q-input v-model="addNewNetwork.networkName" outlined label="Site" />
+          <q-input v-model="addNewNetwork.location" outlined label="Notes" />
         </q-card-section>
 
         <q-card-actions align="right">
@@ -66,8 +66,8 @@ const addNewNetwork = reactive({
   accountNumber: '',
   networkType: '',
   vlanId: '',
-  site: '',
-  notes: '',
+  networkName: '',
+  location: '',
 });
 </script>
 

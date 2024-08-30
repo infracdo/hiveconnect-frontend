@@ -15,17 +15,21 @@ export interface IdeviceType {
 }
 
 export interface IsubsriberType {
-  id: number;
-  accountNumber: string;
-  clientName: string;
+  value: import("/home/ubuntu/frontend/init-quasar-provision/src/api/HiveConnectApis/types").IClient;
+  newSubscriberId: number;
+  bucketId: number;
+  subscriberAccountNumber: string;
+  subscriberName: string;
   ipAssigned: string;
   onuSerialNumber: string;
   oltIp: string;
   onuMacAddress: string;
-  packageTypeId: string;
+  packageType: string;
   onuDeviceName: string;
   created_at?: string;
   updated_at?: string;
+  oltReportedUpstream: number;
+  oltReportedDownstream: number;
 }
 
 export interface IrowIpAddress {
