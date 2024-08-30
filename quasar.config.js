@@ -70,7 +70,7 @@ module.exports = configure(function (ctx) {
       env: {
         PROVISION_API_URL: ctx.dev
           ? 'http://172.91.10.108:8080'
-          : 'https://hivetest.apolloglobal.net:8081',
+          : 'http://192.168.90.72:8080',
 
         PROVISION_API_PROMETHEUS: 'https://dctech-prometheus.apolloglobal.net',
         PROVISION_API_GRAFANA: 'https://dctech-grafana.apolloglobal.net',
