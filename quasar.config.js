@@ -68,9 +68,10 @@ module.exports = configure(function (ctx) {
       // analyze: true,
       // env: require('dotenv').config().parsed,
       env: {
-        PROVISION_API_URL: ctx.dev
-          ? 'http://172.91.10.108:8080'
-          : 'http://192.168.90.72:8080',
+        PROVISION_API_URL: 'http://localhost:8080',
+        // PROVISION_API_URL: ctx.dev
+        //   ? 'http://localhost:8080'
+        //   : 'http://192.168.90.72:8080',
 
         PROVISION_API_PROMETHEUS: 'https://dctech-prometheus.apolloglobal.net',
         PROVISION_API_GRAFANA: 'https://dctech-grafana.apolloglobal.net',
