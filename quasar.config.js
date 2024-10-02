@@ -73,8 +73,8 @@ module.exports = configure(function (ctx) {
         //   ? 'http://localhost:8080'
         //   : 'http://192.168.90.72:8080',
 
-        PROVISION_API_PROMETHEUS: 'https://dctech-prometheus.apolloglobal.net',
-        PROVISION_API_GRAFANA: 'https://dctech-grafana.apolloglobal.net',
+        PROVISION_API_PROMETHEUS: 'http://192.168.90.136:9090',
+        PROVISION_API_GRAFANA: 'http://192.168.90.134:3000',
 
         VUE_APP_KEYCLOAK_URL:'https://keycloak.dataconnect.com.ph/auth/',
         VUE_APP_KEYCLOAK_REALM:'hive-connect',
