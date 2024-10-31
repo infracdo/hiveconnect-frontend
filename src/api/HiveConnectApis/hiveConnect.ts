@@ -57,7 +57,7 @@ export const getIpAddresses = async (
 
 export const getNetworkAddresses = async () => {
   try {
-    const { data } = await api.get("/getallnetworks");  ///getCidrBlocks
+    const { data } = await api.get("/getallnetworks"); ///getCidrBlocks
     return data;
   } catch (error) {
     console.log("Cannot Retrieve Network Address Data!", error);
@@ -87,14 +87,27 @@ export const getNetworkSiteOltIp = async (): Promise<IOltSiteByIp[]> => {
 
 export const getHiveClients = async (): Promise<IClient[]> => {
   try {
-    const { data } = await api.get("/getprovisionedsubscribers");  //"/getHiveClients"
+    const { data } = await api.get("/getprovisionedsubscribers"); //"/getHiveClients"
     return data;
   } catch (error) {
     console.log("Could not retrieve Client/Subscriber Data!", error);
     throw error;
   }
 };
-export const getClientById = async (newsubscriberId: number): Promise<IClient> => {
+
+export const getHiveclients = async (): Promise<IClient[]> => {
+  try {
+    const { data } = await api.get("/getHiveClients"); //"/getHiveClients"
+    return data;
+  } catch (error) {
+    console.log("Could not retrieve Client/Subscriber Data!", error);
+    throw error;
+  }
+};
+
+export const getClientById = async (
+  newsubscriberId: number
+): Promise<IClient> => {
   try {
     const { data } = await api.get("/getsubscriberbyid/" + newsubscriberId);
     return data;
@@ -143,7 +156,7 @@ export const executeProvision = async (
   macaddress: string,
 
   olt: string,
-  packageType: string,
+  packageType: string
   // downstream: number, //added
   // upstream: number, //added
 ) => {
@@ -160,7 +173,14 @@ export const executeProvision = async (
   return data;
 };
 export const preProvisionCheck = async (
-accNum: string, clientName: string, serialNum: string, macaddress: string, olt: string, packageType: string, oltReportedDownstream: number, oltReportedUpstream: number,
+  accNum: string,
+  clientName: string,
+  serialNum: string,
+  macaddress: string,
+  olt: string,
+  packageType: string,
+  oltReportedDownstream: number,
+  oltReportedUpstream: number
   // downstream: number, //added
   // upstream: number, //added
 ) => {
@@ -178,7 +198,11 @@ accNum: string, clientName: string, serialNum: string, macaddress: string, olt: 
 };
 
 export const executeAutoConfig = async (
-accNum: string, clientName: string, serialNum: string, macaddress: string, olt: string,
+  accNum: string,
+  clientName: string,
+  serialNum: string,
+  macaddress: string,
+  olt: string,
   packageType: string
   // downstream: number,
   // upstream: number
@@ -189,14 +213,19 @@ accNum: string, clientName: string, serialNum: string, macaddress: string, olt: 
     serialNumber: serialNum,
     macAddress: macaddress,
     olt: olt,
-    packageType: packageType
+    packageType: packageType,
     // downstream: downstream, //added
     // upstream: upstream, //added
   });
   return data;
 };
 export const executeMonitoring = async (
-accNum: string, clientName: string, serialNum: string, macaddress: string, olt: string, packageType: string
+  accNum: string,
+  clientName: string,
+  serialNum: string,
+  macaddress: string,
+  olt: string,
+  packageType: string
   // downstream: number,
   // upstream: number
 ) => {
@@ -206,7 +235,7 @@ accNum: string, clientName: string, serialNum: string, macaddress: string, olt: 
     serialNumber: serialNum,
     macAddress: macaddress,
     olt: olt,
-    packageType: packageType
+    packageType: packageType,
     // downstream: downstream, //added
     // upstream: upstream, //added
   });
@@ -228,8 +257,8 @@ export const addNewClient = async (
     ONUSerialNum: serialNum,
     PackageType: packageType,
     ONUMacAddress: macAddress,
-     downstream: downstream, //added
-     upstream: upstream, //added
+    downstream: downstream, //added
+    upstream: upstream, //added
   });
   return data;
 };

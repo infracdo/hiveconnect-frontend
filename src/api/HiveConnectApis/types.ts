@@ -18,8 +18,10 @@ export interface IexecuteProvision {
 
 export interface IClient {
   newSubscriberId: number;
+  id: number;
   bucketId: number;
   subscriberAccountNumber: string;
+  clientName: string; //added 10-22-24
   subscriberName: string;
   ipAssigned: string;
   onuSerialNumber: string;
