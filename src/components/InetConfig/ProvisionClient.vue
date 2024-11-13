@@ -12,7 +12,9 @@
             class="cursor-pointer btn-modal rounded q-pa-xs"
           />
         </q-card-section>
+
         <q-separator />
+
         <q-card-section class="flex-client">
           <q-input
             v-model="NewClient.accountNumber"
@@ -20,22 +22,14 @@
             label="Account Number"
             readonly
           />
+
           <q-input
             v-model="NewClient.clientName"
             filled
             label="Client Name"
             readonly
           />
-          <!-- <q-input
-            v-model="NewClient.ipAssign"
-            filled
-            label="IP Assign"
-            readonly
-          >
-            <template #append>
-              <q-icon name="add" class="cursor-pointer" @click="assignIp" />
-            </template>
-          </q-input> -->
+
           <q-input
             v-model="NewClient.packageType"
             filled
@@ -76,6 +70,7 @@
               <q-tooltip> Scan Barcode </q-tooltip>
             </template>
           </q-select>
+
           <q-input
             v-model="NewClient.serialAndMac.macAddress"
             filled
@@ -84,12 +79,21 @@
           >
           </q-input>
 
+          <!-- Add the new Location Dropdown -->
+          <q-select
+            v-model="selectedLocation"
+            :options="locations"
+            label="Select Location"
+            outlined
+            clearable
+          />
+
           <q-select
             v-model="selectedNetworkSite"
-            :options="networkSites"
+            :options="filteredNetworkSites"
             option-label="oltNetworksite"
             option-value="oltNetworksite"
-            label="Select Network Site"
+            label="Select Network Site(VLAN)"
             map-options
             clearable
             outlined
@@ -123,8 +127,16 @@
               </q-item>
             </template>
           </q-select>
-          <!-- for revision of OLT IP selection -->
 
+          <q-input
+            v-model="NewClient.newOltId"
+            filled
+            label="OLT ID"
+            readonly
+            style="display: none"
+          />
+
+          <!-- for revision of OLT IP selection -->
         </q-card-section>
         <q-separator />
         <q-card-actions align="right">
@@ -225,7 +237,15 @@
 </template>
 
 <script setup lang="ts">
-import { toRefs, reactive, ref, watchEffect, onUpdated, watch, onMounted } from "vue";
+import {
+  toRefs,
+  reactive,
+  ref,
+  watchEffect,
+  onUpdated,
+  watch,
+  onMounted,
+} from "vue";
 import {
   executeAutoConfig,
   executeMonitoring,
@@ -256,10 +276,12 @@ const { isOpen } = toRefs(props);
 const isModal = () => {
   props.closeModal();
 };
+
 const ssid = reactive({
   name: "",
   pw: "",
 });
+
 const showProvisionResult = ref(false);
 const showSkeletonDancing = ref(false);
 const optionsOltIp = ref<IOlt[]>([]);
@@ -270,6 +292,7 @@ const responses = reactive({
   monitoring: "",
   provisionCheck: "",
 });
+
 const responseStatus = reactive({
   autoConfig: false,
   monitoring: false,
@@ -277,6 +300,7 @@ const responseStatus = reactive({
 });
 
 const result = ref("");
+
 const NewClient = reactive({
   bucketId: 0,
   clientId: 0,
@@ -291,55 +315,141 @@ const NewClient = reactive({
     macAddress: "",
   },
   oltIp: "",
+  newOltId: 0,
   clientName: "",
 });
 
 // added new variables for revision of OLT IP selection
-const networkSites = ref([])
-const selectedNetworkSite = ref(null)
-const selectedOltIp = ref(null)
+const networkSites = ref([]);
+const selectedNetworkSite = ref(null);
+const selectedOltIp = ref(null);
 const networkSiteOltIp = ref<IOltSiteByIp[]>([]);
+// Define the locations for filtering
+const locations = ref([
+  "Select Location",
+  "CDO",
+  "MALAYBALAY",
+  "DAVAO",
+  "BUTUAN",
+  "DIGOS",
+  "GENSAN",
+  "TAGUM",
+  "CEBU",
+  "KORONADAL",
+  "SANTIAGO",
+  "SANTO TOMAS",
+  "VALENCIA",
+  "PAGADIAN",
+  "ILIGAN",
+  "PANABO",
+  "SAN FRANZ",
+  "BISLIG",
+  "TANDAG",
+  "TACLOBAN",
+]);
+const selectedLocation = ref("");
+
+// Define the networkSites data and the filtered version
+const filteredNetworkSites = ref([]); // List of sites filtered by selected location
 
 //////////////////////
 ////METHODS AREA/////
 //////////////////////
 
 const transformData = async () => {
-  /**
-   * Return accumulated object by reducing the data from response data
-   * Create a children object inside to hold data with the same oltName
-   */
-   networkSiteOltIp.value = await getNetworkSiteOltIp();
+  console.log("Fetching OLT IP data...");
+  networkSiteOltIp.value = await getNetworkSiteOltIp();
+
+  console.log("Fetched data:", networkSiteOltIp.value);
 
   const groupedData = networkSiteOltIp.value.reduce((accumulatedOlt, data) => {
+    console.log("Processing data:", data);
+
     // @ts-ignore
-    const existingSite = accumulatedOlt.find(siteName => siteName?.oltNetworksite === data?.oltNetworksite)
+    const existingSite = accumulatedOlt.find(
+      (siteName) => siteName?.oltNetworksite === data?.oltNetworksite
+    );
+
     if (existingSite) {
+      console.log("Existing site found:", existingSite.oltNetworksite);
       // Create and merge object into one if repeated oltName
       // @ts-ignore
       existingSite.oltIps.push({
         // @ts-ignore
         id: existingSite.oltIps.length + 1,
         oltIp: data.oltIp,
-        oltName: data.oltName
-      })
+        oltName: data.oltName,
+        newOltId: data.newOltId,
+      });
+      console.log(
+        "Updated existing site with new OLT IP:",
+        existingSite.oltIps
+      );
     } else {
+      console.log("New site created for:", data.oltNetworksite);
       // @ts-ignore
       accumulatedOlt.push({
         oltNetworksite: data.oltNetworksite,
-        oltIps: [{
-          id: 1,
-          oltIp: data.oltIp,
-          oltName: data.oltName
-        }]
-      })
+        oltIps: [
+          {
+            id: 1,
+            oltIp: data.oltIp,
+            oltName: data.oltName,
+            newOltId: data.newOltId,
+          },
+        ],
+      });
     }
+
     // Return new object
-    return accumulatedOlt
-  }, [])
-  networkSites.value = groupedData
-  console.log(groupedData)
-}
+    return accumulatedOlt;
+  }, []);
+
+  networkSites.value = groupedData;
+  console.log("Grouped data:", groupedData);
+
+  // Initial setting of filteredNetworkSites
+  filteredNetworkSites.value = networkSites.value;
+  console.log("networkSites:", networkSites.value);
+};
+
+const filterNetworkSites = () => {
+  // Log the selected location being filtered
+  console.log("Filtering network sites for location:", selectedLocation.value);
+
+  // Log the original network sites before filtering
+  console.log("Original network sites:", networkSites.value);
+
+  // Check if the selected location is empty or the default option
+  if (
+    selectedLocation.value === "" ||
+    selectedLocation.value === "Select Location"
+  ) {
+    filteredNetworkSites.value = networkSites.value; // Return all sites if no valid selection
+  } else {
+    // Filter the network sites based on the selected location
+    filteredNetworkSites.value = networkSites.value.filter((site) => {
+      // Determine if the site matches the selected location
+      const matches = site.oltNetworksite
+        .toLowerCase()
+        .includes(selectedLocation.value.toLowerCase());
+
+      // Log the site being checked and whether it matches
+      console.log(`Checking site: ${site.oltNetworksite}, matches: ${matches}`);
+
+      // Return true if there's a match
+      return matches;
+    });
+  }
+
+  // Log the filtered network sites after processing
+  console.log("Filtered network sites:", filteredNetworkSites.value);
+};
+
+// Watch for changes to selectedLocation and apply filtering
+watch(selectedLocation, (newValue) => {
+  filterNetworkSites();
+});
 
 const filterSelect = (val: string, update: any) => {
   if (val === "") {
@@ -354,6 +464,7 @@ const filterSelect = (val: string, update: any) => {
     });
   });
 };
+
 const findSerialInRogue = (
   barcodeSerial: string,
   serialAndMac: { serial_number: string; mac_address: string }[]
@@ -392,6 +503,7 @@ const serialSelect = (serialNum: {
     }
   }
 };
+
 const paintBoundingBox = (detectedCodes: any, ctx: any): void => {
   for (const detectedCode of detectedCodes) {
     const {
@@ -421,7 +533,8 @@ const provisionClient = async (): Promise<void> => {
       NewClient.serialAndMac.serialNum.label,
       NewClient.serialAndMac.macAddress,
       NewClient.oltIp,
-      NewClient.packageType
+      NewClient.packageType,
+      NewClient.newOltId
     );
     responses.provisionCheck = response.message;
     responseStatus.provisionCheck = true;
@@ -439,7 +552,9 @@ const provisionClient = async (): Promise<void> => {
       NewClient.serialAndMac.macAddress,
       NewClient.oltIp,
       NewClient.packageType,
-      NewClient.oltReportedDownstream, networkSiteOltIp,
+      NewClient.newOltId,
+      NewClient.oltReportedDownstream,
+      networkSiteOltIp,
       NewClient.oltReportedUpstream
     );
     if (response) {
@@ -460,6 +575,7 @@ const provisionClient = async (): Promise<void> => {
       NewClient.serialAndMac.macAddress,
       NewClient.oltIp,
       NewClient.packageType,
+      NewClient.newOltId,
       NewClient.oltReportedDownstream,
       NewClient.oltReportedUpstream
     );
@@ -502,11 +618,13 @@ onUpdated(async () => {
   NewClient.serialAndMac.serialNum.label = props.client?.onuSerialNumber;
   NewClient.serialAndMac.macAddress = props.client?.onuMacAddress;
 });
+
 watchEffect(() => {
   NewClient.clientId = props.client?.newSubscriberId;
   NewClient.accountNumber = props.client?.subscriberAccountNumber;
   NewClient.clientName = props.client?.subscriberName;
   NewClient.oltIp = props.client?.oltIp;
+  NewClient.newOltId = props.client?.newOltId;
   NewClient.packageType = props.client?.packageType;
   NewClient.oltReportedDownstream = props.client?.oltReportedDownstream;
   NewClient.oltReportedUpstream = props.client?.oltReportedUpstream;
@@ -516,24 +634,46 @@ watchEffect(() => {
  * added new function to transform data
  * added new line to reset OLT IP selected value
  */
-watch([
-  result,
-  selectedNetworkSite,
-  networkSiteOltIp
-], ([newVal, newSelectedSite, newNetworkOlt],
-  [oldVal, oldSelectedSite, oldNetworkOlt]) => {
-
-  if (oldVal !== newVal) {
-    openQRCamera.value = false;
-  } else if (oldSelectedSite !== newSelectedSite) {
-    selectedOltIp.value = null;
-  } else if (oldNetworkOlt !== newNetworkOlt) {
-    console.log(networkSites.value);
+watch(
+  [result, selectedNetworkSite, networkSiteOltIp],
+  (
+    [newVal, newSelectedSite, newNetworkOlt],
+    [oldVal, oldSelectedSite, oldNetworkOlt]
+  ) => {
+    if (oldVal !== newVal) {
+      openQRCamera.value = false;
+    } else if (oldSelectedSite !== newSelectedSite) {
+      selectedOltIp.value = null;
+    } else if (oldNetworkOlt !== newNetworkOlt) {
+      console.log(networkSites.value);
+    }
   }
-});
+);
+
+// Watch for changes in selected OLT IP and update newOltId
+watch(
+  () => NewClient.oltIp,
+  (newOltIp) => {
+    if (newOltIp && selectedNetworkSite.value) {
+      // Find the corresponding newOltId based on selected OLT IP
+      const selectedOlt = selectedNetworkSite.value.oltIps.find(
+        (olt) => olt.oltIp === newOltIp
+      );
+      NewClient.newOltId = selectedOlt ? selectedOlt.newOltId : null;
+      console.log("newOltId after oltIp selection:", NewClient.newOltId);
+    }
+  }
+);
+
 onMounted(async () => {
-  // added new line to get OLT IP
-  transformData();
+  console.log("onMounted triggered, starting data transformation...");
+
+  try {
+    await transformData();
+    console.log("Data transformation completed.");
+  } catch (error) {
+    console.error("Error during data transformation:", error);
+  }
 });
 </script>
 

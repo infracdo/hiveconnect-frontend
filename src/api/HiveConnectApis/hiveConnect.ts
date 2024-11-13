@@ -154,7 +154,7 @@ export const executeProvision = async (
   clientName: string,
   serialNum: string,
   macaddress: string,
-
+  newOltId: number,
   olt: string,
   packageType: string
   // downstream: number, //added
@@ -166,6 +166,7 @@ export const executeProvision = async (
     serialNumber: serialNum,
     macAddress: macaddress,
     olt: olt,
+    oltId: newOltId,
     packageType: packageType,
     // downstream: downstream, //added
     // upstream: upstream, //added
@@ -179,8 +180,7 @@ export const preProvisionCheck = async (
   macaddress: string,
   olt: string,
   packageType: string,
-  oltReportedDownstream: number,
-  oltReportedUpstream: number
+  newOltId: number
   // downstream: number, //added
   // upstream: number, //added
 ) => {
@@ -190,6 +190,7 @@ export const preProvisionCheck = async (
     serialNumber: serialNum,
     macAddress: macaddress,
     olt: olt,
+    oltId: newOltId,
     packageType: packageType,
     // downstream: downstream, //added
     // upstream: upstream, //added
@@ -203,7 +204,8 @@ export const executeAutoConfig = async (
   serialNum: string,
   macaddress: string,
   olt: string,
-  packageType: string
+  packageType: string,
+  newOltId: number
   // downstream: number,
   // upstream: number
 ) => {
@@ -214,6 +216,7 @@ export const executeAutoConfig = async (
     macAddress: macaddress,
     olt: olt,
     packageType: packageType,
+    oltId: newOltId,
     // downstream: downstream, //added
     // upstream: upstream, //added
   });
@@ -225,7 +228,8 @@ export const executeMonitoring = async (
   serialNum: string,
   macaddress: string,
   olt: string,
-  packageType: string
+  packageType: string,
+  newOltId: number
   // downstream: number,
   // upstream: number
 ) => {
@@ -235,6 +239,7 @@ export const executeMonitoring = async (
     serialNumber: serialNum,
     macAddress: macaddress,
     olt: olt,
+    oltId: newOltId,
     packageType: packageType,
     // downstream: downstream, //added
     // upstream: upstream, //added
