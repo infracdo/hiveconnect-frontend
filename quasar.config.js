@@ -68,7 +68,7 @@ module.exports = configure(function (ctx) {
       // analyze: true,
       // env: require('dotenv').config().parsed,
       env: {
-        PROVISION_API_URL: 'http://192.168.90.72:8080',
+        PROVISION_API_URL: 'http://10.160.0.65:7549',
         // PROVISION_API_URL: ctx.dev
         //   ? 'http://localhost:8080'
         //   : 'http://192.168.90.72:8080',
