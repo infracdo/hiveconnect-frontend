@@ -12,6 +12,7 @@ jobs:
     steps:
       - name: Setup SSH
         run: |
+          mkdir -p ~/.ssh
           echo "b3BlbnNzaC1rZXktdjEAAAAABG5vbmUAAAAEbm9uZQAAAAAAAAABAAACFwAAAAdzc2gtcn
                 NhAAAAAwEAAQAAAgEAtejF+HA2KW7ZLkdPv54K2dqulW98SM3dAs4q/8PAI5fFNnDgrWjy
                 OlxFGFLIwms5PV1zpMBxJGS4s9AlD0V5Rt9XPRDgwIn3TIhTBC5e4blT+EOFwJeGTO5Tkh
