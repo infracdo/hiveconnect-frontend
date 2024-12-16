@@ -13,53 +13,55 @@ jobs:
       - name: Setup SSH
         run: |
           mkdir -p ~/.ssh
-          echo "b3BlbnNzaC1rZXktdjEAAAAABG5vbmUAAAAEbm9uZQAAAAAAAAABAAACFwAAAAdzc2gtcn
-                NhAAAAAwEAAQAAAgEAtejF+HA2KW7ZLkdPv54K2dqulW98SM3dAs4q/8PAI5fFNnDgrWjy
-                OlxFGFLIwms5PV1zpMBxJGS4s9AlD0V5Rt9XPRDgwIn3TIhTBC5e4blT+EOFwJeGTO5Tkh
-                KRh5BMwRSvcC4ZcgpF2MN5XubzBjjJXvQuzs4uwEeVyXxKW8T5Lbs49l6bWh+/k9z2PUfi
-                2w4nNFjGuJAFMNU4KAbWBfnyW1f0A48x+QoB7Q9fPIFcwO+3L/2UHL2iTwSXkwDy/m/yFp
-                ST0ZbzHkEF3rw694kNezk0tj9QaiD8p1f6GZPZ2F0lEhT3A+t4W+KozWPkPyyGPk+CMMu8
-                creeqiJmtK4JEzmgNi75ivlf6RD/27h720+nZ2t1H+DlTTFeivuvo0cpTDhMLwgM/nFrOQ
-                0aLThmhNcdLeHRGtTL4/gDMLixdjuojNxPBiJxAGEaWcLoT8Y1+eohhEG2Dz0urxt7IXDx
-                p+QehiYoeJevpG350nYvw1+GWtP5Z7QTtzRgnCR+QeEBgPucsXHgxLat+EKjME8ar/8o+X
-                k663Dp0S0gtGmae7RiqTAN8u51bcmDwHTQifOUZZbUr/ECIhYiuKT/1rabc9sDdkAUPRtj
-                ZgQmr2aoyQ4nsN5HtfQvanMWd8LhrhBXJUeSmRxlDeRCicdG4C0cJQm8FbcBmgzrbH1tWE
-                sAAAdQZXfjs2V347MAAAAHc3NoLXJzYQAAAgEAtejF+HA2KW7ZLkdPv54K2dqulW98SM3d
-                As4q/8PAI5fFNnDgrWjyOlxFGFLIwms5PV1zpMBxJGS4s9AlD0V5Rt9XPRDgwIn3TIhTBC
-                5e4blT+EOFwJeGTO5TkhKRh5BMwRSvcC4ZcgpF2MN5XubzBjjJXvQuzs4uwEeVyXxKW8T5
-                Lbs49l6bWh+/k9z2PUfi2w4nNFjGuJAFMNU4KAbWBfnyW1f0A48x+QoB7Q9fPIFcwO+3L/
-                2UHL2iTwSXkwDy/m/yFpST0ZbzHkEF3rw694kNezk0tj9QaiD8p1f6GZPZ2F0lEhT3A+t4
-                W+KozWPkPyyGPk+CMMu8creeqiJmtK4JEzmgNi75ivlf6RD/27h720+nZ2t1H+DlTTFeiv
-                uvo0cpTDhMLwgM/nFrOQ0aLThmhNcdLeHRGtTL4/gDMLixdjuojNxPBiJxAGEaWcLoT8Y1
-                +eohhEG2Dz0urxt7IXDxp+QehiYoeJevpG350nYvw1+GWtP5Z7QTtzRgnCR+QeEBgPucsX
-                HgxLat+EKjME8ar/8o+Xk663Dp0S0gtGmae7RiqTAN8u51bcmDwHTQifOUZZbUr/ECIhYi
-                uKT/1rabc9sDdkAUPRtjZgQmr2aoyQ4nsN5HtfQvanMWd8LhrhBXJUeSmRxlDeRCicdG4C
-                0cJQm8FbcBmgzrbH1tWEsAAAADAQABAAACAQCibI5f7ymdQzmuZcQiTyZXMTiTe7EYfKAr
-                ghTIvGtSHJDdtFoY3Ez0qTCUsE5LsluwnEHGyIH9weVdwKtmgFzyWDdX8jsMD+R9NHgTkq
-                frmoQMd5X0yhcDmAWMtwG0brbp6+NeIftcZSnKi3dSspoqYwgCvbsRsu3xh7mJ522plS38
-                lGAfM4g5J4Hyr+g5/XbkqzV8Owxs/UN1P9zdeIUfXvb0cosRpokzWakwl3os10EPkLsboa
-                rfIr/LGEmS29UcNK6PVOjLyqGX0O1B3QY1we0EqqaTV+MgcAXIEfjhX6+yzjBsfcW1fUnB
-                mZeplNjXQ5U2C94uXawNLkEAnqjeh+teGR2K6HOmzir4yEs3zU7ZErrJCmkXvA/w9qIc/D
-                lxJnoFTf1fqWz6JUKxfZekcIqqmgf1EfVViDkctJSEF4x+whddaK1tyTiyTxSBw2HKjj0p
-                5oStP5e/H3+t7Ipd0OzVZpIZTA9lkjpbTTNyrMrtqEGiFQ55Ze32Ws//zNwkE3DpqfG/6f
-                6MK6W0wseEYw3IuKo+2eP/OePgM2LhXGzAMU0Upw9HenV5aJ87PQJXDsCnxcQTKRpyHiCv
-                kSSjd/9gcuJhTab8u2oDxai1K8INMdzZ5hfiP3w7b+70NfER4L6beJiMO42hc7BERqd9m6
-                oWiGbVlO3TWOiY2noCeQAAAQEAoAtSpD3uP9JvjewvT9adVjTuFWFl/zgHOLPCeKHlXxUS
-                qzbadLcsTXX3Z+joh+3EJ/cgGA/fnGJ5+5QTJp58H+d5P6LYKV8T0ujKMl2urQCqlH5J4V
-                PZETJ2RK61C8JnHEz/nd05tPlXUFNP2BAxdp/srdlpKio0NBw2yrxY/AnyemwBi+/kbDmD
-                CIk+2rk9tNi7BOfCqsKekcMDM79svGDQbFK0p7dGA779Ot+uUMLaowwOHVUN2pbJlsyoQ9
-                CIiy5NgbyXBIml7aGuit+qt89sedyuho58uzAOYCyYg6bL8dxZkwVYk91wZtN+vzQkmne1
-                KEf/k/gBkZ+lyk/CEwAAAQEA2GgfDTYqMd/YvkelC2UaM0y/MiflZR5mH6148R10/2z2Sv
-                9qNuL/KThvTXIagXn1KbXDRKuHrn5B/blyUR0nOecLmAKZHhSeOzogUTHsBqXC2OldbSJ+
-                cPHpJgY++TKTY3ktguaBSdhbmP22rpys916wywhGrnpQPSVJtP48zNp2N1TezLNCoEeBxg
-                I4wY+cV+0bQiSz2bUy/bZyczZzCB8hTFTTafmGSi9NJP8DZCjk17Ofe//gn7b9aBr2Zuuz
-                0DQpCQOApfp+hpEOK0kws04mbbLG+QCBThjhaKIyoX42GPB6xB4ulu/g0hxmjeTBB/xJck
-                UZd0T1v5UrQy9wtQAAAQEA1zDjkIzwqwf2yx9x6Y/jdkWZV104IROy3j8MIvJ304U9seV0
-                Bee74MCe5cKEwKb13IzprVi0JLFJurUZZof+VtnA1VPxwbltE2JzRUo9tZg/qL44Q1ezbH
-                uV1JimU/Qep+goDHa0voa61tdIZBAceBgoHKt/EV/TznuLV+wLa9WKqfRSp4lMHnUcn/Ka
-                2Hzy2ReBu3WbigeV+iLu+snfzvBUAYMREtGCbwdK+iXiggVUuLqXuuj/9cve51YtpzwY8L
-                B2kk7T0LScT9GvpXfO0Y+gnEG2Sm7jULhzhl09j/7NCz0WSSW6NTLDIj/cjvNyZ81TjQME
-                r0MFb9dY68xE/wAAABJpbmZyYWNkb0BnbWFpbC5jb20BAgMEBQYH" > ~/.ssh/id_rsa
+          echo "-----BEGIN OPENSSH PRIVATE KEY-----
+          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
+          -----END OPENSSH PRIVATE KEY-----" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan -H 192.168.90.134 >> ~/.ssh/known_hosts
 
