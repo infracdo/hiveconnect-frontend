@@ -13,8 +13,7 @@ jobs:
       - name: Setup SSH
         run: |
           mkdir -p ~/.ssh
-          echo "-----BEGIN OPENSSH PRIVATE KEY-----
-          b3BlbnNzaC1rZXktdjEAAAAABG5vbmUAAAAEbm9uZQAAAAAAAAABAAACFwAAAAdzc2gtcn
+          echo b3BlbnNzaC1rZXktdjEAAAAABG5vbmUAAAAEbm9uZQAAAAAAAAABAAACFwAAAAdzc2gtcn
           NhAAAAAwEAAQAAAgEAtejF+HA2KW7ZLkdPv54K2dqulW98SM3dAs4q/8PAI5fFNnDgrWjy
           OlxFGFLIwms5PV1zpMBxJGS4s9AlD0V5Rt9XPRDgwIn3TIhTBC5e4blT+EOFwJeGTO5Tkh
           KRh5BMwRSvcC4ZcgpF2MN5XubzBjjJXvQuzs4uwEeVyXxKW8T5Lbs49l6bWh+/k9z2PUfi
@@ -60,8 +59,7 @@ jobs:
           uV1JimU/Qep+goDHa0voa61tdIZBAceBgoHKt/EV/TznuLV+wLa9WKqfRSp4lMHnUcn/Ka
           2Hzy2ReBu3WbigeV+iLu+snfzvBUAYMREtGCbwdK+iXiggVUuLqXuuj/9cve51YtpzwY8L
           B2kk7T0LScT9GvpXfO0Y+gnEG2Sm7jULhzhl09j/7NCz0WSSW6NTLDIj/cjvNyZ81TjQME
-          r0MFb9dY68xE/wAAABJpbmZyYWNkb0BnbWFpbC5jb20BAgMEBQYH
-          -----END OPENSSH PRIVATE KEY-----" > ~/.ssh/id_rsa
+          r0MFb9dY68xE/wAAABJpbmZyYWNkb0BnbWFpbC5jb20BAgMEBQYH > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan -H 192.168.90.134 >> ~/.ssh/known_hosts
 
