@@ -8,7 +8,9 @@ import {
   IOlt,
   IPackageDetails,
 } from "./types";
+import { auth } from "src/stores/auth";
 const store = useDevicesStore();
+const kc = auth();
 
 const API_BASE_URL = process.env.PROVISION_API_URL;
 
@@ -32,6 +34,7 @@ const api = axios.create({
 
 export const getDevices = async (): Promise<IRogueDevices[]> => {
   try {
+    console.log("front end accessing backend hive api /getRogueDevices");
     const { data } = await api.get("/getRogueDevices");
     store.$patch({
       rogueDevice: data,
@@ -47,6 +50,9 @@ export const getIpAddresses = async (
   ipAddress: string | string[]
 ): Promise<IipAddressesOfCidrBlock[]> => {
   try {
+    console.log(
+      "front end accessing backend hive api /getIpAddressesOfCidrBlock"
+    );
     const { data } = await api.get("/getIpAddressesOfCidrBlock/" + ipAddress);
     return data;
   } catch (error) {
@@ -57,7 +63,8 @@ export const getIpAddresses = async (
 
 export const getNetworkAddresses = async () => {
   try {
-    const { data } = await api.get("/getallnetworks");  ///getCidrBlocks
+    console.log("front end accessing backend hive api /getallnetworks");
+    const { data } = await api.get("/getallnetworks"); ///getCidrBlocks
     return data;
   } catch (error) {
     console.log("Cannot Retrieve Network Address Data!", error);
@@ -67,6 +74,7 @@ export const getNetworkAddresses = async () => {
 
 export const getClients = async (): Promise<IClient[]> => {
   try {
+    console.log("front end accessing backend hive api /getsubscribers");
     const { data } = await api.get("/getsubscribers"); //get new client from billing
     return data;
   } catch (error) {
@@ -77,6 +85,7 @@ export const getClients = async (): Promise<IClient[]> => {
 // added new api for OLT IP
 export const getNetworkSiteOltIp = async (): Promise<IOltSiteByIp[]> => {
   try {
+    console.log("front end accessing backend hive api /getallolt");
     const { data } = await api.get("/getallolt");
     return data;
   } catch (error) {
@@ -87,14 +96,30 @@ export const getNetworkSiteOltIp = async (): Promise<IOltSiteByIp[]> => {
 
 export const getHiveClients = async (): Promise<IClient[]> => {
   try {
-    const { data } = await api.get("/getprovisionedsubscribers");  //"/getHiveClients"
+    console.log(
+      "front end accessing backend hive api /getprovisionedsubscribers"
+    );
+    const { data } = await api.get("/getprovisionedsubscribers"); //"/getHiveClients"
     return data;
   } catch (error) {
     console.log("Could not retrieve Client/Subscriber Data!", error);
     throw error;
   }
 };
-export const getClientById = async (newsubscriberId: number): Promise<IClient> => {
+
+export const getHiveclients = async (): Promise<IClient[]> => {
+  try {
+    const { data } = await api.get("/getHiveClients"); //"/getHiveClients"
+    return data;
+  } catch (error) {
+    console.log("Could not retrieve Client/Subscriber Data!", error);
+    throw error;
+  }
+};
+
+export const getClientById = async (
+  newsubscriberId: number
+): Promise<IClient> => {
   try {
     const { data } = await api.get("/getsubscriberbyid/" + newsubscriberId);
     return data;
@@ -141,9 +166,9 @@ export const executeProvision = async (
   clientName: string,
   serialNum: string,
   macaddress: string,
-
+  newOltId: number,
   olt: string,
-  packageType: string,
+  packageType: string
   // downstream: number, //added
   // upstream: number, //added
 ) => {
@@ -153,6 +178,7 @@ export const executeProvision = async (
     serialNumber: serialNum,
     macAddress: macaddress,
     olt: olt,
+    oltId: newOltId,
     packageType: packageType,
     // downstream: downstream, //added
     // upstream: upstream, //added
@@ -160,7 +186,13 @@ export const executeProvision = async (
   return data;
 };
 export const preProvisionCheck = async (
-accNum: string, clientName: string, serialNum: string, macaddress: string, olt: string, packageType: string, oltReportedDownstream: number, oltReportedUpstream: number,
+  accNum: string,
+  clientName: string,
+  serialNum: string,
+  macaddress: string,
+  olt: string,
+  packageType: string,
+  newOltId: number
   // downstream: number, //added
   // upstream: number, //added
 ) => {
@@ -170,6 +202,7 @@ accNum: string, clientName: string, serialNum: string, macaddress: string, olt: 
     serialNumber: serialNum,
     macAddress: macaddress,
     olt: olt,
+    oltId: newOltId,
     packageType: packageType,
     // downstream: downstream, //added
     // upstream: upstream, //added
@@ -178,8 +211,13 @@ accNum: string, clientName: string, serialNum: string, macaddress: string, olt: 
 };
 
 export const executeAutoConfig = async (
-accNum: string, clientName: string, serialNum: string, macaddress: string, olt: string,
-  packageType: string
+  accNum: string,
+  clientName: string,
+  serialNum: string,
+  macaddress: string,
+  olt: string,
+  packageType: string,
+  newOltId: number
   // downstream: number,
   // upstream: number
 ) => {
@@ -189,14 +227,21 @@ accNum: string, clientName: string, serialNum: string, macaddress: string, olt: 
     serialNumber: serialNum,
     macAddress: macaddress,
     olt: olt,
-    packageType: packageType
+    packageType: packageType,
+    oltId: newOltId,
     // downstream: downstream, //added
     // upstream: upstream, //added
   });
   return data;
 };
 export const executeMonitoring = async (
-accNum: string, clientName: string, serialNum: string, macaddress: string, olt: string, packageType: string
+  accNum: string,
+  clientName: string,
+  serialNum: string,
+  macaddress: string,
+  olt: string,
+  packageType: string,
+  newOltId: number
   // downstream: number,
   // upstream: number
 ) => {
@@ -206,7 +251,8 @@ accNum: string, clientName: string, serialNum: string, macaddress: string, olt: 
     serialNumber: serialNum,
     macAddress: macaddress,
     olt: olt,
-    packageType: packageType
+    oltId: newOltId,
+    packageType: packageType,
     // downstream: downstream, //added
     // upstream: upstream, //added
   });
@@ -228,8 +274,8 @@ export const addNewClient = async (
     ONUSerialNum: serialNum,
     PackageType: packageType,
     ONUMacAddress: macAddress,
-     downstream: downstream, //added
-     upstream: upstream, //added
+    downstream: downstream, //added
+    upstream: upstream, //added
   });
   return data;
 };

@@ -28,7 +28,7 @@ module.exports = configure(function (ctx) {
     // --> boot files are part of "main.js"
     // https://v2.quasar.dev/quasar-cli-vite/boot-files
     boot: [
-      // 'keycloak'
+      'keycloak'
     ],
 
     // https://v2.quasar.dev/quasar-cli-vite/quasar-config-js#css
@@ -72,9 +72,10 @@ module.exports = configure(function (ctx) {
         // PROVISION_API_URL: ctx.dev
         //   ? 'http://localhost:8080'
         //   : 'http://192.168.90.72:8080',
+        // http://localhost:9080 // apisix gateway
 
-        PROVISION_API_PROMETHEUS: 'https://dctech-prometheus.apolloglobal.net',
-        PROVISION_API_GRAFANA: 'https://dctech-grafana.apolloglobal.net',
+        PROVISION_API_PROMETHEUS:'https://hive-prometheus.apolloglobal.net',
+        PROVISION_API_GRAFANA: 'https://hive-grafana.apolloglobal.net',
 
         VUE_APP_KEYCLOAK_URL:'https://keycloak.dataconnect.com.ph/auth/',
         VUE_APP_KEYCLOAK_REALM:'hive-connect',
@@ -96,6 +97,7 @@ module.exports = configure(function (ctx) {
 
     // Full list of options: https://v2.quasar.dev/quasar-cli-vite/quasar-config-js#devServer
     devServer: {
+      port: 8081,
       // https: true,
       open: false // opens browser window automatically
     },

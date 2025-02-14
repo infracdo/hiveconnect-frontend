@@ -190,6 +190,7 @@ const client = ref<IsubsriberType>({
 
 const openModal = async (newSubscriberId: number) => {
   $q.loading.show();
+  console.log("front end accessing backend hive api /getRogueDevices");
   const rogueDevice = await getDevices();
 
   serialAndMac = rogueDevice.map(

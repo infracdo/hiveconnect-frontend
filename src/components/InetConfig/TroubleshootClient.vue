@@ -211,7 +211,7 @@ const getInfoApiPrometheus = async (deviceName: string, id: number) => {
     oltStatus.value = oltInfoResponse.data.data.result[0].value[1];
 
     const {
-      accountNumber,
+      subscriberAccountNumber,
       clientName,
       ipAssigned,
       onuSerialNumber,
@@ -219,7 +219,7 @@ const getInfoApiPrometheus = async (deviceName: string, id: number) => {
       oltIp,
       onuDeviceName,
       onuMacAddress,
-      packageTypeId,
+      packageType,
       ssidName,
       oltReportedDownstream,
       oltReportedUpstream,
@@ -230,7 +230,7 @@ const getInfoApiPrometheus = async (deviceName: string, id: number) => {
 
     clientInfo.otcStatus = response;
 
-    clientInfo.accountNumber = accountNumber;
+    clientInfo.accountNumber = subscriberAccountNumber;
     clientInfo.clientName = clientName;
     clientInfo.ipAssigned = ipAssigned;
     clientInfo.oltIp = oltIp;
@@ -239,7 +239,7 @@ const getInfoApiPrometheus = async (deviceName: string, id: number) => {
     clientInfo.onuDeviceName = onuDeviceName;
     clientInfo.onuMacAddress = onuMacAddress;
     clientInfo.onuSerialNumber = onuSerialNumber;
-    clientInfo.packageTypeId = packageTypeId;
+    clientInfo.packageTypeId = packageType;
     clientInfo.oltUpstream = oltReportedUpstream;
     clientInfo.oltDownstream = oltReportedDownstream;
     console.log(oltReportedUpstream, oltReportedDownstream);
@@ -250,7 +250,7 @@ const getInfoApiPrometheus = async (deviceName: string, id: number) => {
 
       clientInfo.oltSite = oltSitePo.oltName;
       const { upstream, downstream, name } = await checkPackageDetails(
-        packageTypeId
+        packageType
       );
 
       bandwidth.name = name;

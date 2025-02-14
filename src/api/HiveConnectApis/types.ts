@@ -14,12 +14,15 @@ export interface IexecuteProvision {
   ipAddress: string;
   olt: string;
   packageType: string;
+  oltId: number;
 }
 
 export interface IClient {
   newSubscriberId: number;
+  id: number;
   bucketId: number;
   subscriberAccountNumber: string;
+  clientName: string; //added 10-22-24
   subscriberName: string;
   ipAssigned: string;
   onuSerialNumber: string;
@@ -36,6 +39,7 @@ export interface IClient {
 // added new interface for OLT IP
 export interface IOltSiteByIp {
   newOltId: number;
+  newoltId: number;
   oltName: string;
   oltIp: string;
   oltNetworksite: string;
@@ -75,6 +79,7 @@ export interface IipAddressesOfCidrBlock {
 }
 
 export interface IOltSiteByIp {
+  newoltId: number;
   newOltId: number;
   oltIp: string;
   oltName: string;

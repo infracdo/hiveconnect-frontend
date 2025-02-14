@@ -12,51 +12,53 @@
           @click="toggleLeftDrawer"
         />
 
-        <q-toolbar-title class="text-left">
-          Hive Connect
-        </q-toolbar-title>
+        <q-toolbar-title class="text-left"> Hive Connect </q-toolbar-title>
 
-        <div>
-          <q-btn
-            label="John Doe dela Santos"
-            icon-right="bi-person"
-            align="between"
-            flat
-            no-caps
-
-          >
+        <div v-if="$keycloak.authenticated">
+          <q-btn icon-right="bi-person" align="between" flat no-caps>
+            <div align="between" class="q-mr-xs">
+              {{ $keycloak.tokenParsed.preferred_username }}
+            </div>
             <q-menu
               fit
-              style="width: 210px;"
+              style="width: 210px"
               transition-show="jump-down"
               transition-hide="jump-up"
+              class="column no-wrap q-pa-md"
             >
+              <div class="row items-center q-my-xs">
+                <q-icon name="account_circle" size="40px" />
+                <div class="q-ml-xs">
+                  <p class="q-ma-none">
+                    {{ $keycloak.tokenParsed.given_name }}
+                    {{ $keycloak.tokenParsed.family_name }}
+                  </p>
+                  <p class="q-ma-none">{{ $keycloak.tokenParsed.email }}</p>
+                </div>
+              </div>
+              <q-separator class="q-my-xs" />
               <q-list class="text-grey-9">
-                <q-item clickable>
-                  <q-item-section avatar>
-                    <div class="row items-end">
-                      <q-icon name="bi-person" size="20px" class="q-mr-md"/>
-                      <q-item-label>Profile</q-item-label>
-                    </div>
-                  </q-item-section>
-                </q-item>
-                <q-item clickable>
-                  <q-item-section avatar>
-                    <div class="row items-center">
-                      <q-icon name="bi-gear" size="20px" class="q-mr-md"/>
-                      <q-item-label>Settings</q-item-label>
-                    </div>
-                  </q-item-section>
-                </q-item>
                 <q-item clickable @click="$q.dark.toggle()">
                   <q-item-section avatar>
                     <div class="row items-center">
-                      <q-icon :name="!$q.dark.isActive? 'bi-brightness-high' : 'bi-moon-stars'" size="20px" class="q-mr-md"/>
-                      <q-item-label>{{ $q.dark.isActive ? 'Dark' : 'Light' }} Mode</q-item-label>
+                      <q-icon
+                        :name="
+                          !$q.dark.isActive
+                            ? 'bi-brightness-high'
+                            : 'bi-moon-stars'
+                        "
+                        size="20px"
+                        class="q-mr-md"
+                      />
+                      <q-item-label
+                        >{{
+                          $q.dark.isActive ? "Dark" : "Light"
+                        }}
+                        Mode</q-item-label
+                      >
                     </div>
                   </q-item-section>
                 </q-item>
-                <q-separator />
                 <Logout />
               </q-list>
             </q-menu>
@@ -79,7 +81,7 @@
         <q-item-label header> Navigation </q-item-label>
 
         <EssentialLink
-          v-for="link in essentialLinks"
+          v-for="link in filteredLinksList"
           :key="link.title"
           v-bind="link"
         />
@@ -104,45 +106,59 @@
 
 <script setup lang="ts">
 import Logout from "src/components/Logout.vue";
-import { ref, watch } from "vue";
+import { onMounted, ref, watch } from "vue";
+import { keycloak } from "src/boot/keycloak";
 import EssentialLink, {
   EssentialLinkProps,
 } from "components/EssentialLink.vue";
 
 import { useQuasar } from "quasar";
+import router from "src/router";
 
 const $q = useQuasar();
-const essentialLinks: EssentialLinkProps[] = [
+const essentialLinks = [
   {
     title: "Provision",
     icon: "bi-person-fill-gear",
     link: "/inet-config",
+    roles: ["HIVECONNECT_PROVISIONING_VIEW"],
   },
   {
     title: "Hive Provisioned",
     icon: "bi-person-fill-check",
     link: "/provisioned",
+    roles: ["HIVECONNECT_PROVISIONED_VIEW"],
   },
   {
     title: "Rogue Devices",
     icon: "device_unknown",
     link: "/rogue-devices",
+    roles: ["HIVECONNECT_ROGUE_DEVICES_VIEW"],
   },
   {
     title: "Network Address",
     icon: "podcasts",
     link: "/network-address",
+    roles: ["HIVECONNECT_ADDRESSES_VIEW"],
   },
   {
     title: "Troubleshoot",
     icon: "bi-wrench",
     link: "/troubleshooting",
+    roles: ["HIVECONNECT_TROUBLESHOOTING_VIEW"],
   },
 ];
 
 const leftDrawerOpen = ref(false);
 const isDarkMode = ref(true);
-const miniState = ref(true)
+const miniState = ref(true);
+
+const filteredLinksList = essentialLinks.filter((link) => {
+  const resourceRoles =
+    keycloak.tokenParsed?.resource_access["test-hiveconnect-frontend"].roles ||
+    [];
+  return !link.roles || link.roles.some((role) => resourceRoles.includes(role));
+});
 
 watch(
   () => isDarkMode.value,

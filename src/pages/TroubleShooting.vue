@@ -4,12 +4,13 @@
     <div class="select">
       <q-select
         v-model="selectSubscriber"
-        :options="select"
+        :options="selectOptions"
         label="Select Subscriber"
         filled
         class="select-subscriber"
-        map-option
-        @update:model-value="getInfoApiPrometheus(selectSubscriber)"
+        emit-value
+        map-options
+        @update:model-value="fetchClientInfo($event)"
       />
       <q-select
         v-model="selectTime"
@@ -23,17 +24,10 @@
       <q-btn
         icon="autorenew"
         class="cursor-pointer q-mx-sm"
-        @click="ayy"
+        @click="fetchClientInfo(selectSubscriber)"
         flat
       />
     </div>
-    <q-ajax-bar
-      ref="bar"
-      color="info"
-      position="bottom"
-      size="10px"
-      skip-hijack
-    />
 
     <div class="my-cards">
       <q-card>
@@ -41,53 +35,63 @@
         <q-card-section>
           <p>Client Name: {{ clientInfo.clientName }}</p>
           <p>Account Number: {{ clientInfo.accountNumber }}</p>
-          <p>Package Type: {{ clientInfo.packageTypeId }}</p>
+          <p>Package Type: {{ clientInfo.packageType }}</p>
         </q-card-section>
       </q-card>
       <q-card>
         <q-banner class="bg-primary text-white"> ONU Details </q-banner>
         <q-card-section>
-          <p class="">
+          <p>
             ONU Status:
             <span
               v-if="selectSubscriber !== ''"
               :class="onuStatus === '1' ? 'up' : 'down'"
-              >{{ onuStatus === "1" ? "Online" : "Offline" }}</span
             >
+              {{ onuStatus === "1" ? "Online" : "Offline" }}
+            </span>
           </p>
-          <p class="">
-            ONU IP:
-            <span style="">{{ onuInfo.instance }}</span>
+          <p>
+            ONU IP: <span>{{ onuInfo.instance }}</span>
           </p>
           <p>ONU Serial Number: {{ clientInfo.onuSerialNumber }}</p>
           <p>ONU Mac Address: {{ clientInfo.onuMacAddress }}</p>
           <p>
-            upstream: {{ bandwidth.upStream }} downstream:
+            Upstream: {{ bandwidth.upStream }} Downstream:
             {{ bandwidth.downStream }}
           </p>
-        </q-card-section></q-card
-      >
+        </q-card-section>
+      </q-card>
       <q-card>
         <q-banner class="bg-primary text-white"> OLT Details </q-banner>
         <q-card-section>
-          <p class="">
+          <p>
             OLT Status:
             <span
               v-if="selectSubscriber !== ''"
               :class="oltStatus === '1' ? 'up' : 'down'"
-              >{{ oltStatus === "1" ? "Online" : "Offline" }}</span
             >
+              {{ oltStatus === "1" ? "Online" : "Offline" }}
+            </span>
           </p>
-          <p class="">
-            OLT IP:
-            <span style="">{{ clientInfo.oltIp }}</span>
+          <p>
+            OLT IP: <span>{{ clientInfo.oltIp }}</span>
           </p>
-          <p>OLT Site: {{ clientInfo.oltSite }}</p>
+          <p>OLT Site: {{ onuInfo.site_name }}</p>
           <p>OLT Interface: {{ clientInfo.oltInterface }}</p>
         </q-card-section>
       </q-card>
     </div>
     <div class="grafana-main">
+      <div class="grafana">
+        <iframe
+          v-if="doneApiCalls"
+          :src="`${grafanaApi}/d-solo/d94d1e0e-a6e4-45c4-847f-6603e1c31ccb/subscribers-traffic-rate-and-uptime?orgId=1&from=now-${selectTime}&to=now&var-Subscriber=${selectSubscriber}&panelId=3`"
+          class="grafana-panel"
+          frameborder="0"
+        ></iframe>
+      </div>
+    </div>
+    <!-- <div class="grafana-main">
       <div class="grafana" v-if="!doneApiCalls">
         <div>
           <iframe
@@ -97,49 +101,30 @@
           ></iframe>
         </div>
       </div>
-    </div>
+    </div> -->
   </q-page>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted, reactive } from "vue";
 import axios from "axios";
-import {
-  getClients,
-  getClientById,
-  checkOltSiteByIp,
-} from "src/api/HiveConnectApis/hiveConnect";
-import { IClient } from "src/api/HiveConnectApis/types";
+import { getHiveclients } from "src/api/HiveConnectApis/hiveConnect"; // Ensure this is correctly imported
+
 const selectSubscriber = ref("");
-const select = [
-  "Stefani_Germanotta_bw1-100.126.0.3",
-  "Nica_Cabsagan_bw1-100.126.0.16",
-//  "Mike_Stronghold_bw1-100.126.0.3",
-//  "Eef_Elsie_bw1-100.126.0.4",
-];
-const bar = ref<{
-  start(): void;
-  stop(): void;
-}>();
+const selectOptions = ref<{ label: string; value: string }[]>([]);
 const doneApiCalls = ref(false);
 const selectTime = ref("2d");
 
-const deviceNames = ref<{ onuDeviceName: string; id: number }[]>([]);
 const onuInfo = ref({
-  __name__: "",
-  device_name: "",
-  device_role: "",
   instance: "",
-  job: "",
   site_name: "",
-  site_status: "",
-  site_tenant: "",
 });
 const onuStatus = ref("");
 const oltStatus = ref("");
 const prometheusApi = process.env.PROVISION_API_PROMETHEUS;
 const grafanaApi = process.env.PROVISION_API_GRAFANA;
 const timeOptions = [
+  { label: "No Evaluation Time", value: null },
   { label: "Last 5 minutes", value: "5m" },
   { label: "Last 15 minutes", value: "15m" },
   { label: "Last 30 minutes", value: "30m" },
@@ -151,91 +136,113 @@ const timeOptions = [
   { label: "Last 2 days", value: "2d" },
   { label: "Last 90 days", value: "90d" },
 ];
+
 const clientInfo = reactive({
   accountNumber: "",
   clientName: "",
-  ipAssigned: "",
   onuSerialNumber: "",
   oltIp: "",
   onuMacAddress: "",
-  onuDeviceName: "",
-  packageTypeId: "",
   oltSite: "",
   oltInterface: "",
 });
+
 const bandwidth = reactive({
   upStream: "",
   downStream: "",
 });
 
-const ayy = async () => {
-  const clients: IClient[] = await getClients();
-  deviceNames.value = clients
-    .filter(
-      (client: IClient) =>
-        client.onuDeviceName !== null && client.onuDeviceName.trim() !== ""
-    )
-    .map((client: IClient) => ({
-      onuDeviceName: client.onuDeviceName,
-      id: client.id,
+// Fetch subscribers to populate the dropdown
+const fetchSubscribers = async () => {
+  try {
+    const clients = await getHiveclients();
+    selectOptions.value = clients.map((client) => ({
+      label: `${client.onuDeviceName}-${client.ipAssigned}`,
+      value: `${client.onuDeviceName}-${client.ipAssigned}`,
     }));
+  } catch (error) {
+    console.error("Error fetching clients:", error);
+  }
 };
 
+// Function to fetch client data based on selected subscriber
+const fetchClientInfo = async (deviceName: string) => {
+  if (!deviceName) return; // Ensure a device is selected
+
+  // Logic to find selected client from the options
+  const selectedClient = selectOptions.value.find(
+    (client) => client.value === deviceName
+  );
+
+  if (selectedClient) {
+    const [deviceNamePart, ipAssignedPart] = selectedClient.value.split("-");
+
+    // Fetch other client info based on selected device name
+    try {
+      const clientData = await getHiveclients();
+      const client = clientData.find(
+        (client) =>
+          client.onuDeviceName === deviceNamePart &&
+          client.ipAssigned === ipAssignedPart
+      );
+
+      if (client) {
+        Object.assign(clientInfo, {
+          accountNumber: client.subscriberAccountNumber,
+          clientName: client.clientName,
+          onuSerialNumber: client.onuSerialNumber,
+          oltIp: client.oltIp,
+          onuMacAddress: client.onuMacAddress,
+          //oltSite: client.oltSite,
+          oltInterface: client.oltInterface,
+          packageType: client.packageType,
+        });
+
+        // Fetch ONU and OLT info from Prometheus
+        // await getInfoApiPrometheus(client.onuDeviceName);
+        // Fetch ONU and OLT info from Prometheus using the new format
+        await getInfoApiPrometheus(
+          `${client.onuDeviceName}-${client.ipAssigned}`
+        );
+      }
+    } catch (error) {
+      console.error("Error fetching client info:", error);
+    }
+  }
+};
+
+// Function to fetch ONU and OLT info from Prometheus
 const getInfoApiPrometheus = async (deviceName: string) => {
-  console.log(deviceName);
   doneApiCalls.value = false;
-  const barRef = bar.value;
-  barRef?.start();
+  try {
+    const onuResponse = await axios.get(
+      `${prometheusApi}/api/v1/query?query=lo_status{job="ip_address",site_tenant="DCTECH",device_name="${deviceName}"}`
+    );
 
-  const response = await axios.get(
-    `${prometheusApi}/api/v1/query?query=lo_status{job=%22ip_address%22,site_tenant=%22DCTECH%22,device_name="${deviceName}"}`
-  );
+    if (onuResponse.data.data.result.length > 0) {
+      onuInfo.value = onuResponse.data.data.result[0].metric;
+      onuStatus.value = onuResponse.data.data.result[0].value[1];
 
-  onuInfo.value = response.data.data.result[0].metric;
-  onuStatus.value = response.data.data.result[0].value[1];
+      const oltResponse = await axios.get(
+        `${prometheusApi}/api/v1/query?query=lo_status{job="ip_address",site_tenant="DCTECH",device_name="${onuInfo.value.site_name}"}`
+      );
 
-  const oltInfo = await axios.get(
-    `${prometheusApi}/api/v1/query?query=lo_status{job=%22ip_address%22,site_tenant=%22DCTECH%22,device_name="${onuInfo.value.site_name}"}`
-  );
-  oltStatus.value = oltInfo.data.data.result[0].value[1];
-
-  // const client = await getClientById(id);
-  // const {
-  //   accountNumber,
-  //   clientName,
-  //   ipAssigned,
-  //   oltIp,
-  //   onuDeviceName,
-  //   onuMacAddress,
-  //   onuSerialNumber,
-  //   packageTypeId,
-  // } = client;
-  // clientInfo.accountNumber = accountNumber;
-  // clientInfo.clientName = clientName;
-  // clientInfo.ipAssigned = ipAssigned;
-  // clientInfo.oltIp = oltIp;
-  // clientInfo.onuDeviceName = onuDeviceName;
-  // clientInfo.onuMacAddress = onuMacAddress;
-  // clientInfo.onuSerialNumber = onuSerialNumber;
-  // clientInfo.packageTypeId = packageTypeId;
-
-  // const oltSitePo = await checkOltSiteByIp(oltIp);
-  // const { olt_name } = oltSitePo;
-  // clientInfo.oltSite = olt_name;
-
-  // const responsePo = await checkPackageBandwidth(packageTypeId);
-  // const { upstream, downstream } = responsePo;
-  // bandwidth.upStream = upstream;
-  // bandwidth.downStream = downstream;
-
-  // const oltInterfaceResponse = await checkOltInterface(deviceName);
-  // clientInfo.oltInterface = oltInterfaceResponse;
-  barRef?.stop();
-  doneApiCalls.value = true;
+      if (oltResponse.data.data.result.length > 0) {
+        oltStatus.value = oltResponse.data.data.result[0].value[1];
+      }
+    } else {
+      console.warn("No ONU data found");
+    }
+  } catch (error) {
+    console.error("Error fetching data from Prometheus:", error);
+  } finally {
+    doneApiCalls.value = true;
+  }
 };
 
+// Fetch subscribers when the component mounts
 onMounted(() => {
-  ayy();
+  fetchSubscribers();
 });
 </script>
 
@@ -255,7 +262,6 @@ onMounted(() => {
 }
 
 .select {
-  /* display: flex; */
   max-width: 1500px;
   margin: 0 auto 15px auto;
   gap: 1em;
@@ -263,44 +269,17 @@ onMounted(() => {
 .my-cards {
   max-width: 1500px;
   display: grid;
-  grid-template-columns: 1fr;
-  gap: 1.5em;
-  margin: 0 auto 15px auto;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 15px;
 }
 .select-subscriber {
-  min-width: 200px;
+  width: 300px;
+  margin-bottom: 10px;
 }
-
 .up {
   color: green;
 }
 .down {
   color: red;
-}
-@media screen and (min-width: 660px) {
-  .grafana {
-    display: grid;
-    grid-template-columns: 1fr;
-
-    gap: 1.5em;
-  }
-  .grafana-panel {
-    aspect-ratio: 16 / 7;
-    max-height: 450px;
-  }
-  .my-cards {
-    grid-template-columns: 1fr 1fr;
-  }
-  .select {
-    display: flex;
-  }
-}
-@media screen and (min-width: 1200px) {
-  .my-cards {
-    grid-template-columns: 1fr 1fr 1fr;
-  }
-  .grafana-panel {
-    aspect-ratio: 21 / 6;
-  }
 }
 </style>

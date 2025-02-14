@@ -10,12 +10,16 @@
 </template>
 
 <script>
+import { keycloak } from "src/boot/keycloak";
+
 export default {
   methods: {
     logout() {
       console.log("logout");
       localStorage.clear();
-      this.$keycloak.logoutFn({ logoutRedirectUri: window.location.host });
+      keycloak.logout({
+        redirectUri: window.location.origin,
+      });
     },
   },
 };

@@ -65,7 +65,7 @@
             @click="
               openTroubleshootModal(
                 props.row.onuDeviceName + '-' + props.row.ipAssigned,
-                props.row.id
+                props.row.newSubscriberId
               )
             "
             :disable="
@@ -122,9 +122,13 @@ const visibleColumns = ref([
   "actions",
 ]);
 const loading = ref(false);
-const openTroubleshootModal = (onuDeviceName: string, id: number) => {
+const openTroubleshootModal = (
+  onuDeviceName: string,
+  newSubscriberId: number
+) => {
   deviceName.value = onuDeviceName;
-  clientId.value = id;
+  console.log(typeof newSubscriberId, " id value is ", newSubscriberId);
+  clientId.value = newSubscriberId;
   openTroubleShootModal.value = !openTroubleShootModal.value;
 };
 
