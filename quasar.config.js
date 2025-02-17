@@ -10,6 +10,8 @@
 
 const { configure } = require('quasar/wrappers')
 
+require("dotenv").config();
+
 module.exports = configure(function (ctx) {
   return {
     // eslint: {
@@ -40,9 +42,9 @@ module.exports = configure(function (ctx) {
     extras: [
       // 'ionicons-v4',
       // 'mdi-v5',
-      // 'fontawesome-v6',
-      // 'eva-icons',
-      // 'themify',
+      'fontawesome-v6',
+      'eva-icons',
+      'themify',
       // 'line-awesome',
       // 'roboto-font-latin-ext', // this or either 'roboto-font', NEVER both!
       'bootstrap-icons',
@@ -68,17 +70,17 @@ module.exports = configure(function (ctx) {
       // analyze: true,
       // env: require('dotenv').config().parsed,
       env: {
-        PROVISION_API_URL: 'http://192.168.90.72:8080',
+        PROVISION_API_URL: process.env.PROVISION_API_URL,
         // PROVISION_API_URL: ctx.dev
         //   ? 'http://localhost:8080'
         //   : 'http://192.168.90.72:8080',
 
-        PROVISION_API_PROMETHEUS:'https://hive-prometheus.apolloglobal.net',
-        PROVISION_API_GRAFANA: 'https://hive-grafana.apolloglobal.net',
+        PROVISION_API_PROMETHEUS: process.env.PROVISION_API_PROMETHEUS,
+        PROVISION_API_GRAFANA: process.env.PROVISION_API_GRAFANA,
 
-        VUE_APP_KEYCLOAK_URL:'https://keycloak.dataconnect.com.ph/auth/',
-        VUE_APP_KEYCLOAK_REALM:'hive-connect',
-        VUE_APP_KEYCLOAK_CLIENT_ID:'hiveApp'
+        VUE_APP_KEYCLOAK_URL: process.env.VUE_APP_KEYCLOAK_URL,
+        VUE_APP_KEYCLOAK_REALM: process.env.VUE_APP_KEYCLOAK_REALM,
+        VUE_APP_KEYCLOAK_CLIENT_ID: process.env.VUE_APP_KEYCLOAK_CLIENT_ID
       },
       // rawDefine: {}
       // ignorePublicFolder: true,
@@ -97,13 +99,13 @@ module.exports = configure(function (ctx) {
     // Full list of options: https://v2.quasar.dev/quasar-cli-vite/quasar-config-js#devServer
     devServer: {
       // https: true,
-      open: false // opens browser window automatically
+      open: true // opens browser window automatically
     },
 
     // https://v2.quasar.dev/quasar-cli-vite/quasar-config-js#framework
     framework: {
       config: {
-        dark: "auto"
+        // dark: "auto"
       },
 
       // iconSet: 'material-icons', // Quasar icon set
