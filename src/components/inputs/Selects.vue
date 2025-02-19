@@ -52,7 +52,7 @@ import { ref, computed, onMounted } from "vue";
 const props = withDefaults(
   defineProps<{
     label: string;
-    modelValue: string | number;
+    modelValue: string | number | null;
     required?: boolean;
     options: Array<Record<string, any>>;
     optionLabel?: string;
@@ -79,7 +79,7 @@ const emit = defineEmits<{
 
 // Emit modelValue
 const selectedValue = computed({
-  get: () => props.modelValue,
+  get: () => props.modelValue ?? "",
   set: (value) => emit("update:modelValue", value),
 });
 
@@ -91,12 +91,16 @@ const validateSelect = () => {
   const selectObject = selectField.value;
   if (!selectObject) return;
 
-  if (props.required && selectedValue.value) {
+  // Check if required and the value is empty or null
+  if (props.required && !selectedValue.value) {
     validationMessage.value = `${props.label} is required`;
-  } else if (!selectObject.checkValidity()) {
-    validationMessage.value = selectObject.validationMessage;
   } else {
-    validationMessage.value = "";
+    // Check for validity
+    if (!selectObject.checkValidity()) {
+      validationMessage.value = selectObject.validationMessage;
+    } else {
+      validationMessage.value = "";
+    }
   }
 };
 

@@ -54,13 +54,9 @@
         >
           <!-- Table for provisioned clients (active) -->
           <div class="full-width p-3">
-            <!-- TODO: The 'row-key' in the previous code is 'name'. Re-check this part -->
-            <!-- TODO: an ID column is displayed in the table while the said column is not displayed in the current Hive.
-             re-check this part and make sure the ID matches with the database and are not auto-generated for UI purposes -->
-            <!-- TODO: add actions button -->
             <Table
-              :tableColumns="provisionedClientColumns"
-              :tableRows="provisionedClientRows"
+              :tableColumns="columns"
+              :tableRows="filteredRows"
               :visibleColumns="visibleColumns"
               :rowsPerPage="10"
               @rowClick="openModal"
@@ -71,7 +67,12 @@
                     name="assignment"
                     size="sm"
                     class="cursor-pointer text-gray-iron-900 font-normal hover:text-primary-1000"
-                    @click="openModal(row)"
+                    @click="
+                      openTroubleshootModal(
+                        row.onuDeviceName,
+                        row.newSubscriberId
+                      )
+                    "
                   />
                 </div>
               </template>
@@ -82,166 +83,13 @@
     </div>
 
     <!-- Display troubleshoot modal when row is clicked-->
-    <Modal
-      :isVisible="modalIsVisible"
-      :title="'Troubleshoot Client'"
-      @update:isVisible="modalIsVisible = $event"
-      :actionHandler="handleTroubleshootClient"
-      showSaveButton
-    >
-      <!-- Client details section-->
-      <div class="mb-4">
-        <p class="mb-2 text-gray-iron-900 font-semibold">Client Details</p>
-        <div class="mb-4" style="display: flex; gap: 16px">
-          <!-- Client Name input field -->
-          <Inputs
-            :input-style="{ 'text-transform': 'uppercase' }"
-            v-model="client.subscriberName"
-            label="Client Name"
-            @input="noLeadingWhitespace"
-            required
-          />
-
-          <!-- Account Number input field -->
-          <Inputs
-            :input-style="{ 'text-transform': 'uppercase' }"
-            v-model="client.accountNo"
-            label="Account Number"
-            @input="noLeadingWhitespace"
-            required
-          />
-
-          <!-- Package Type input field -->
-          <Inputs
-            :input-style="{ 'text-transform': 'uppercase' }"
-            v-model="client.packageType"
-            label="Package Type"
-            @input="noLeadingWhitespace"
-            required
-          />
-        </div>
-      </div>
-
-      <!-- ONU Details Section -->
-      <div class="mb-4">
-        <div class="mb-2 text-gray-iron-900 font-semibold">ONU Details</div>
-        <div class="mb-2" style="display: flex; gap: 16px">
-          <!-- ONU Status input field-->
-          <Inputs
-            :input-style="{ 'text-transform': 'uppercase' }"
-            v-model="client.onuStatus"
-            label="ONU Status"
-            readonly
-          />
-
-          <!-- ONU IP input field-->
-          <Inputs
-            :input-style="{ 'text-transform': 'uppercase' }"
-            v-model="client.onuIp"
-            label="ONU IP"
-            @input="noLeadingWhitespace"
-            required
-          />
-
-          <!-- ONU Serial Number select field -->
-          <Selects
-            v-model="client.onuSerialNumber"
-            label="ONU Serial Number"
-            :options="[
-              { label: 'SN-9876543210', value: 'SN-98765432101' },
-              { label: 'SN-1234567890', value: 'SN-1234567890' },
-              { label: 'SN-1122334455', value: 'SN-1122334455' },
-              { label: 'SN-5566778899', value: 'SN-5566778899' },
-              { label: 'SN-6677889901', value: 'SN-6677889901' },
-            ]"
-            required
-          />
-        </div>
-        <div class="mb-2" style="display: flex; gap: 16px">
-          <!-- ONU Mac Address input field -->
-          <Inputs
-            :input-style="{ 'text-transform': 'uppercase' }"
-            v-model="client.onuMacAddress"
-            label="ONU Mac Address"
-            @input="noLeadingWhitespace"
-            required
-          />
-
-          <!-- Upstream input field -->
-          <Inputs
-            :input-style="{ 'text-transform': 'uppercase' }"
-            v-model="client.upstream"
-            label="Upstream"
-            readonly
-            required
-          />
-
-          <!-- Downstream input field -->
-          <Inputs
-            :input-style="{ 'text-transform': 'uppercase' }"
-            v-model="client.downstream"
-            label="Downstream"
-            readonly
-            required
-          />
-        </div>
-      </div>
-
-      <!-- OLT Details Section-->
-      <div class="mb-4">
-        <div class="mb-2 text-gray-iron-900 font-semibold">OLT Details</div>
-        <div class="mb-2" style="display: flex; gap: 16px">
-          <!-- OLT Status input field -->
-          <Inputs
-            :input-style="{ 'text-transform': 'uppercase' }"
-            v-model="client.oltStatus"
-            label="OLT Status"
-            readonly
-            required
-          />
-
-          <!-- OLT IP input field -->
-          <Selects
-            v-model="client.oltIp"
-            label="OLT IP"
-            :options="[
-              { label: '192.168.10.1', value: '192.168.10.1' },
-              { label: '10.0.1.1', value: '10.0.1.1' },
-              { label: '172.16.50.1', value: '172.16.50.1' },
-              { label: '192.168.20.1', value: '192.168.20.1' },
-              { label: '10.10.10.2', value: '10.10.10.2' },
-            ]"
-            required
-          />
-
-          <!-- OLT Site select field -->
-          <Selects
-            v-model="client.oltSite"
-            label="OLT Site"
-            :options="[
-              { label: 'CDO', value: 'CDO' },
-              { label: 'Malaybalay', value: 'Malaybalay' },
-              { label: 'Davao', value: 'Davao' },
-              { label: 'Makati', value: 'Makati' },
-            ]"
-            required
-          />
-
-          <!-- OLT Interface select field -->
-          <Selects
-            v-model="client.oltInterface"
-            label="OLT Interface"
-            :options="[
-              { label: 'eth0', value: 'eth0' },
-              { label: 'eth1', value: 'eth1' },
-              { label: 'pon0', value: 'pon0' },
-              { label: 'pon1', value: 'pon1' },
-              { label: 'gige0', value: 'gige0' },
-            ]"
-          />
-        </div>
-      </div>
-    </Modal>
+    <TroubleshootClientReskin
+      :isVisible="openTroubleShootModal"
+      @update:isVisible="openTroubleShootModal = $event"
+      :close-modal="closeTroubleShootModal"
+      :device-name="deviceName"
+      :clientId="clientId"
+    />
   </q-page>
 </template>
 
@@ -251,6 +99,7 @@ import { getHiveClients } from "src/api/HiveConnectApis/hiveConnect";
 import { useSubscriberStore } from "src/stores/subscriber/subscriber-store";
 import { IClient } from "src/api/HiveConnectApis/types";
 import TroubleshootClient from "src/components/InetConfig/TroubleshootClient.vue";
+import TroubleshootClientReskin from "src/components/InetConfig/TroubleshootClientReskin.vue";
 
 // Recently added
 import Swal from "sweetalert2";
@@ -264,7 +113,6 @@ import Inputs from "src/components/inputs/Inputs.vue";
 
 const store = useSubscriberStore();
 // Recently updated: null array is passed if the data is undefined
-// TODO: re-check this part if something's wrong or if there is another way
 const columns = store.$state.subscribercolumns || [];
 const rowsHive = ref<IClient[]>([]);
 const deviceName = ref("");
@@ -315,25 +163,28 @@ const handleSearch = (event: KeyboardEvent) => {
   filter.value = (event.target as HTMLInputElement).value;
 };
 
-// Filtered rows based on search term
-// const filteredRows = computed(() => {
-//   if (!filter.value) return provisionedClientRows.value;
+// Filter rows based on search term
+const filteredRows = computed(() => {
+  if (!filter.value) return rowsHive.value;
 
-//   const searchTerm = filter.value.toLowerCase();
-//   return provisionedClientRows.value.filter((row) => {
-//     return (
-//       row.id.toString().toLowerCase().includes(searchTerm) ||
-//       row.subscriberName.toString().toLowerCase().includes(searchTerm) ||
-//       row.accountNo.toString().toLowerCase().includes(searchTerm) ||
-//       row.packageType.toString().toLowerCase().includes(searchTerm) ||
-//       row.onuSerialNumber.toString().toLowerCase().includes(searchTerm) ||
-//       row.onuMacAddress.toString().toLowerCase().includes(searchTerm) ||
-//       row.oltIp.toString().toLowerCase().includes(searchTerm) ||
-//       row.deviceName.toString().toLowerCase().includes(searchTerm) ||
-//       row.ipAssigned.toString().toLowerCase().includes(searchTerm)
-//     );
-//   });
-// });
+  const searchTerm = filter.value.toLowerCase();
+  return rowsHive.value.filter((row) => {
+    return (
+      row.newSubscriberId.toString().toLowerCase().includes(searchTerm) ||
+      row.subscriberName.toString().toLowerCase().includes(searchTerm) ||
+      row.subscriberAccountNumber
+        .toString()
+        .toLowerCase()
+        .includes(searchTerm) ||
+      row.packageType.toString().toLowerCase().includes(searchTerm) ||
+      row.onuSerialNumber.toString().toLowerCase().includes(searchTerm) ||
+      row.onuMacAddress.toString().toLowerCase().includes(searchTerm) ||
+      row.oltIp.toString().toLowerCase().includes(searchTerm) ||
+      row.onuDeviceName.toString().toLowerCase().includes(searchTerm) ||
+      row.ipAssigned.toString().toLowerCase().includes(searchTerm)
+    );
+  });
+});
 
 // Initialize modal display to false
 const modalIsVisible = ref(false);
@@ -393,89 +244,43 @@ const openModal = (row: any) => {
   modalIsVisible.value = true;
 };
 
-// Method to trigger form troubleshoot button in modal
-const handleTroubleshootClient = () => {
-  try {
-    Swal.fire({
-      title: "Success",
-      text: "Client troubleshooted successfully",
-      icon: "success",
-      confirmButtonColor: "#1d6499",
-      confirmButtonText: "Confirm",
-      allowOutsideClick: false,
-    });
+//* RECENTLY ADDED *//
 
-    client.value = {
-      subscriberName: "",
-      accountNo: "",
-      packageType: "",
-      onuStatus: "",
-      onuIp: "",
-      onuSerialNumber: 0,
-      onuMacAddress: "",
-      upstream: "",
-      downstream: "",
-      oltStatus: "",
-      oltIp: "",
-      oltSite: "",
-      oltInterface: "",
-    };
-
-    modalIsVisible.value = false;
-  } catch (error) {
-    Swal.fire({
-      title: "Failed",
-      text: "Error troubleshooting client",
-      icon: "error",
-      confirmButtonColor: "#fd0808",
-    });
-  }
-};
-
-// Define inputValue
-const inputValue = ref("");
-// Method to remove leading whitespace in input during typing
-const noLeadingWhitespace = (event: Event) => {
-  const input = event.target as HTMLInputElement;
-  input.value = input.value.replace(/^\s+/, "");
-  inputValue.value = input.value;
-};
-
-// Recently added
+// Select visible columns options
 const columnOptions = ref([
-  { value: "id", label: "ID" },
-  { value: "accountNo", label: "Acount No." },
+  { value: "newSubscriberId", label: "ID" },
+  { value: "subscriberAccountNumber", label: "Acount No." },
   { value: "subscriberName", label: "Subscriber Name" },
   { value: "packageType", label: "Package Type" },
-  { value: "deviceName", label: "Device Name" },
+  { value: "onuDeviceName", label: "Device Name" },
   { value: "ipAssigned", label: "IP Assigned" },
   { value: "onuSerialNumber", label: "ONU Serial Number" },
   { value: "onuMacAddress", label: "ONU Mac Address" },
   { value: "oltIp", label: "OLT IP" },
-  { value: "ssid", label: "SSID" },
-  { value: "actions", label: "Actions" },
+  { value: "ssidName", label: "SSID" },
 ]);
 
 // Load saved data from localStorage on component mount
 const savedVisibleColumns = localStorage.getItem("visibleColumns");
+
+// Initial displayed columns
 const visibleColumns = ref<string[]>(
   savedVisibleColumns
     ? JSON.parse(savedVisibleColumns)
     : [
-        "id",
-        "accountNo",
+        "subscriberAccountNumber",
         "subscriberName",
         "packageType",
-        "deviceName",
         "ipAssigned",
         "onuSerialNumber",
         "onuMacAddress",
         "oltIp",
-        "ssid",
+        "ssidName",
         "actions",
       ]
 );
 
+// Method to display columns when selected in 'Select visible columns'
 const handleColumnSelect = (selectedOptions: string[]) => {
   visibleColumns.value = selectedOptions;
   localStorage.setItem("visibleColumns", JSON.stringify(selectedOptions));
@@ -483,168 +288,4 @@ const handleColumnSelect = (selectedOptions: string[]) => {
 
 // Count total rows (clients) to display in the description
 const clientCount = computed(() => rowsHive.value.length);
-
-// Sample hardcoded columns and rows for testing purposes
-const provisionedClientColumns = ref([
-  {
-    name: "id",
-    align: "left",
-    label: "ID",
-    field: "id",
-  },
-  {
-    name: "accountNo",
-    align: "left",
-    label: "Account No.",
-    field: "accountNo",
-  },
-  {
-    name: "subscriberName",
-    align: "left",
-    label: "Subscriber Name",
-    field: "subscriberName",
-  },
-  {
-    name: "packageType",
-    align: "left",
-    label: "Package Type",
-    field: "packageType",
-  },
-  {
-    name: "deviceName",
-    align: "left",
-    label: "Device Name",
-    field: "deviceName",
-  },
-  {
-    name: "ipAssigned",
-    align: "left",
-    label: "IP Assigned",
-    field: "ipAssigned",
-  },
-  {
-    name: "onuSerialNumber",
-    align: "left",
-    label: "ONU Serial Number",
-    field: "onuSerialNumber",
-  },
-  {
-    name: "onuMacAddress",
-    align: "left",
-    label: "ONU Mac Address",
-    field: "onuMacAddress",
-  },
-  {
-    name: "oltIp",
-    align: "left",
-    label: "OLT IP",
-    field: "oltIp",
-  },
-  {
-    name: "ssid",
-    align: "left",
-    label: "SSID",
-    field: "ssid",
-  },
-  {
-    name: "actions",
-    align: "left",
-    label: "Actions",
-    field: "actions",
-  },
-]);
-
-const provisionedClientRows = ref([
-  {
-    id: "1",
-    accountNo: "RES-202402-15",
-    subscriberName: "JANE DOE",
-    packageType: "PLAN999",
-    deviceName: "Mikrotik",
-    ipAssigned: "192.168.90.151",
-    onuSerialNumber: "112321441",
-    onuMacAddress: "32j323j",
-    oltIp: "192.168.90.151",
-    ssid: "jane-doe-wifi",
-    actions: "test",
-  },
-  {
-    id: "1",
-    accountNo: "RES-202402-15",
-    subscriberName: "JANE DOE",
-    packageType: "PLAN999",
-    deviceName: "Mikrotik",
-    ipAssigned: "192.168.90.151",
-    onuSerialNumber: "112321441",
-    onuMacAddress: "32j323j",
-    oltIp: "192.168.90.151",
-    ssid: "jane-doe-wifi",
-    actions: "test",
-  },
-  {
-    id: "1",
-    accountNo: "RES-202402-15",
-    subscriberName: "JANE DOE",
-    packageType: "PLAN999",
-    deviceName: "Mikrotik",
-    ipAssigned: "192.168.90.151",
-    onuSerialNumber: "112321441",
-    onuMacAddress: "32j323j",
-    oltIp: "192.168.90.151",
-    ssid: "jane-doe-wifi",
-    actions: "test",
-  },
-  {
-    id: "2",
-    accountNo: "RES-202402-16",
-    subscriberName: "JOHN SMITH",
-    packageType: "PLAN599",
-    deviceName: "TP-Link",
-    ipAssigned: "192.168.90.152",
-    onuSerialNumber: "112321442",
-    onuMacAddress: "32j323k",
-    oltIp: "192.168.90.152",
-    ssid: "john-smith-wifi",
-    actions: "activate",
-  },
-  {
-    id: "3",
-    accountNo: "RES-202402-17",
-    subscriberName: "ALICE BROWN",
-    packageType: "PLAN1299",
-    deviceName: "Netgear",
-    ipAssigned: "192.168.90.153",
-    onuSerialNumber: "112321443",
-    onuMacAddress: "32j323l",
-    oltIp: "192.168.90.153",
-    ssid: "alice-brown-wifi",
-    actions: "test",
-  },
-  {
-    id: "4",
-    accountNo: "RES-202402-18",
-    subscriberName: "CHARLIE WILSON",
-    packageType: "PLAN1999",
-    deviceName: "Mikrotik",
-    ipAssigned: "192.168.90.154",
-    onuSerialNumber: "112321444",
-    onuMacAddress: "32j323m",
-    oltIp: "192.168.90.154",
-    ssid: "charlie-wilson-wifi",
-    actions: "deactivate",
-  },
-  {
-    id: "5",
-    accountNo: "RES-202402-19",
-    subscriberName: "EMILY DAVIS",
-    packageType: "PLAN1499",
-    deviceName: "D-Link",
-    ipAssigned: "192.168.90.155",
-    onuSerialNumber: "112321445",
-    onuMacAddress: "32j323n",
-    oltIp: "192.168.90.155",
-    ssid: "emily-davis-wifi",
-    actions: "test",
-  },
-]);
 </script>
