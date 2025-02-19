@@ -1,37 +1,42 @@
 <template>
-  <q-item clickable exact :to="link" v-ripple>
-    <q-item-section v-if="icon" avatar>
-      <q-icon :name="icon" />
-    </q-item-section>
-
-    <!-- v-if="leftDrawerOpen" -->
-    <q-item-section>
-      <q-item-label>{{ title }}</q-item-label>
-    </q-item-section>
-  </q-item>
+  <router-link :to="link" class="w-full no-underline">
+    <div
+      class="px-4 py-2 flex flex-row hover:bg-drawer-tile-hover rounded mx-4 items-center relative group/tile"
+    >
+      <div
+        class="bg-primary-1000 drawer-bit rounded opacity-0 group-hover/tile:opacity-100 absolute left-0 transform transition-opacity duration-100"
+      />
+      <div
+        class="group-hover/tile:translate-x-1 flex flex-row items-center transform transition-transform duration-100"
+      >
+        <q-icon
+          v-if="icon"
+          :name="icon"
+          class="text-gray-iron-700 mr-4 group-hover/tile:text-black"
+        />
+        <p class="text-sm text-gray-iron-700 group-hover/tile:text-black">
+          {{ title }}
+        </p>
+      </div>
+    </div>
+  </router-link>
 </template>
 
 <script setup lang="ts">
 export interface EssentialLinkProps {
   title: string;
-  caption?: string;
   link?: string;
   icon?: string;
-  // leftOpenDrawer: boolean;
 }
 withDefaults(defineProps<EssentialLinkProps>(), {
-  caption: "",
   link: "#",
   icon: "",
-  // leftDrawerOpen: false,
 });
 </script>
-<style scoped>
-.q-item-section {
-  transition: opacity 0.3s;
-}
 
-.q-item-section[avatar] {
-  width: 56px;
+<style scoped>
+.drawer-bit {
+  width: 3px;
+  height: 16px;
 }
 </style>

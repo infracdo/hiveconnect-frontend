@@ -136,7 +136,11 @@ import {
   checkPackageDetails,
   getNetworkSiteOltIp,
 } from "src/api/HiveConnectApis/hiveConnect";
-import { IClient, IOltSiteByIp, GroupedNetworkSite } from "src/api/HiveConnectApis/types";
+import {
+  IClient,
+  IOltSiteByIp,
+  GroupedNetworkSite,
+} from "src/api/HiveConnectApis/types";
 import addNewClient from "../components/InetConfig/ProvisionClient.vue";
 
 import { IserialAndMac, IsubsriberType } from "src/components/models";
