@@ -20,6 +20,20 @@ const api = axios.create({
   timeout: 0,
 });
 
+api.interceptors.request.use(
+  (config) => {
+    const token =
+      "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0ZXN0YWNjb3VudCIsImlhdCI6MTcyODk4MTA0MH0.6SGymGmjXsK1FgG7tqnirZEYc6r9ZyAvnJP1iEbtdsY";
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
+
 // export const getDevices = async (): Promise<IRogueDevices[]> => {
 //   try {
 //     const { data } = await api.get("/getRogueDevices");
@@ -65,6 +79,9 @@ export const getNetworkAddresses = async () => {
   try {
     console.log("front end accessing backend hive api /getallnetworks");
     const { data } = await api.get("/getallnetworks"); ///getCidrBlocks
+
+    console.log("Fetched data from '/getallnetworks' api:", data);
+
     return data;
   } catch (error) {
     console.log("Cannot Retrieve Network Address Data!", error);
@@ -220,6 +237,7 @@ export const executeAutoConfig = async (
   newOltId: number
   // downstream: number,
   // upstream: number
+
 ) => {
   const { data } = await api.post("/executeAutoConfig", {
     accountNo: accNum,

@@ -1,122 +1,62 @@
 <template>
-  <q-layout view="hHh lpR lFf">
-    <q-header elevated>
-      <q-toolbar class="items-center q-pa-sm q-gutter-xs">
-        <q-btn
-          flat
-          dense
-          round
-          icon="menu"
-          aria-label="Menu"
-          size="18px"
-          @click="toggleLeftDrawer"
-        />
-
-        <q-toolbar-title class="text-left"> Hive Connect </q-toolbar-title>
-
-        <div v-if="$keycloak.authenticated">
-          <q-btn icon-right="bi-person" align="between" flat no-caps>
-            <div align="between" class="q-mr-xs">
-              {{ $keycloak.tokenParsed.preferred_username }}
-            </div>
-            <q-menu
-              fit
-              style="width: 210px"
-              transition-show="jump-down"
-              transition-hide="jump-up"
-              class="column no-wrap q-pa-md"
-            >
-              <div class="row items-center q-my-xs">
-                <q-icon name="account_circle" size="40px" />
-                <div class="q-ml-xs">
-                  <p class="q-ma-none">
-                    {{ $keycloak.tokenParsed.given_name }}
-                    {{ $keycloak.tokenParsed.family_name }}
-                  </p>
-                  <p class="q-ma-none">{{ $keycloak.tokenParsed.email }}</p>
-                </div>
-              </div>
-              <q-separator class="q-my-xs" />
-              <q-list class="text-grey-9">
-                <q-item clickable @click="$q.dark.toggle()">
-                  <q-item-section avatar>
-                    <div class="row items-center">
-                      <q-icon
-                        :name="
-                          !$q.dark.isActive
-                            ? 'bi-brightness-high'
-                            : 'bi-moon-stars'
-                        "
-                        size="20px"
-                        class="q-mr-md"
-                      />
-                      <q-item-label
-                        >{{
-                          $q.dark.isActive ? "Dark" : "Light"
-                        }}
-                        Mode</q-item-label
-                      >
-                    </div>
-                  </q-item-section>
-                </q-item>
-                <Logout />
-              </q-list>
-            </q-menu>
-          </q-btn>
-        </div>
-      </q-toolbar>
-    </q-header>
-
+  <q-layout view="lhh lpR lFf" class="bg-hiveconnect-slate pr-4">
     <q-drawer
-      v-model="leftDrawerOpen"
       show-if-above
-      :mini="miniState"
-      @mouseover="miniState = false"
-      @mouseout="miniState = true"
-      bordered
-      :width="300"
+      v-model="leftDrawerOpen"
+      :mini="!leftDrawerOpen || miniState"
+      @click.capture="drawerClick"
+      :width="289"
       :breakpoint="500"
+      class="bg-hiveconnect-slate"
     >
-      <q-list>
-        <q-item-label header> Navigation </q-item-label>
-
-        <EssentialLink
-          v-for="link in filteredLinksList"
-          :key="link.title"
-          v-bind="link"
-        />
-      </q-list>
+      <q-scroll-area
+        :horizontal-thumb-style="{ opacity: '0' }"
+        style="height: 100%"
+      >
+        <DrawerHeader />
+        <q-separator inset />
+        <q-list padding dense>
+          <EssentialLink
+            v-for="link in essentialLinks"
+            :key="link.title"
+            v-bind="link"
+          />
+          <div class="flex-grow"></div>
+          <DrawerFooter />
+        </q-list>
+      </q-scroll-area>
+      <div class="flex flex-row"></div>
     </q-drawer>
 
     <q-page-container>
-      <router-view />
+      <div class="bg-white rounded-t-lg">
+        <router-view />
+      </div>
     </q-page-container>
-
-    <q-footer>
-      <q-tabs indicator-color="white" active-color="white">
-        <q-route-tab
-          v-for="link in essentialLinks"
-          :key="link.title"
-          :icon="link.icon"
-          :to="link.link"
-        /> </q-tabs
-    ></q-footer>
   </q-layout>
 </template>
 
 <script setup lang="ts">
 import Logout from "src/components/Logout.vue";
-import { onMounted, ref, watch } from "vue";
-import { keycloak } from "src/boot/keycloak";
+import { ref, watch } from "vue";
+import { useQuasar } from "quasar";
 import EssentialLink, {
   EssentialLinkProps,
 } from "components/EssentialLink.vue";
-
-import { useQuasar } from "quasar";
-import router from "src/router";
+import DrawerHeader from "src/components/DrawerHeader.vue";
+import DrawerFooter from "src/components/DrawerFooter.vue";
 
 const $q = useQuasar();
-const essentialLinks = [
+
+const leftDrawerOpen = ref(false);
+const miniState = ref(false);
+const drawerClick = () => {
+  if (miniState.value) {
+    miniState.value = false;
+  }
+};
+
+const essentialLinks: EssentialLinkProps[] = [
   {
     title: "Provision",
     icon: "bi-person-fill-gear",
@@ -124,7 +64,7 @@ const essentialLinks = [
     roles: ["HIVECONNECT_PROVISIONING_VIEW"],
   },
   {
-    title: "Hive Provisioned",
+    title: "Provisioned Clients",
     icon: "bi-person-fill-check",
     link: "/provisioned",
     roles: ["HIVECONNECT_PROVISIONED_VIEW"],
@@ -149,34 +89,25 @@ const essentialLinks = [
   },
 ];
 
-const leftDrawerOpen = ref(false);
-const isDarkMode = ref(true);
-const miniState = ref(true);
+// const isDarkMode = ref(true);
 
-const filteredLinksList = essentialLinks.filter((link) => {
-  const resourceRoles =
-    keycloak.tokenParsed?.resource_access["test-hiveconnect-frontend"].roles ||
-    [];
-  return !link.roles || link.roles.some((role) => resourceRoles.includes(role));
-});
+// watch(
+//   () => isDarkMode.value,
+//   () => {
+//     if (isDarkMode.value === true) {
+//       $q.dark.toggle();
+//     } else {
+//       $q.dark.toggle();
+//     }
+//   }
+// );
 
-watch(
-  () => isDarkMode.value,
-  () => {
-    if (isDarkMode.value === true) {
-      $q.dark.toggle();
-    } else {
-      $q.dark.toggle();
-    }
-  }
-);
-
-function toggleLeftDrawer() {
-  leftDrawerOpen.value = !leftDrawerOpen.value;
-}
+// function toggleLeftDrawer() {
+//   leftDrawerOpen.value = !leftDrawerOpen.value;
+// }
 </script>
 
-<style scoped>
+<!-- <style scoped>
 :deep(.q-btn.btn--no-hover .q-focus-helper) {
   display: none;
 }
@@ -194,4 +125,4 @@ function toggleLeftDrawer() {
 .centered-dropdown .q-btn-dropdown__caret {
   display: none;
 }
-</style>
+</style> -->
