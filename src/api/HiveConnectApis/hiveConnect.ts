@@ -8,7 +8,9 @@ import {
   IOlt,
   IPackageDetails,
 } from "./types";
+import { auth } from "src/stores/auth";
 const store = useDevicesStore();
+const kc = auth();
 
 const API_BASE_URL = process.env.PROVISION_API_URL;
 
@@ -17,6 +19,20 @@ const api = axios.create({
   // baseURL: 'http://172.91.0.17:8888',
   timeout: 0,
 });
+
+api.interceptors.request.use(
+  (config) => {
+    const token =
+      "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0ZXN0YWNjb3VudCIsImlhdCI6MTcyODk4MTA0MH0.6SGymGmjXsK1FgG7tqnirZEYc6r9ZyAvnJP1iEbtdsY";
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
 
 // export const getDevices = async (): Promise<IRogueDevices[]> => {
 //   try {
@@ -32,6 +48,7 @@ const api = axios.create({
 
 export const getDevices = async (): Promise<IRogueDevices[]> => {
   try {
+    console.log("front end accessing backend hive api /getRogueDevices");
     const { data } = await api.get("/getRogueDevices");
     store.$patch({
       rogueDevice: data,
@@ -47,6 +64,9 @@ export const getIpAddresses = async (
   ipAddress: string | string[]
 ): Promise<IipAddressesOfCidrBlock[]> => {
   try {
+    console.log(
+      "front end accessing backend hive api /getIpAddressesOfCidrBlock"
+    );
     const { data } = await api.get("/getIpAddressesOfCidrBlock/" + ipAddress);
     return data;
   } catch (error) {
@@ -57,7 +77,10 @@ export const getIpAddresses = async (
 
 export const getNetworkAddresses = async () => {
   try {
+    console.log("front end accessing backend hive api /getallnetworks");
     const { data } = await api.get("/getallnetworks"); ///getCidrBlocks
+
+    console.log("Fetched data from '/getallnetworks' api:", data);
     return data;
   } catch (error) {
     console.log("Cannot Retrieve Network Address Data!", error);
@@ -67,6 +90,7 @@ export const getNetworkAddresses = async () => {
 
 export const getClients = async (): Promise<IClient[]> => {
   try {
+    console.log("front end accessing backend hive api /getsubscribers");
     const { data } = await api.get("/getsubscribers"); //get new client from billing
     return data;
   } catch (error) {
@@ -77,6 +101,7 @@ export const getClients = async (): Promise<IClient[]> => {
 // added new api for OLT IP
 export const getNetworkSiteOltIp = async (): Promise<IOltSiteByIp[]> => {
   try {
+    console.log("front end accessing backend hive api /getallolt");
     const { data } = await api.get("/getallolt");
     return data;
   } catch (error) {
@@ -87,6 +112,9 @@ export const getNetworkSiteOltIp = async (): Promise<IOltSiteByIp[]> => {
 
 export const getHiveClients = async (): Promise<IClient[]> => {
   try {
+    console.log(
+      "front end accessing backend hive api /getprovisionedsubscribers"
+    );
     const { data } = await api.get("/getprovisionedsubscribers"); //"/getHiveClients"
     return data;
   } catch (error) {
@@ -205,9 +233,9 @@ export const executeAutoConfig = async (
   macaddress: string,
   olt: string,
   packageType: string,
-  newOltId: number
-  // downstream: number,
-  // upstream: number
+  newOltId: number,
+  downstream: number,
+  upstream: number
 ) => {
   const { data } = await api.post("/executeAutoConfig", {
     accountNo: accNum,
@@ -217,8 +245,8 @@ export const executeAutoConfig = async (
     olt: olt,
     packageType: packageType,
     oltId: newOltId,
-    // downstream: downstream, //added
-    // upstream: upstream, //added
+    downstream: downstream, //added for bandwidth limitation
+    upstream: upstream, //added for bandwidth limitation
   });
   return data;
 };

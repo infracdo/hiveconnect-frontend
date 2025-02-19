@@ -41,7 +41,6 @@
             />
 
             <!-- Dropdown button to select what columns should be displayed in the table -->
-            <!-- TODO: the checkbox should be checked by default -->
             <DropdownButton
               @select="handleColumnSelect"
               :columnOptions="columnOptions"
@@ -59,7 +58,7 @@
           <!-- Table for NEW status clients (to be provision) -->
           <div class="full-width p-3">
             <Table
-              :tableColumns="newClientColumns"
+              :tableColumns="columns"
               :tableRows="filteredRows"
               :visibleColumns="visibleColumns"
               :rowsPerPage="10"
@@ -72,7 +71,7 @@
                     name="assignment"
                     size="sm"
                     class="cursor-pointer text-gray-iron-900 font-normal hover:text-primary-1000"
-                    @click="openModal(row)"
+                    @click="openModal(row.newSubscriberId)"
                   />
                 </div>
               </template>
@@ -84,17 +83,16 @@
 
     <!-- Display modal when a row (client data) is clicked -->
     <Modal
-      :isVisible="modalIsVisible"
+      :isVisible="modalOpen"
       :title="'Provision Client'"
-      @update:isVisible="modalIsVisible = $event"
+      @update:isVisible="modalOpen = $event"
       :actionHandler="handleActivateClient"
-      :showSaveButton="true"
     >
       <div class="mb-4" style="display: flex; gap: 16px">
         <!-- Account number input field -->
         <Inputs
           :input-style="{ 'text-transform': 'uppercase' }"
-          v-model="client.accountNo"
+          v-model="client.subscriberAccountNumber"
           label="Account Number"
           @input="noLeadingWhitespace"
           readonly
@@ -125,24 +123,26 @@
       <div class="mb-4" style="display: flex; gap: 16px">
         <!-- ONU serial number select field -->
         <Selects
-          v-model="client.onuSerialNumber"
+          v-model="selectedOnuSerialNumber"
           label="ONU Serial Number"
-          :options="[
-            { label: 'SN12345678', value: 'SN12345678' },
-            { label: 'SN98765432', value: 'SN98765432' },
-            { label: 'SN56789012', value: 'SN56789012' },
-            { label: 'SN34567890', value: 'SN34567890' },
-            { label: 'SN87654321', value: 'SN87654321' },
-          ]"
+          :options="
+            serialAndMac.map((device) => ({
+              value: device.serial_number,
+              label: device.serial_number,
+            }))
+          "
+          optionLabel="label"
+          optionValue="value"
           required
         />
 
         <!-- ONU mac address input field -->
         <Inputs
           :input-style="{ 'text-transform': 'uppercase' }"
-          v-model="client.onuMacAddress"
+          v-model="onuMacAddress"
           label="ONU Mac Address"
           @input="noLeadingWhitespace"
+          readonly
           required
         />
       </div>
@@ -150,14 +150,9 @@
       <div class="mb-4" style="display: flex; gap: 16px">
         <!-- Location select field -->
         <Selects
-          v-model="client.location"
+          v-model="selectedLocation"
           label="Select Location"
-          :options="[
-            { label: 'CDO', value: 'CDO' },
-            { label: 'Malaybalay', value: 'Malaybalay' },
-            { label: 'Davao', value: 'Davao' },
-            { label: 'Makati', value: 'Makati' },
-          ]"
+          :options="locations"
           required
           class="w-full"
         />
@@ -166,57 +161,73 @@
       <div class="mb-4" style="display: flex; gap: 16px">
         <!-- Network site (vlan) select field -->
         <Selects
-          v-model="client.networkSiteVlan"
+          v-model="selectedNetworkSiteValue"
           label="Select Network Site (VLAN)"
-          :options="[
-            { label: 'VLAN-101', value: 'VLAN-101' },
-            { label: 'VLAN-202', value: 'VLAN-202' },
-            { label: 'VLAN-303', value: 'VLAN-303' },
-            { label: 'VLAN-404', value: 'VLAN-404' },
-            { label: 'VLAN-505', value: 'VLAN-505' },
-          ]"
+          :options="
+            filteredNetworkSites.map((site) => ({
+              value: site.oltIps?.[0]?.newOltId || 0,
+              label: site.oltNetworksite,
+            }))
+          "
+          optionLabel="label"
+          optionValue="value"
+          emit-value
+          map-options
           required
           class="w-full"
         />
 
         <!-- OLT ip select field -->
         <Selects
+          v-if="selectedNetworkSite && selectedNetworkSite.oltIps"
           v-model="client.oltIp"
           label="Select OLT IP"
-          :options="[
-            { label: '192.168.1.1', value: '192.168.1.1' },
-            { label: '10.0.0.1', value: '10.0.0.1' },
-            { label: '172.16.100.1', value: '172.16.100.1' },
-            { label: '192.168.50.1', value: '192.168.50.1' },
-            { label: '10.10.10.1', value: '10.10.10.1' },
-          ]"
+          :options="
+            selectedNetworkSite.oltIps.map((olt) => ({
+              value: olt.oltIp,
+              label: olt.oltName,
+            }))
+          "
+          optionLabel="label"
+          optionValue="value"
           required
           class="w-full"
         />
       </div>
+
+      <!-- Provision Client -->
+      <ProvisionClientReskin
+        :isVisible="modalProvisionChecking"
+        @update:isVisible="modalProvisionChecking = $event"
+        :responses="responses"
+        :responseStatus="responseStatus"
+        :showProvisionResult="showProvisionResult"
+        :ssid="ssid"
+      />
     </Modal>
   </q-page>
 </template>
 
 <script setup lang="ts">
 import { QTableProps, useQuasar } from "quasar";
-import { ref, watchEffect, watch, onMounted, computed } from "vue";
+import { ref, watchEffect, watch, onMounted, computed, reactive } from "vue";
 import { useSubscriberStore } from "src/stores/subscriber/subscriber-store";
-// import TroubleshootClient from "src/components/InetConfig/TroubleshootClient.vue";
-import SubscriberModal from "src/components/InetConfig/SubscriberModal.vue";
 import {
   getClients,
   getClientById,
   getDevices,
   checkPackageDetails,
   getNetworkSiteOltIp,
+  preProvisionCheck,
+  executeAutoConfig,
+  executeMonitoring,
 } from "src/api/HiveConnectApis/hiveConnect";
 import {
   IClient,
   IOltSiteByIp,
   GroupedNetworkSite,
+  IOlt,
 } from "src/api/HiveConnectApis/types";
-import addNewClient from "../components/InetConfig/ProvisionClient.vue";
 
 import { IserialAndMac, IsubsriberType } from "src/components/models";
 
@@ -228,88 +239,121 @@ import Table from "src/components/Table.vue";
 import Modal from "src/components/Modal.vue";
 import Inputs from "src/components/inputs/Inputs.vue";
 import Selects from "src/components/inputs/Selects.vue";
+import ProvisionClientReskin from "src/components/InetConfig/ProvisionClientReskin.vue";
 
-const right = ref(false);
 const $q = useQuasar();
 const store = useSubscriberStore();
 const dataId = ref<string>();
+
+const ssid = reactive({
+  name: "",
+  pw: "",
+});
+
+const showProvisionResult = ref(false);
+const showSkeletonDancing = ref(false);
+
+const responses = reactive({
+  autoConfig: "",
+  monitoring: "",
+  provisionCheck: "",
+});
+
+const responseStatus = reactive({
+  autoConfig: false,
+  monitoring: false,
+  provisionCheck: false,
+});
+
+const result = ref("");
+
+// Define table rows
 const rows = ref<IClient[]>([]);
 
-// const visibleColumns = ref([
-//   "newSubscriberId",
-//   "subscriberAccountNumber",
-//   "subscriberName",
-//   "packageType",
-//   "actions",
-// ]);
+// Defind to be displayed columns
+const visibleColumns = ref([
+  "newSubscriberId",
+  "subscriberAccountNumber",
+  "subscriberName",
+  "packageType",
+  "actions",
+]);
 
-// const columnOptions = ref([
-//   { value: "newSubscriberId", label: "Subscriber ID" },
-//   { value: "subscriberAccountNumber", label: "Account Number" },
-//   { value: "subscriberName", label: "Subscriber Name" },
-//   { value: "packageType", label: "Package Type" },
-//   { value: "actions", label: "Actions" },
-// ]);
+// Options for selecting visible columns
+const columnOptions = ref([
+  { value: "newSubscriberId", label: "Subscriber ID" },
+  { value: "subscriberAccountNumber", label: "Account Number" },
+  { value: "subscriberName", label: "Subscriber Name" },
+  { value: "packageType", label: "Package Type" },
+]);
 
-// Store typed search terms from SearchBar; defaults to null
+// Store search terms inputted in SearchBar
 const filter = ref("");
-// Recently updated: added null array in case of no data resulting to 'undefined' in columns props.
-// TODO: re-check this
-const columns: QTableProps["columns"] = store.$state.subscribercolumns || []; // define all the visible columns in Provision
+// Filter rows based on search term
+const filteredRows = computed(() => {
+  if (!filter.value) return rows.value;
+
+  const searchTerm = filter.value.toLowerCase();
+  return rows.value.filter((row) => {
+    return (
+      row.newSubscriberId.toString().toLowerCase().includes(searchTerm) ||
+      row.subscriberAccountNumber.toLowerCase().includes(searchTerm) ||
+      row.subscriberName.toLowerCase().includes(searchTerm) ||
+      row.packageType.toLowerCase().includes(searchTerm)
+    );
+  });
+});
+
+// For table columns (define table columns)
+const columns: QTableProps["columns"] = store.$state.subscribercolumns?.length
+  ? store.$state.subscribercolumns
+  : []; // define all the visible columns in Provision
+
+// Initialize modal visibility to false (modal is hidden initally)
 const modalOpen = ref(false);
+
 const deviceName = ref("");
 const clientId = ref(0);
-const openTroubleShootModal = ref(false);
 const loading = ref(false);
 let serialAndMac: IserialAndMac[] = [];
-// const client = ref<IsubsriberType>({
-//   newSubscriberId: 0,
-//   bucketId: 0, //added
-//   subscriberAccountNumber: "",
-//   subscriberName: "",
-//   ipAssigned: "",
-//   onuSerialNumber: "",
-//   oltIp: "",
-//   //@ts-ignore
-//   ssidName: "",
-//   onuDeviceName: "",
-//   onuMacAddress: "",
-//   packageType: "",
-//   oltReportedUpstream: 0,
-//   oltReportedDownstream: 0,
-// });
+const client = ref<IsubsriberType>({
+  newSubscriberId: 0,
+  bucketId: 0, //added
+  subscriberAccountNumber: "",
+  subscriberName: "",
+  ipAssigned: "",
+  onuSerialNumber: "",
+  oltIp: "",
+  //@ts-ignore
+  ssidName: "",
+  onuDeviceName: "",
+  onuMacAddress: "",
+  packageType: "",
+  oltReportedUpstream: 0,
+  oltReportedDownstream: 0,
+});
 
-// const openModal = async (newSubscriberId: number) => {
-//   $q.loading.show();
-//   const rogueDevice = await getDevices();
+const openModal = async (newSubscriberId: number) => {
+  // $q.loading.show();
+  const rogueDevice = await getDevices();
 
-//   serialAndMac = rogueDevice.map(
-//     (device: { serial_number: string; mac_address: string }) => ({
-//       serial_number: device.serial_number,
-//       mac_address: device.mac_address,
-//     })
-//   );
+  serialAndMac = rogueDevice.map(
+    (device: { serial_number: string; mac_address: string }) => ({
+      serial_number: device.serial_number,
+      mac_address: device.mac_address,
+    })
+  );
 
-//   client.value = await getClientById(newSubscriberId);
-//   console.log(client.value);
-//   modalOpen.value = !modalOpen.value;
-//   $q.loading.hide();
-// };
+  client.value = await getClientById(newSubscriberId);
+  console.log(client.value);
+  modalOpen.value = true;
+  // $q.loading.hide();
+};
 
 const closeModal = () => {
   modalOpen.value = !modalOpen.value;
 };
-const openTroubleshootModal = (
-  onuDeviceName: string,
-  newSubscriberId: number
-) => {
-  deviceName.value = onuDeviceName;
-  clientId.value = newSubscriberId;
-  openTroubleShootModal.value = !openTroubleShootModal.value;
-};
-const closeTroubleShootModal = () => {
-  openTroubleShootModal.value = !openTroubleShootModal.value;
-};
+
 const refreshTable = async () => {
   //getClient from clients_for_activation db, Account table
   rows.value = [];
@@ -331,89 +375,306 @@ const getAllClients = async () => {
 onMounted(getAllClients);
 
 // RECENTLY ADDED!!
-const modalIsVisible = ref(false);
 
-// Function to update the filter value when the user types in the SearchBar
-const handleSearch = (event: KeyboardEvent) => {
-  filter.value = (event.target as HTMLInputElement).value;
-};
+//* Initialization of variables *//
 
-// Filtered rows based on search term
-const filteredRows = computed(() => {
-  if (!filter.value) return newClientRows.value;
+const modalProvisionChecking = ref(false);
 
-  const searchTerm = filter.value.toLowerCase();
-  return newClientRows.value.filter((row) => {
-    return (
-      row.id.toString().toLowerCase().includes(searchTerm) ||
-      row.accountNo.toLowerCase().includes(searchTerm) ||
-      row.subscriberName.toLowerCase().includes(searchTerm) ||
-      row.packageType.toLowerCase().includes(searchTerm)
-    );
-  });
-});
+// const openProvisionModal = async (event: any) => {
+//   // $q.loading.show();
+
+//   modalProvisionChecking.value = true;
+//   // $q.loading.hide();
+// };
+
+interface IOltSite {
+  oltNetworksite: string;
+  oltIps: {
+    id: number;
+    oltIp: string;
+    oltName: string;
+    newOltId: number;
+  }[];
+}
 
 // Count total number of rows (clients) to display it in the description
-// Recently updated: from 'rows.value.length'
-const clientCount = computed(() => newClientRows.value.length);
+const clientCount = computed(() => rows.value.length);
+
+const selectedOnuSerialNumber = ref("");
+const onuMacAddress = ref("");
+
+const optionsOltIp = ref<IOlt[]>([]);
+const filteredOptions = ref<IOlt[]>([]);
+
+const selectedNetworkSiteValue = ref<number>(0);
+const networkSites = ref<IOltSite[]>([]);
+const selectedNetworkSite = ref<IOltSite | null>(null);
+const filteredNetworkSites = ref<IOltSite[]>([]); // List of sites filtered by selected location
+
+const selectedOltIp = ref(null);
+const networkSiteOltIp = ref<IOltSiteByIp[]>([]);
+
+const selectedLocation = ref("");
+// Define select location options as object
+const locations = ref([
+  { label: "Select Location", value: "" },
+  { label: "CDO", value: "CDO" },
+  { label: "MALAYBALAY", value: "MALAYBALAY" },
+  { label: "DAVAO", value: "DAVAO" },
+  { label: "BUTUAN", value: "BUTUAN" },
+  { label: "DIGOS", value: "DIGOS" },
+  { label: "GENSAN", value: "GENSAN" },
+  { label: "TAGUM", value: "TAGUM" },
+  { label: "CEBU", value: "CEBU" },
+  { label: "KORONADAL", value: "KORONADAL" },
+  { label: "SANTIAGO", value: "SANTIAGO" },
+  { label: "SANTO TOMAS", value: "SANTO TOMAS" },
+  { label: "VALENCIA", value: "VALENCIA" },
+  { label: "PAGADIAN", value: "PAGADIAN" },
+  { label: "ILIGAN", value: "ILIGAN" },
+  { label: "PANABO", value: "PANABO" },
+  { label: "SAN FRANZ", value: "SAN FRANZ" },
+  { label: "BISLIG", value: "BISLIG" },
+  { label: "TANDAG", value: "TANDAG" },
+  { label: "TACLOBAN", value: "TACLOBAN" },
+]);
 
 const handleColumnSelect = (selectedOptions: string[]) => {
   visibleColumns.value = selectedOptions;
   localStorage.setItem("visibleColumns", JSON.stringify(selectedOptions));
 };
 
-// Note: for testing purposes
-const columnOptions = ref([
-  { value: "id", label: "Subscriber ID" },
-  { value: "accountNo", label: "Account Number" },
-  { value: "subscriberName", label: "Subscriber Name" },
-  { value: "packageType", label: "Package Type" },
-]);
+//* Methods Area *//
 
-// Load saved data from localStorage on component mount
-const savedVisibleColumns = localStorage.getItem("visibleColumns");
-const visibleColumns = ref<string[]>(
-  savedVisibleColumns
-    ? JSON.parse(savedVisibleColumns)
-    : ["id", "accountNo", "subscriberName", "packageType", "actions"]
+// Group OLT according to their OLT Network Site
+// Creates and returns an array oy OLT Networki Sites (e.g. CDO_vlan2010)
+const transformData = async () => {
+  console.log("Fetching OLT IP data...");
+  networkSiteOltIp.value = await getNetworkSiteOltIp();
+
+  console.log("Fetched data:", networkSiteOltIp.value);
+
+  const groupedData = networkSiteOltIp.value.reduce((accumulatedOlt, data) => {
+    console.log("Processing data:", data);
+
+    // @ts-ignore
+    const existingSite = accumulatedOlt.find(
+      (siteName) => siteName?.oltNetworksite === data?.oltNetworksite
+    );
+
+    if (existingSite) {
+      console.log("Existing site found:", existingSite.oltNetworksite);
+      // Create and merge object into one if repeated oltName
+      // @ts-ignore
+      existingSite.oltIps.push({
+        // @ts-ignore
+        id: existingSite.oltIps.length + 1,
+        oltIp: data.oltIp,
+        oltName: data.oltName,
+        newOltId: data.newOltId,
+      });
+      console.log(
+        "Updated existing site with new OLT IP:",
+        existingSite.oltIps
+      );
+    } else {
+      console.log("New site created for:", data.oltNetworksite);
+      // @ts-ignore
+      accumulatedOlt.push({
+        oltNetworksite: data.oltNetworksite,
+        oltIps: [
+          {
+            id: 1,
+            oltIp: data.oltIp,
+            oltName: data.oltName,
+            newOltId: data.newOltId,
+          },
+        ],
+      });
+    }
+
+    // Return new object
+    return accumulatedOlt;
+  }, [] as IOltSite[]);
+
+  networkSites.value = groupedData;
+  console.log("Grouped data:", groupedData);
+
+  // Initial setting of filteredNetworkSites
+  filteredNetworkSites.value = networkSites.value;
+  console.log("networkSites:", networkSites.value);
+};
+
+// Function to update the filter value when the user types in the SearchBar
+const handleSearch = (event: KeyboardEvent) => {
+  filter.value = (event.target as HTMLInputElement).value;
+};
+
+// Filter the network sites according to the location selected by user in the modal form
+// Returns a list of network sites in 'Select Network Site (VLAN)' select field if OLT network site matches the selected location
+const filterNetworkSites = () => {
+  // Log the selected location being filtered
+  console.log("Filtering network sites by location:", selectedLocation.value);
+
+  // Log the original network sites before filtering
+  console.log("Original network sites:", networkSites.value);
+
+  // Check if the selected location is empty or the default option
+  if (
+    selectedLocation.value === "" ||
+    selectedLocation.value === "Select Location"
+  ) {
+    filteredNetworkSites.value = networkSites.value; // Return all sites if no valid selection
+  } else {
+    // Filter the network sites based on the selected location
+    filteredNetworkSites.value = networkSites.value.filter((site) => {
+      // Determine if the site matches the selected location
+      const matches = site.oltNetworksite
+        .toLowerCase()
+        .includes(selectedLocation.value.toLowerCase());
+
+      // Log the site being checked and whether it matches
+      console.log(`Checking site: ${site.oltNetworksite}, matches: ${matches}`);
+
+      // Return true if there's a match
+      return matches;
+    });
+  }
+
+  // Log the filtered network sites after processing
+  console.log("Filtered network sites:", filteredNetworkSites.value);
+};
+
+//* Lifecycle Hooks *//
+
+watch(
+  () => client.oltIp,
+  (newOltIp) => {
+    if (newOltIp && selectedNetworkSite.value) {
+      // Find the corresponding newOltId based on selected OLT IP
+      const selectedOlt = selectedNetworkSite.value.oltIps.find(
+        (olt) => olt.oltIp === newOltIp
+      );
+      client.value.newOltId = selectedOlt ? selectedOlt.newOltId : null;
+      console.log("newOltId after oltIp selection:", client.value.newOltId);
+    }
+  }
 );
 
-// Note: for testing purposes only remove this!!
-// Define the client object
-interface Client {
-  accountNo: string;
-  subscriberName: string;
-  packageType: string;
-  onuSerialNumber: number;
-  onuMacAddress: string;
-  location: string;
-  networkSiteVlan: string;
-  oltIp: string;
-}
-const client = ref<Client>({
-  accountNo: "",
-  subscriberName: "",
-  packageType: "",
-  onuSerialNumber: 0,
-  onuMacAddress: "",
-  location: "",
-  networkSiteVlan: "",
-  oltIp: "",
+onMounted(async () => {
+  console.log("onMounted triggered, starting data transformation...");
+
+  try {
+    await transformData();
+    console.log("Data transformation completed.");
+  } catch (error) {
+    console.error("Error during data transformation:", error);
+  }
 });
 
-// Method to display modal when a row is clicked
-const openModal = (row: any) => {
-  client.value = {
-    accountNo: row.accountNo,
-    subscriberName: row.subscriberName,
-    packageType: row.packageType,
-    onuSerialNumber: row.onuSerialNumber,
-    onuMacAddress: row.onuMacAddress,
-    location: row.location,
-    networkSiteVlan: row.networkSiteVlan,
-    oltIp: row.oltIp,
-  };
-  modalIsVisible.value = true;
+const NewClient = reactive({
+  bucketId: "",
+  clientId: "",
+  accountNumber: "",
+  packageType: "",
+  oltReportedUpstream: 0,
+  oltReportedDownstream: 0,
+  serialAndMac: {
+    serialNum: "",
+    macAddress: "",
+  },
+  oltIp: "",
+  newOltId: 0,
+  clientName: "",
+});
+
+const provisionClient = async (clientData: typeof NewClient): Promise<void> => {
+  $q.loading.show();
+  showSkeletonDancing.value = true;
+  showProvisionResult.value = false;
+
+  console.log("NewClient Data in provisionClient:", NewClient);
+
+  responses.autoConfig = "";
+  responses.monitoring = "";
+
+  try {
+    responses.provisionCheck = "Preprovision checking ...";
+    const response = await preProvisionCheck(
+      //send values to /preprovisionCheck API
+      clientData.accountNumber,
+      clientData.clientName,
+      clientData.serialAndMac.serialNum,
+      clientData.serialAndMac.macAddress,
+      clientData.oltIp,
+      clientData.packageType,
+      clientData.newOltId
+    );
+    responses.provisionCheck = response.message;
+    responseStatus.provisionCheck = true;
+  } catch (error: any) {
+    responses.provisionCheck = error.response.data.message;
+    return stopProvisionFunction();
+  }
+
+  try {
+    responses.autoConfig = "Executing Auto Config...";
+    const response = await executeAutoConfig(
+      clientData.accountNumber,
+      clientData.clientName,
+      clientData.serialAndMac.serialNum,
+      clientData.serialAndMac.macAddress,
+      clientData.oltIp,
+      clientData.packageType,
+      clientData.newOltId,
+      clientData.oltReportedDownstream,
+      clientData.oltReportedUpstream
+    );
+    if (response) {
+      responses.autoConfig = response.message;
+      responseStatus.autoConfig = true;
+    }
+  } catch (error) {
+    responses.autoConfig = "Error: " + error;
+    return stopProvisionFunction();
+  }
+
+  try {
+    responses.monitoring = "Executing Monitoring...";
+    const response = await executeMonitoring(
+      clientData.accountNumber,
+      clientData.clientName,
+      clientData.serialAndMac.serialNum,
+      clientData.serialAndMac.macAddress,
+      clientData.oltIp,
+      clientData.packageType,
+      clientData.newOltId
+      // clientData.oltReportedDownstream,
+      // clientData.oltReportedUpstream
+    );
+    if (response) {
+      responses.monitoring = response.message;
+      ssid.name = response.ssid_name;
+      ssid.pw = response.ssid_pw;
+      responseStatus.monitoring = true;
+    }
+  } catch (error: any) {
+    if (error.response.data.message !== "") {
+      responses.monitoring = error.response.data.message;
+    } else {
+      responses.monitoring = "Something went wrong!";
+    }
+    return stopProvisionFunction();
+  }
+
+  stopProvisionFunction();
+  showProvisionResult.value = true;
+};
+
+// Stop client provision
+const stopProvisionFunction = () => {
+  showSkeletonDancing.value = false;
+  $q.loading.hide();
 };
 
 // Method to trigger form activate button in modal
@@ -435,36 +696,24 @@ const handleActivateClient = async () => {
 
   // Display success alert when activate button is clicked
   if (confirmResult.isConfirmed) {
-    try {
-      Swal.fire({
-        title: "Success",
-        text: "Client provisioned successfully.",
-        icon: "success",
-        confirmButtonColor: "#1d6499",
-        confirmButtonText: "Confirm",
-        allowOutsideClick: false,
-      });
+    Object.assign(NewClient, {
+      bucketId: client.value.bucketId,
+      clientId: client.value.newSubscriberId,
+      accountNumber: client.value.subscriberAccountNumber,
+      packageType: client.value.packageType,
+      oltReportedUpstream: client.value.oltReportedUpstream,
+      oltReportedDownstream: client.value.oltReportedDownstream,
+      serialAndMac: {
+        serialNum: selectedOnuSerialNumber.value,
+        macAddress: onuMacAddress.value,
+      },
+      oltIp: client.value.oltIp,
+      newOltId: selectedNetworkSiteValue.value,
+      clientName: client.value.subscriberName,
+    });
 
-      client.value = {
-        accountNo: "",
-        subscriberName: "",
-        packageType: "",
-        onuSerialNumber: 0,
-        onuMacAddress: "",
-        location: "",
-        networkSiteVlan: "",
-        oltIp: "",
-      };
-
-      modalIsVisible.value = false;
-    } catch (error) {
-      Swal.fire({
-        title: "Failed",
-        text: "Error activating client",
-        icon: "error",
-        confirmButtonColor: "#fd0808",
-      });
-    }
+    modalProvisionChecking.value = true;
+    await provisionClient(NewClient);
   }
 };
 
@@ -477,83 +726,25 @@ const noLeadingWhitespace = (event: Event) => {
   inputValue.value = input.value;
 };
 
-// NOTE: Sample hardcoded columns and rows for testing purposes
-const newClientColumns = ref([
-  {
-    name: "id",
-    align: "left",
-    label: "ID",
-    field: "id",
-  },
-  {
-    name: "accountNo",
-    align: "left",
-    label: "Account No.",
-    field: "accountNo",
-  },
-  {
-    name: "subscriberName",
-    align: "left",
-    label: "Subscriber Name",
-    field: "subscriberName",
-  },
-  {
-    name: "packageType",
-    align: "left",
-    label: "Package Type",
-    field: "packageType",
-  },
-  {
-    name: "actions",
-    label: "Actions",
-    field: "actions",
-  },
-]);
+// Watch for selected ONU serial number and assign mac address
+watch(selectedOnuSerialNumber, (newSerialNumber) => {
+  const device = serialAndMac.find(
+    (device) => device.serial_number === newSerialNumber
+  );
+  if (device) {
+    onuMacAddress.value = device.mac_address;
+  }
+});
 
-const newClientRows = ref([
-  {
-    id: 1,
-    accountNo: "RES-202402-15",
-    subscriberName: "JANE DOE",
-    packageType: "PLAN999",
-    actions: "test",
-  },
-  {
-    id: "1",
-    accountNo: "RES-202402-15",
-    subscriberName: "JANE DOE",
-    packageType: "PLAN999",
-    actions: "test",
-  },
-  {
-    id: "2",
-    accountNo: "RES-202402-16",
-    subscriberName: "JOHN SMITH",
-    packageType: "PLAN1499",
-    actions: "test",
-  },
-  {
-    id: "3",
-    accountNo: "RES-202402-17",
-    subscriberName: "ALICE JOHNSON",
-    packageType: "PLAN1999",
-    actions: "test",
-  },
-  {
-    id: "4",
-    accountNo: "RES-202402-18",
-    subscriberName: "BOB WILLIAMS",
-    packageType: "PLAN799",
-    actions: "test",
-  },
-  {
-    id: "5",
-    accountNo: "RES-202402-19",
-    subscriberName: "EMILY BROWN",
-    packageType: "PLAN2500",
-    actions: "test",
-  },
-]);
+// Watch for changes to selectedLocation and apply filtering
+watch(selectedLocation, (newValue) => {
+  filterNetworkSites();
+});
+
+watch(selectedNetworkSiteValue, (newValue) => {
+  const selectedSite = filteredNetworkSites.value.find(
+    (site) => site.oltIps?.[0]?.newOltId === newValue
+  );
+  selectedNetworkSite.value = selectedSite || null;
+});
 </script>
-
-<style scoped lang="sass"></style>

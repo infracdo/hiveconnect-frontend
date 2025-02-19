@@ -79,9 +79,9 @@ module.exports = configure(function (ctx) {
         PROVISION_API_PROMETHEUS: process.env.PROVISION_API_PROMETHEUS,
         PROVISION_API_GRAFANA: process.env.PROVISION_API_GRAFANA,
 
-        VUE_APP_KEYCLOAK_URL: process.env.VUE_APP_KEYCLOAK_URL,
-        VUE_APP_KEYCLOAK_REALM: process.env.VUE_APP_KEYCLOAK_REALM,
-        VUE_APP_KEYCLOAK_CLIENT_ID: process.env.VUE_APP_KEYCLOAK_CLIENT_ID
+        // VUE_APP_KEYCLOAK_URL: process.env.VUE_APP_KEYCLOAK_URL,
+        // VUE_APP_KEYCLOAK_REALM: process.env.VUE_APP_KEYCLOAK_REALM,
+        // VUE_APP_KEYCLOAK_CLIENT_ID: process.env.VUE_APP_KEYCLOAK_CLIENT_ID
       },
       // rawDefine: {}
       // ignorePublicFolder: true,
