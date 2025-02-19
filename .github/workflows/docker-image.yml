@@ -3,7 +3,7 @@ name: Build and Push Docker Image
 on:
   push:
     branches:
-      - kubernetes-hive  # Trigger on pushes to the main branch
+      - reskin-anna # Trigger on pushes to the main branch
   pull_request:  # Trigger on pull requests
 
 jobs:
@@ -24,13 +24,13 @@ jobs:
           password: dckr_pat__OLCfPrg82w1BYMpRc0aQbVzV1M # ${{ secrets.DOCKER_PASSWORD }} # Add DOCKER_PASSWORD secret in GitHub
 
       # Step 3: Build the Docker image
-      - name: Build Docker Image
-        run: 
+#      - name: Build Docker Image
+#        run: 
           # docker build --target build -t my-image:build .
-          docker build -t hiveconnect-frontend:latest .
+#          docker build -t hiveconnect-frontend:latest .
 
       # Step 4: Push the Docker image
-      - name: Push Docker Image
-        run: |
-          docker tag hiveconnect-frontend:latest infracdo/hiveconnect-frontend:latest
-          docker push infracdo/hiveconnect-frontend:latest
+#      - name: Push Docker Image
+#        run: |
+#          docker tag hiveconnect-frontend:latest infracdo/hiveconnect-frontend:latest
+#          docker push infracdo/hiveconnect-frontend:latest
