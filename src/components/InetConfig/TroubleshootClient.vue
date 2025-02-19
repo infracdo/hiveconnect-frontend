@@ -1,71 +1,195 @@
 <template>
-  <q-page>
-    <q-ajax-bar
-      ref="bar"
-      color="info"
-      position="bottom"
-      size="10px"
-      skip-hijack
-    />
-    <q-dialog
-      v-model="confirm"
-      persistent
-      transition-show="flip-down"
-      transition-hide="flip-up"
+  <q-ajax-bar
+    ref="bar"
+    color="info"
+    position="bottom"
+    size="10px"
+    skip-hijack
+  />
+  <q-dialog
+    v-model="localIsVisible"
+    persistent
+    class="rounded-lg"
+    position="right"
+  >
+    <q-card
+      v-if="doneApiCalls"
+      class="px-6 pb-6 dialog-content"
+      style="
+        width: 600px;
+        max-width: 100%;
+        height: 500px;
+        max-height: 100%;
+        display: flex;
+        flex-direction: column;
+      "
     >
-      <q-card class="dialog-content" v-if="doneApiCalls">
-        <div class="provision-info">
-          <q-card>
-            <q-banner class="bg-primary text-white"> Client Details </q-banner>
-            <q-card-section>
-              <p>Client Name: {{ clientInfo.clientName }}</p>
-              <p>Account Number: {{ clientInfo.accountNumber }}</p>
-              <p>Payment Status: {{ clientInfo.otcStatus }}</p>
-              <p>Package Type: {{ bandwidth.name }}</p>
-            </q-card-section>
-          </q-card>
-          <q-card>
-            <q-banner class="bg-primary text-white"> ONU Details </q-banner>
-            <q-card-section>
-              <p>
-                ONU Status:
-                <span
-                  :style="onuStatus === '1' ? 'color: green' : 'color: red'"
-                  >{{ onuStatus === "1" ? "Online" : "Offline" }}</span
-                >
-              </p>
-              <p>ONU IP: {{ clientInfo.ipAssigned }}</p>
-              <p>SSID Name: {{ clientInfo.SSID }}</p>
-              <p>ONU Serial Number: {{ clientInfo.onuSerialNumber }}</p>
-              <p>ONU Mac Address: {{ clientInfo.onuMacAddress }}</p>
-              <p>
-                UP stream: {{ bandwidth.upStream }} kbps <br />
-                Down stream: {{ bandwidth.downStream }} kbps
-              </p>
-            </q-card-section></q-card
-          >
-          <q-card>
-            <q-banner class="bg-primary text-white"> OLT Details </q-banner>
-            <q-card-section>
-              <p>
-                OLT Status:
-                <span
-                  :style="oltStatus === '1' ? 'color: green' : 'color: red'"
-                >
-                  {{ oltStatus === "1" ? "Online" : "Offline" }}</span
-                >
-              </p>
-              <p>
-                OLT IP:
-                {{ clientInfo.oltIp }}
-              </p>
-              <p>OLT Site: {{ clientInfo.oltSite }}</p>
-              <p>OLT Interface: {{ clientInfo.oltInterface }}</p>
-              <p>OLT Up Stream: {{ clientInfo.oltUpstream }}</p>
-              <p>OLT Down Stream: {{ clientInfo.oltDownstream }}</p>
-            </q-card-section>
-          </q-card>
+      <div style="flex: 1; display: flex; flex-direction: column">
+        <!-- Modal title -->
+        <div
+          style="z-index: 2"
+          class="text-lg font-semibold row items-center justify-center no-wrap bg-white h-[52px] pt-4 sticky"
+        >
+          <span> Troubleshoot Client </span>
         </div>
+
+        <q-card-section class="mt-4 p-0" style="z-index: 1">
+          <!-- Client details section-->
+          <div class="mb-4">
+            <p class="mb-2 text-gray-iron-900 font-semibold">Client Details</p>
+            <div class="mb-4" style="display: flex; gap: 16px">
+              <!-- Client Name input field -->
+              <Inputs
+                :input-style="{ 'text-transform': 'uppercase' }"
+                v-model="clientInfo.clientName"
+                label="Client Name"
+                readonly
+              />
+
+              <!-- Account Number input field -->
+              <Inputs
+                :input-style="{ 'text-transform': 'uppercase' }"
+                v-model="clientInfo.accountNumber"
+                label="Account Number"
+                readonly
+              />
+
+              <!-- Payment Status input field -->
+              <Inputs
+                :input-style="{ 'text-transform': 'uppercase' }"
+                v-model="clientInfo.otcStatus"
+                label="Payment Status"
+                readonly
+              />
+
+              <!-- Package Type input field -->
+              <Inputs
+                :input-style="{ 'text-transform': 'uppercase' }"
+                v-model="bandwidth.name"
+                label="Package Type"
+                readonly
+              />
+            </div>
+          </div>
+
+          <!-- ONU Details Section -->
+          <div class="mb-4">
+            <div class="mb-2 text-gray-iron-900 font-semibold">ONU Details</div>
+            <div class="mb-2" style="display: flex; gap: 16px">
+              <!-- ONU Status input field-->
+              <Inputs
+                :input-style="{ 'text-transform': 'uppercase' }"
+                :v-model="onuStatus === '1' ? 'Online' : 'Offline'"
+                label="ONU Status"
+                readonly
+              />
+
+              <!-- ONU IP input field-->
+              <Inputs
+                :input-style="{ 'text-transform': 'uppercase' }"
+                v-model="clientInfo.ipAssigned"
+                label="ONU IP"
+                readonly
+              />
+
+              <!-- SSID Name input field-->
+              <Inputs
+                :input-style="{ 'text-transform': 'uppercase' }"
+                v-model="clientInfo.SSID"
+                label="SSID Name"
+                readonly
+              />
+
+              <!-- ONU Serial Number select field -->
+              <Inputs
+                :input-style="{ 'text-transform': 'uppercase' }"
+                v-model="clientInfo.onuSerialNumber"
+                label="ONU Serial Number"
+                readonly
+              />
+            </div>
+            <div class="mb-2" style="display: flex; gap: 16px">
+              <!-- ONU Mac Address input field -->
+              <Inputs
+                :input-style="{ 'text-transform': 'uppercase' }"
+                v-model="clientInfo.onuMacAddress"
+                label="ONU Mac Address"
+                readonly
+              />
+
+              <!-- Upstream input field -->
+              <Inputs
+                :input-style="{ 'text-transform': 'uppercase' }"
+                v-model="bandwidth.upStream"
+                label="Upstream"
+                readonly
+              />
+
+              <!-- Downstream input field -->
+              <Inputs
+                :input-style="{ 'text-transform': 'uppercase' }"
+                v-model="bandwidth.downStream"
+                label="Downstream"
+                readonly
+              />
+            </div>
+          </div>
+
+          <!-- OLT Details Section-->
+          <div class="mb-4">
+            <div class="mb-2 text-gray-iron-900 font-semibold">OLT Details</div>
+            <div class="mb-2" style="display: flex; gap: 16px">
+              <!-- OLT Status input field -->
+              <Inputs
+                :input-style="{ 'text-transform': 'uppercase' }"
+                :v-model="oltStatus === '1' ? 'Online' : 'Offline'"
+                label="OLT Status"
+                readonly
+              />
+
+              <!-- OLT IP input field -->
+              <Inputs
+                :input-style="{ 'text-transform': 'uppercase' }"
+                v-model="clientInfo.oltIp"
+                label="OLT IP"
+                readonly
+              />
+
+              <!-- OLT Site select field -->
+              <Inputs
+                :input-style="{ 'text-transform': 'uppercase' }"
+                v-model="clientInfo.oltSite"
+                label="OLT Site"
+                readonly
+              />
+
+              <!-- OLT Interface select field -->
+              <Inputs
+                :input-style="{ 'text-transform': 'uppercase' }"
+                v-model="clientInfo.oltInterface"
+                label="OLT Interface"
+                readonly
+              />
+
+              <!-- OLT Upstream select field -->
+              <Inputs
+                :input-style="{ 'text-transform': 'uppercase' }"
+                v-model="clientInfo.oltUpstream"
+                label="OLT Upstream"
+                readonly
+              />
+
+              <!-- OLT Downstream select field -->
+              <Inputs
+                :input-style="{ 'text-transform': 'uppercase' }"
+                v-model="clientInfo.oltDownstream"
+                label="OLT Downstream"
+                readonly
+              />
+            </div>
+          </div>
+        </q-card-section>
+
         <q-select
           v-model="selectTime"
           :options="timeOptions"
@@ -73,22 +197,20 @@
           filled
           class="select-time q-py-md"
           emit-value
-          map-options />
+          map-options
+        />
         <iframe
           :src="`${grafanaApi}/d-solo/d94d1e0e-a6e4-45c4-847f-6603e1c31ccb/subscribers-traffic-rate-and-uptime?orgId=1&from=now-${selectTime}&to=now&var-Subscriber=${deviceName}&panelId=3`"
           class="grafana-panel"
           frameborder="0"
-        ></iframe>
+        >
+        </iframe>
         <q-card-actions vertical align="right">
-          <q-btn
-            filled
-            label="Close"
-            color="red"
-            @click="closeModalNow"
-          /> </q-card-actions
-      ></q-card>
-    </q-dialog>
-  </q-page>
+          <q-btn filled label="Close" color="red" @click="closeModalNow" />
+        </q-card-actions>
+      </div>
+    </q-card>
+  </q-dialog>
 </template>
 
 <script setup lang="ts">
@@ -101,6 +223,7 @@ import {
   getOtcStatus,
 } from "src/api/HiveConnectApis/hiveConnect";
 import { useQuasar } from "quasar";
+import Inputs from "../inputs/Inputs.vue";
 
 /////////////////
 // Variables ///
@@ -108,13 +231,15 @@ import { useQuasar } from "quasar";
 const testmodal = ref(true);
 const $q = useQuasar();
 const props = defineProps<{
-  confirm: boolean;
+  isVisible: boolean;
   closeModal: Function;
   deviceName: string;
   clientId: number;
 }>();
 const doneApiCalls = ref(false);
-const { confirm } = toRefs(props);
+const { isVisible } = toRefs(props);
+// Tracks state of modal if visible or not
+const localIsVisible = ref(props.isVisible);
 
 const closeModalNow = () => {
   props.closeModal();
@@ -148,8 +273,8 @@ const clientInfo = reactive({
   oltInterface: "",
   SSID: "",
   otcStatus: "",
-  oltUpstream: "",
-  oltDownstream: "",
+  oltUpstream: 0,
+  oltDownstream: 0,
 });
 const bandwidth = reactive({
   upStream: "",
@@ -268,28 +393,55 @@ const getInfoApiPrometheus = async (deviceName: string, id: number) => {
   $q.loading.hide();
 };
 
+// const emit = defineEmits<{
+//   (event: "update:isVisible", value: boolean): void;
+// }>();
+
+// watch(
+//   () => props.isVisible,
+//   (newVal) => {
+//     if (props.isVisible) {
+//       localIsVisible.value = newVal;
+//     }
+//   }
+// );
+
+// watch(localIsVisible, (newVal) => {
+//   emit("update:isVisible", newVal);
+// });
+
 const closeModalAndShowNotif = () => {
   closeModalNow();
   showNotif();
 };
 
-watch(confirm, () => {
-  if (confirm.value === true) {
+watch(isVisible, () => {
+  if (isVisible.value === true) {
     getInfoApiPrometheus(props.deviceName, props.clientId);
   }
 });
 </script>
 
 <style scoped>
-.provision-info {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 1em;
+.sticky {
+  position: -webkit-sticky;
+  position: sticky;
+  top: 0;
+}
+.q-dialog .q-card {
+  border-radius: 8px;
 }
 .dialog-content {
-  max-width: 1200px;
-  width: 100%;
-  padding: 1em;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+.dialog-content::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+.dialog-content::-webkit-scrollbar-thumb {
+  background-color: rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
 }
 .grafana-panel {
   width: 100%;

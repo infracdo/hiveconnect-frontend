@@ -4,44 +4,41 @@ const routes: RouteRecordRaw[] = [
   {
     path: "/",
     redirect: "/inet-config",
-    component: () => import("layouts/MainLayoutReskin.vue"),
+    component: () => import("layouts/MainLayout.vue"),
 
     children: [
       // { path: '', component: () => import('pages/IndexPage.vue') },
       {
         path: "inet-config",
-        component: () => import("pages/HiveReskin/InetConfigReskin.vue"),
+        component: () => import("pages/InetConfig.vue"),
         meta: { roles: ["hive-connect-access"] },
       },
 
       {
         path: "rogue-devices",
-        component: () => import("pages/HiveReskin/ACSRougeTableReskin.vue"),
+        component: () => import("pages/ACSRougeTable.vue"),
         meta: { roles: ["hive-connect-access"] },
       },
       {
         path: "network-address",
-        component: () => import("pages/HiveReskin/NetworkAddressReskin.vue"),
+        component: () => import("pages/NetworkAddress.vue"),
         meta: { roles: ["hive-connect-access"] },
       },
       {
         path: "network-address/:ipAddress",
-        component: () =>
-          import("../components/NetworkAddress/IpAddressesReskin.vue"),
+        component: () => import("../components/NetworkAddress/IpAddresses.vue"),
         props: true,
         meta: { roles: ["hive-connect-access"] },
       },
       {
         path: "provisioned",
-        component: () =>
-          import("../pages/HiveReskin/HiveProvisionedReskin.vue"),
+        component: () => import("../pages/HiveProvisioned.vue"),
         props: true,
         meta: { roles: ["hive-connect-access"] },
       },
       {
         path: "troubleshooting",
-        component: () =>
-          import("../pages/HiveReskin/TroubleShootingReskin.vue"),
+        component: () => import("../pages/TroubleShooting.vue"),
         props: true,
         meta: { roles: ["hive-connect-access"] },
       },
