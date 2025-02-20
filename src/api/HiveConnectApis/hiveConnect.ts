@@ -23,20 +23,6 @@ const api = axios.create({
   timeout: 0,
 });
 
-api.interceptors.request.use(
-  (config) => {
-    const token =
-      "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0ZXN0YWNjb3VudCIsImlhdCI6MTcyODk4MTA0MH0.6SGymGmjXsK1FgG7tqnirZEYc6r9ZyAvnJP1iEbtdsY";
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
-  },
-  (error) => {
-    return Promise.reject(error);
-  }
-);
-
 // export const getDevices = async (): Promise<IRogueDevices[]> => {
 //   try {
 //     const { data } = await api.get("/getRogueDevices");

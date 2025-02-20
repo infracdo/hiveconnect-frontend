@@ -8,7 +8,7 @@
 
     <p class="text-sm font-medium text-black cursor-default">
       {{ $keycloak.tokenParsed.given_name }}
-      {{ $keycloak.tokenParsed.family_name }}
+      <!-- {{ $keycloak.tokenParsed.family_name }} -->
     </p>
 
     <q-btn flat rounded dense class="text-gray-iron-500 rounded-full">

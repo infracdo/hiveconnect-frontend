@@ -104,7 +104,7 @@ const essentialLinks = [
 //   }
 // );
 const isDarkMode = ref(true);
-const miniState = ref(true);
+const miniState = ref(false);
 
 const filteredLinksList = essentialLinks.filter((link) => {
   const resourceRoles =
