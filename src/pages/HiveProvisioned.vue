@@ -6,12 +6,13 @@
         <div>
           <!-- Page title -->
           <div class="text-xl font-semibold text-gray-iron-90 mb-2">
-            Provisioned Clients
+            Provisioned Subscribers
           </div>
 
           <!-- Page description -->
           <p class="text-sm font-regular text-gray-iron-500">
-            There are {{ clientCount }} active subscribers
+            There are {{ clientCount }} active
+            {{ clientCount < 2 ? "subscriber" : "subscribers" }}
           </p>
         </div>
 
@@ -53,7 +54,7 @@
           class="border border-gray-iron-100 q-mt-md row full-width bg-white rounded-lg"
         >
           <!-- Table for provisioned clients (active) -->
-          <div class="full-width p-3">
+          <div class="full-width">
             <Table
               :tableColumns="columns"
               :tableRows="filteredRows"
@@ -62,19 +63,17 @@
               @rowClick="openModal"
             >
               <template #actions="{ row }">
-                <div class="flex gap-2">
-                  <q-icon
-                    name="assignment"
-                    size="sm"
-                    class="cursor-pointer text-gray-iron-900 font-normal hover:text-primary-1000"
-                    @click="
-                      openTroubleshootModal(
-                        row.onuDeviceName,
-                        row.newSubscriberId
-                      )
-                    "
-                  />
-                </div>
+                <q-icon
+                  name="assignment"
+                  size="sm"
+                  class="cursor-pointer text-gray-iron-900 font-normal hover:text-primary-1000"
+                  @click="
+                    openTroubleshootModal(
+                      row.onuDeviceName,
+                      row.newSubscriberId
+                    )
+                  "
+                />
               </template>
             </Table>
           </div>

@@ -1,5 +1,5 @@
 <template>
-  <div class="relative flex flex-row items-center w-80">
+  <div class="relative flex flex-row items-center">
     <input
       type="text"
       name="search"

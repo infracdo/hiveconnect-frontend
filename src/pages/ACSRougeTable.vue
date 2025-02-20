@@ -11,7 +11,8 @@
 
           <!-- Page description here -->
           <p class="text-sm font-regular text-gray-iron-500">
-            There are {{ rogueDeviceCount }} rogue devices
+            There are {{ rogueDeviceCount }} rogue
+            {{ rogueDeviceCount < 2 ? "device" : "devices" }}
           </p>
         </div>
 
@@ -20,7 +21,7 @@
           class="border border-gray-iron-100 q-mt-md row full-width bg-white rounded-lg"
         >
           <!-- Rogue devices table here -->
-          <div class="full-width p-3">
+          <div class="full-width">
             <Table
               :tableRows="tableRow"
               :tableColumns="columns"

@@ -15,7 +15,11 @@
                     visibleColumns.includes(col.name)
                   )"
                   :key="header.name"
-                  class="pr-6 pt-6 pb-2 font-light text-xs uppercase text-primary-gray-500"
+                  :class="
+                    header.name === 'actions'
+                      ? 'pr-6 pt-6 pb-2 font-light text-xs uppercase text-primary-gray-500 text-center'
+                      : 'pr-6 pt-6 pb-2 font-light text-xs uppercase text-primary-gray-500'
+                  "
                 >
                   {{ header.label }}
                 </th>
@@ -26,9 +30,9 @@
 
             <tbody>
               <tr
-                @click="handleCallback($event, row, index, 'test') in tableRows"
                 v-for="(row, index) in paginatedRows"
                 :key="row.id"
+                @click="handleCallback($event, row, index)"
                 class="border-b border-neutral-200 hover:bg-gray-iron-200 transition:transform duration-150 text-gray-iron-900 hover:cursor-pointer"
               >
                 <td
@@ -36,7 +40,11 @@
                     visibleColumns.includes(col.name)
                   )"
                   :key="column.name"
-                  class="pr-6 py-2 text-gray-iron-900 font-normal"
+                  :class="
+                    column.name === 'actions'
+                      ? 'pr-6 py-2 text-gray-iron-900 font-normal text-center'
+                      : 'pr-6 py-2 text-gray-iron-900 font-normal'
+                  "
                 >
                   <slot
                     :name="column.name"
@@ -96,11 +104,13 @@ interface TableColumn {
   label: string;
 }
 
+// Define props structure
 interface Props {
   tableColumns: TableColumn[];
   tableRows: TableRow[];
   visibleColumns?: string[];
   rowsPerPage?: number;
+  moduleName?: string;
   callback?: (
     event: Event,
     row: TableRow,
@@ -109,13 +119,18 @@ interface Props {
   ) => void;
 }
 
+// Define props
 const props = defineProps<Props>();
+
+// Display table columns based on passed visibleColumns prop
 const visibleColumns = computed(
   () => props.visibleColumns ?? props.tableColumns.map((col) => col.name)
 );
 
+// Initialize currentPage which is 1st page by default
 const currentPage = ref(1);
 
+// Compute total pages based on rows length and number of rows per page
 const totalPages = computed(() =>
   Math.ceil(props.tableRows.length / (props.rowsPerPage ?? 10))
 );
@@ -136,26 +151,23 @@ const itemsDisplayed = computed(() => {
   return `${start}-${end}`;
 });
 
+// Go to next table page
 const nextPage = () => {
   if (currentPage.value < totalPages.value) {
     currentPage.value++;
   }
 };
 
+// Go back to previous table page
 const prevPage = () => {
   if (currentPage.value > 1) {
     currentPage.value--;
   }
 };
 
-const handleCallback = (
-  event: Event,
-  row: TableRow,
-  index: number,
-  module: string
-) => {
+const handleCallback = (event: Event, row: TableRow, index: number) => {
   if (props.callback) {
-    props.callback(event, row, index, module);
+    props.callback(event, row, index, props.moduleName || "defaultModule");
   }
 };
 </script>

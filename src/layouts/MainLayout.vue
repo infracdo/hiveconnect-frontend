@@ -64,7 +64,7 @@ const essentialLinks: EssentialLinkProps[] = [
     link: "/inet-config",
   },
   {
-    title: "Provisioned Clients",
+    title: "Provisioned Subscribers",
     icon: "bi-person-fill-check",
     link: "/provisioned",
   },

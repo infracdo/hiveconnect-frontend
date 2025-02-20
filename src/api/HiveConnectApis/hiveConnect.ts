@@ -68,6 +68,8 @@ export const getIpAddresses = async (
       "front end accessing backend hive api /getIpAddressesOfCidrBlock"
     );
     const { data } = await api.get("/getIpAddressesOfCidrBlock/" + ipAddress);
+
+    console.log("Fetched getIpAddresses data:", data);
     return data;
   } catch (error) {
     console.log("Cannot retrieve IP Address data!", error);

@@ -7,12 +7,13 @@
         <div>
           <!-- Page title -->
           <div class="text-xl font-semibold text-gray-iron-90 mb-2">
-            New Client Provision
+            New Subscriber Provision
           </div>
 
           <!-- Page description -->
           <p class="text-sm font-regular text-gray-iron-500">
-            There are {{ clientCount }} new subscribers
+            There are {{ clientCount }} for provision
+            {{ clientCount < 2 ? "subscriber" : "subscribers" }}
           </p>
         </div>
 
@@ -56,7 +57,7 @@
           class="border border-gray-iron-100 q-mt-md row full-width bg-white rounded-lg relative"
         >
           <!-- Table for NEW status clients (to be provision) -->
-          <div class="full-width p-3">
+          <div class="full-width">
             <Table
               :tableColumns="columns"
               :tableRows="filteredRows"
@@ -66,14 +67,12 @@
             >
               <!-- Actions column provision action button-->
               <template #actions="{ row }">
-                <div class="flex gap-2">
-                  <q-icon
-                    name="assignment"
-                    size="sm"
-                    class="cursor-pointer text-gray-iron-900 font-normal hover:text-primary-1000"
-                    @click="openModal(row.newSubscriberId)"
-                  />
-                </div>
+                <q-icon
+                  name="assignment"
+                  size="sm"
+                  class="cursor-pointer text-gray-iron-900 font-normal hover:text-primary-1000"
+                  @click="openModal(row.newSubscriberId)"
+                />
               </template>
             </Table>
           </div>

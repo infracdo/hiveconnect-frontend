@@ -11,8 +11,10 @@
 
           <!-- Page description here -->
           <p class="text-sm font-regular text-gray-iron-500">
-            Client data with their assigned devices (ONU & OLT)<br />
-            and its traffic details for troubleshooting.
+            Displays subscriber details, including subscriber information,
+            <br />
+            ONU and OLT data, and a Grafana panel for real-time network
+            insights.
           </p>
         </div>
 

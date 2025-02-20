@@ -23,12 +23,14 @@ const routes: RouteRecordRaw[] = [
         path: "network-address",
         component: () => import("pages/NetworkAddress.vue"),
         meta: { roles: ["hive-connect-access"] },
+        name: "network-address",
       },
       {
         path: "network-address/:ipAddress",
         component: () => import("../components/NetworkAddress/IpAddresses.vue"),
         props: true,
         meta: { roles: ["hive-connect-access"] },
+        name: "network-address-details",
       },
       {
         path: "provisioned",

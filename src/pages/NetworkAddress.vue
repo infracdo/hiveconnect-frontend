@@ -34,24 +34,23 @@
           class="border border-gray-iron-100 q-mt-md row full-width bg-white rounded-lg"
         >
           <!-- Table for network addresses -->
-          <div class="full-width p-3">
+          <div class="full-width">
             <Table
               :tableColumns="columns"
               :tableRows="filteredRows"
               :rowsPerPage="10"
               :loading="rows.length > 0 ? false : true"
-              @rowClick="openEditModal"
+              :callback="getNetworkAddressData"
+              @rowClick="openAddNewNetworkModal"
             >
               <!-- Actions column provision action button -->
               <template #actions="{ row }">
-                <div class="flex gap-2">
-                  <q-icon
-                    name="edit"
-                    size="sm"
-                    class="cursor-pointer text-gray-iron-900 font-normal hover:text-primary-1000"
-                    @click="openEditModal(row.networkAddress)"
-                  />
-                </div>
+                <q-icon
+                  name="edit"
+                  size="sm"
+                  class="cursor-pointer text-gray-iron-900 font-normal hover:text-primary-1000"
+                  @click.stop="openAddNewNetworkModal(row.networkAddress)"
+                />
               </template>
 
               <!-- TABLE NOTES (REMINDER) -->
@@ -64,22 +63,29 @@
         </div>
       </div>
     </div>
+
+    <!-- Add New Network Modal -->
+    <AddNewNetworkModal
+      :isVisible="modalAddNewNetwork"
+      @update:isVisible="modalAddNewNetwork = $event"
+    />
   </q-page>
 </template>
 
 <script setup lang="ts">
 import { RouterLink } from "vue-router";
 import { useNetworkStore } from "src/stores/network-address/network-address";
-import { QTableProps } from "quasar";
+import { event, QTableProps } from "quasar";
 import { ref, watchEffect, computed } from "vue";
 
 import { getNetworkAddresses } from "src/api/HiveConnectApis/hiveConnect";
 import AddNewNetworkModal from "src/components/NetworkAddress/AddNewNetworkModal.vue";
 
 // RECENTLY ADDED //
+import { useRouter } from "vue-router";
 import SearchBar from "src/components/SearchBar.vue";
 import Table from "src/components/Table.vue";
-import NetworkAddress from "../NetworkAddress.vue";
+import { ipAddress } from "@vuelidate/validators";
 
 // Store search term/s from SearchBar
 const filter = ref("");
@@ -101,8 +107,16 @@ watchEffect(async () => {
 
 // RECENTLY ADDED //
 
+const router = useRouter();
+const modalAddNewNetwork = ref(false);
+
 // Count total number of rows (network addresses) in the table to display in the page description
 const networkAddressCount = computed(() => rows.value.length);
+
+// Method triggered when entering in SearchBar
+const handleSearch = (event: KeyboardEvent) => {
+  filter.value = (event.target as HTMLInputElement).value;
+};
 
 // Display row/s based on search term
 const filteredRows = computed(() => {
@@ -117,10 +131,23 @@ const filteredRows = computed(() => {
   );
 });
 
-// Method triggered when entering in SearchBar
-const handleSearch = (event: KeyboardEvent) => {
-  filter.value = (event.target as HTMLInputElement).value;
+// Navigate to the Network Address details page
+const getNetworkAddressData = (
+  event: Event,
+  row: any,
+  index: number,
+  module: string
+) => {
+  console.log("Network Address table for details navigation clicked.");
+
+  router.push({
+    name: "network-address-details",
+    params: { ipAddress: row.networkAddress },
+    state: { networkAddressData: { ...row } },
+  });
 };
 
-const openEditModal = async (NetworkAddress: string) => {};
+const openAddNewNetworkModal = async (networkAddress: string) => {
+  modalAddNewNetwork.value = true;
+};
 </script>
