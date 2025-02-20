@@ -144,7 +144,9 @@ const getProvisioned = async (): Promise<void> => {
   filter.value = "";
   loading.value = true;
   rowsHive.value = [];
-  rowsHive.value = await getHiveClients();
+  try {
+    rowsHive.value = await getHiveClients();
+  } catch (error) {}
   loading.value = false;
 };
 </script>

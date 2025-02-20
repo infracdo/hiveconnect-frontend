@@ -1,5 +1,6 @@
 import axios from "axios";
 import { useDevicesStore } from "src/stores/rogue-device/rogue-devices";
+import { useNetworkStore } from "src/stores/network-address/network-address";
 import {
   IClient,
   IRogueDevices,
@@ -7,9 +8,11 @@ import {
   IOltSiteByIp,
   IOlt,
   IPackageDetails,
+  INetworkAddresses,
 } from "./types";
 import { auth } from "src/stores/auth";
-const store = useDevicesStore();
+const deviceStore = useDevicesStore();
+const networkStore = useNetworkStore();
 const kc = auth();
 
 const API_BASE_URL = process.env.PROVISION_API_URL;
@@ -36,7 +39,7 @@ export const getDevices = async (): Promise<IRogueDevices[]> => {
   try {
     console.log("front end accessing backend hive api /getRogueDevices");
     const { data } = await api.get("/getRogueDevices");
-    store.$patch({
+    deviceStore.$patch({
       rogueDevice: data,
     });
     return data;
@@ -61,14 +64,17 @@ export const getIpAddresses = async (
   }
 };
 
-export const getNetworkAddresses = async () => {
+export const getNetworkAddresses = async (): Promise<INetworkAddresses[]> => {
   try {
     console.log("front end accessing backend hive api /getallnetworks");
     const { data } = await api.get("/getallnetworks"); ///getCidrBlocks
+    networkStore.$patch({
+      networkAddressDetail: data,
+    });
     return data;
   } catch (error) {
     console.log("Cannot Retrieve Network Address Data!", error);
-    throw error;
+    throw new Error("Could not retrieve network addresses data!");
   }
 };
 

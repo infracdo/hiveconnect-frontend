@@ -6,7 +6,7 @@
       :filter="filter"
       row-key="name"
       :columns="columns"
-      :loading="rows.length > 0 ? false : true"
+      :loading="loading"
       :pagination="{
         rowsPerPage: 10,
       }"
@@ -53,7 +53,7 @@
 import { RouterLink } from "vue-router";
 import { useNetworkStore } from "src/stores/network-address/network-address";
 import { QTableProps } from "quasar";
-import { ref, watchEffect } from "vue";
+import { ref, onMounted } from "vue";
 
 import { getNetworkAddresses } from "src/api/HiveConnectApis/hiveConnect";
 import AddNewNetworkModal from "src/components/NetworkAddress/AddNewNetworkModal.vue";
@@ -63,13 +63,17 @@ const store = useNetworkStore();
 const rows = ref([]);
 const columns: QTableProps["columns"] = store.$state.networkColumn;
 const modalOpen = ref(false);
+const loading = ref<boolean>(false);
 
 const openModal = () => {
   modalOpen.value = !modalOpen.value;
 };
-
-watchEffect(async () => {
-  rows.value = await getNetworkAddresses();
+onMounted(async () => {
+  loading.value = true;
+  try {
+    rows.value = await getNetworkAddresses();
+  } catch (error) {}
+  loading.value = false;
 });
 </script>
 

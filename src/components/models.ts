@@ -60,3 +60,14 @@ export interface rogueDeviceType {
   model: string;
   device_type: string;
 }
+
+export interface networkAddressType {
+  id: number;
+  networkAddress: string;
+  cidrBlock: string;
+  defaultGateway: string;
+  location: string;
+  networkName: string;
+  networkType: string;
+  vlanId: string;
+}

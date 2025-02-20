@@ -7,7 +7,7 @@
       row-key="name"
       title="New Client Provision"
       :columns="columns"
-      :loading="loading || rows.length === 0"
+      :loading="loading"
       :pagination="{
         rowsPerPage: 10,
       }"
@@ -136,7 +136,11 @@ import {
   checkPackageDetails,
   getNetworkSiteOltIp,
 } from "src/api/HiveConnectApis/hiveConnect";
-import { IClient, IOltSiteByIp, GroupedNetworkSite } from "src/api/HiveConnectApis/types";
+import {
+  IClient,
+  IOltSiteByIp,
+  GroupedNetworkSite,
+} from "src/api/HiveConnectApis/types";
 import addNewClient from "../components/InetConfig/ProvisionClient.vue";
 
 import { IserialAndMac, IsubsriberType } from "src/components/models";
@@ -190,7 +194,7 @@ const client = ref<IsubsriberType>({
 
 const openModal = async (newSubscriberId: number) => {
   $q.loading.show();
-  console.log("front end accessing backend hive api /getRogueDevices");
+  console.log("accessing backend hive api /getRogueDevices");
   const rogueDevice = await getDevices();
 
   serialAndMac = rogueDevice.map(

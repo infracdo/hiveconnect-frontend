@@ -67,6 +67,17 @@ export interface IRogueDevices {
   status: string;
 }
 
+export interface INetworkAddresses {
+  id: number;
+  networkAddress: string;
+  cidrBlock: string;
+  defaultGateway: string;
+  location: string;
+  networkName: string;
+  networkType: string;
+  vlanId: string;
+}
+
 export interface IipAddressesOfCidrBlock {
   id: number;
   ipAddress: string;

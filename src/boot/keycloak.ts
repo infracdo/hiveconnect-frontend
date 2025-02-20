@@ -34,9 +34,17 @@ export default boot(({ app, router }) => {
           "Bearer " + keycloak.token;
 
         const realmRoles = keycloak.tokenParsed?.realm_access?.roles || [];
-        const resourceRoles =
-          (keycloak.tokenParsed?.resource_access["test-hiveconnect-frontend"]
-            .roles as string[]) || [];
+        let resourceRoles: string[] = [];
+        if (
+          keycloak.tokenParsed?.resource_access?.["test-hiveconnect-frontend"]
+        ) {
+          resourceRoles = keycloak.tokenParsed?.resource_access[
+            "test-hiveconnect-frontend"
+          ].roles as string[];
+        } else {
+          // logs out user if they dont have roles for the app client
+          keycloak.logout();
+        }
         app.config.globalProperties.$userRoles = realmRoles;
         app.config.globalProperties.$resourceRoles = resourceRoles;
 
