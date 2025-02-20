@@ -1,89 +1,106 @@
+@import "tailwindcss/base";
+@import "tailwindcss/components";
+@import "tailwindcss/utilities";
+
 // app global css in SCSS form
 
-.body--dark {
-  .my-sticky-last-column-table {
-    thead tr:last-child th:last-child {
-      background-color: #1D1D1D;
-    }
-
-    td:last-child {
-      background-color: #1D1D1D;
-      border-left: 1px solid rgba(255, 255, 255, 0.5);
-    }
-
-    th:last-child,
-    td:last-child {
-      border-left: 1px solid rgba(255, 255, 255, 0.5);
-    }
-
-    @media (min-width: 1200px) {
-      thead tr:last-child th:last-child,
-      td:last-child {
-        background-color: none;
-      }
-      th:last-child,
-      td:last-child {
-        border-left: none
-      }
-
-    }
-  }
+// Global font
+* {
+  font-family: "Inter", sans-serif;
 }
-.body--light {
-  .my-sticky-last-column-table {
 
-    th:last-child,
-    td:last-child {
-      background-color: white;
+// .body--dark {
+//   .my-sticky-last-column-table {
+//     thead tr:last-child th:last-child {
+//       background-color: #1D1D1D;
+//     }
 
-    }
-  }
+//     td:last-child {
+//       background-color: #1D1D1D;
+//       border-left: 1px solid rgba(255, 255, 255, 0.5);
+//     }
+
+//     th:last-child,
+//     td:last-child {
+//       border-left: 1px solid rgba(255, 255, 255, 0.5);
+//     }
+
+//     @media (min-width: 1200px) {
+//       thead tr:last-child th:last-child,
+//       td:last-child {
+//         background-color: none;
+//       }
+//       th:last-child,
+//       td:last-child {
+//         border-left: none
+//       }
+
+//     }
+//   }
+// }
+// .body--light {
+//   .my-sticky-last-column-table {
+
+//     th:last-child,
+//     td:last-child {
+//       background-color: white;
+
+//     }
+//   }
+// }
+// .my-sticky-last-column-table {
+//   thead tr:last-child th:last-child {
+//     background-color: white;
+//   }
+
+//   th:last-child,
+//   td:last-child {
+//     // background-color: white;
+//     border-left: 1.5px solid rgba(0, 0, 0, 0.5);
+//     position: sticky;
+//     right: 0;
+//     z-index: 1;
+//   }
+//   @media (min-width: 1200px) {
+//     th:last-child,
+//     td:last-child {
+//       border-left: none
+//     }
+
+//   }
+// }
+// .table-top-right {
+//   display: flex;
+//   flex-direction: column;
+//   gap: 0.5em;
+
+//   @media (min-width: 480px) {
+//     flex-direction: row;
+//     gap: 1em;
+//   }
+
+//   @media (min-width: 1200px) {
+//     .my-sticky-last-column-table {
+//       thead tr:last-child th:last-child,
+//       td:last-child {
+//         background-color: white;
+//       }
+
+//       th:last-child,
+//       td:last-child {
+//         border-left: none;
+//         position: relative;
+//         right: 0;
+//         z-index: 0;
+//       }
+//     }
+//   }
+// }
+
+// SCSS FOR RESKIN BELOW!!
+.swal-popup-custom {
+  z-index: 9999 !important; /* Ensure swal2 alert is on top */
 }
-.my-sticky-last-column-table {
-  thead tr:last-child th:last-child {
-    background-color: white;
-  }
-
-  th:last-child,
-  td:last-child {
-    // background-color: white;
-    border-left: 1.5px solid rgba(0, 0, 0, 0.5);
-    position: sticky;
-    right: 0;
-    z-index: 1;
-  }
-  @media (min-width: 1200px) {
-    th:last-child,
-    td:last-child {
-      border-left: none
-    }
-
-  }
-}
-.table-top-right {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5em;
-
-  @media (min-width: 480px) {
-    flex-direction: row;
-    gap: 1em;
-  }
-
-  @media (min-width: 1200px) {
-    .my-sticky-last-column-table {
-      thead tr:last-child th:last-child,
-      td:last-child {
-        background-color: white;
-      }
-
-      th:last-child,
-      td:last-child {
-        border-left: none;
-        position: relative;
-        right: 0;
-        z-index: 0;
-      }
-    }
-  }
+.swal2-backdrop-show {
+  z-index: 9998 !important; /* Ensure overlay is above footer */
 }

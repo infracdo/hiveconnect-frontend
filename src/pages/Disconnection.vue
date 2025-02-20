@@ -88,12 +88,12 @@
       </template>
     </q-table>
 
-    <troubleshoot-client
+    <!-- <troubleshoot-client
       :confirm="openTroubleShootModal"
       :close-modal="closeTroubleShootModal"
       :device-name="deviceName"
       :clientId="clientId"
-    ></troubleshoot-client>
+    ></troubleshoot-client> -->
   </q-page>
 </template>
 

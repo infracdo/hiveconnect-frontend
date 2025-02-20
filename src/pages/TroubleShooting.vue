@@ -1,107 +1,103 @@
 <template>
-  <q-page padding>
-    <q-ajax-bar color="secondary" position="bottom"></q-ajax-bar>
-    <div class="select">
-      <q-select
-        v-model="selectSubscriber"
-        :options="selectOptions"
-        label="Select Subscriber"
-        filled
-        class="select-subscriber"
-        emit-value
-        map-options
-        @update:model-value="fetchClientInfo($event)"
-      />
-      <q-select
-        v-model="selectTime"
-        :options="timeOptions"
-        label="Select Time"
-        filled
-        class="select-subscriber"
-        emit-value
-        map-options
-      />
-      <q-btn
-        icon="autorenew"
-        class="cursor-pointer q-mx-sm"
-        @click="fetchClientInfo(selectSubscriber)"
-        flat
-      />
-    </div>
-
-    <div class="my-cards">
-      <q-card>
-        <q-banner class="bg-primary text-white"> Client Details </q-banner>
-        <q-card-section>
-          <p>Client Name: {{ clientInfo.clientName }}</p>
-          <p>Account Number: {{ clientInfo.accountNumber }}</p>
-          <p>Package Type: {{ clientInfo.packageType }}</p>
-        </q-card-section>
-      </q-card>
-      <q-card>
-        <q-banner class="bg-primary text-white"> ONU Details </q-banner>
-        <q-card-section>
-          <p>
-            ONU Status:
-            <span
-              v-if="selectSubscriber !== ''"
-              :class="onuStatus === '1' ? 'up' : 'down'"
-            >
-              {{ onuStatus === "1" ? "Online" : "Offline" }}
-            </span>
-          </p>
-          <p>
-            ONU IP: <span>{{ onuInfo.instance }}</span>
-          </p>
-          <p>ONU Serial Number: {{ clientInfo.onuSerialNumber }}</p>
-          <p>ONU Mac Address: {{ clientInfo.onuMacAddress }}</p>
-          <p>
-            Upstream: {{ bandwidth.upStream }} Downstream:
-            {{ bandwidth.downStream }}
-          </p>
-        </q-card-section>
-      </q-card>
-      <q-card>
-        <q-banner class="bg-primary text-white"> OLT Details </q-banner>
-        <q-card-section>
-          <p>
-            OLT Status:
-            <span
-              v-if="selectSubscriber !== ''"
-              :class="oltStatus === '1' ? 'up' : 'down'"
-            >
-              {{ oltStatus === "1" ? "Online" : "Offline" }}
-            </span>
-          </p>
-          <p>
-            OLT IP: <span>{{ clientInfo.oltIp }}</span>
-          </p>
-          <p>OLT Site: {{ onuInfo.site_name }}</p>
-          <p>OLT Interface: {{ clientInfo.oltInterface }}</p>
-        </q-card-section>
-      </q-card>
-    </div>
-    <div class="grafana-main">
-      <div class="grafana">
-        <iframe
-          v-if="doneApiCalls"
-          :src="`${grafanaApi}/d-solo/d94d1e0e-a6e4-45c4-847f-6603e1c31ccb/subscribers-traffic-rate-and-uptime?orgId=1&from=now-${selectTime}&to=now&var-Subscriber=${selectSubscriber}&panelId=3`"
-          class="grafana-panel"
-          frameborder="0"
-        ></iframe>
-      </div>
-    </div>
-    <!-- <div class="grafana-main">
-      <div class="grafana" v-if="!doneApiCalls">
+  <q-page>
+    <div class="row q-pa-lg">
+      <div class="full-width q-gutter-y-lg">
+        <!-- Headings here -->
         <div>
-          <iframe
-            :src="`${grafanaApi}/d-solo/d94d1e0e-a6e4-45c4-847f-6603e1c31ccb/subscribers-traffic-rate-and-uptime?orgId=1&from=now-${selectTime}&to=now&var-Subscriber=${selectSubscriber}&panelId=3`"
-            class="grafana-panel"
-            frameborder="0"
-          ></iframe>
+          <!-- Page title here -->
+          <div class="text-xl font-semibold text-gray-iron-90 mb-2">
+            Troubleshoot
+          </div>
+
+          <!-- Page description here -->
+          <p class="text-sm font-regular text-gray-iron-500">
+            Displays subscriber details, including subscriber information,
+            <br />
+            ONU and OLT data, and a Grafana panel for real-time network
+            insights.
+          </p>
+        </div>
+
+        <!-- Select filter fields here -->
+        <div class="flex flex-row-reverse w-full">
+          <!-- Dropdown button here -->
+          <div class="flex flex-row q-gutter-x-md items-center">
+            <!-- Refresh button here -->
+            <q-icon flat name="autorenew" size="sm" />
+
+            <!-- Select time dropdown button here -->
+            <!-- <DropdownButton
+              @select="handleSelectTime"
+              :columnOptions="timeOptions"
+              label="Select Time"
+            /> -->
+
+            <DropdownButton
+              @select="handleSelectSubscriber"
+              :columnOptions="selectOptions"
+              label="Select Subscriber"
+            />
+          </div>
+        </div>
+
+        <!-- Content container here -->
+        <div class="full-width">
+          <!-- Client details card -->
+          <!-- TODO: check the 'packageType' variable since it seems that it hasn't been defined -->
+          <!-- <Card
+            header="Client Details"
+            :details="[
+              { label: 'Client Name', value: clientInfo.clientName },
+              { label: 'Account Number', value: clientInfo.accountNumber },
+              { label: 'Package Type', value: clientInfo.packageType },
+            ]"
+          /> -->
+
+          <!-- ONU details card -->
+          <Card
+            header="ONU Details"
+            :details="[
+              {
+                label: 'ONU Status',
+                value: onuStatus === '1' ? 'Online' : 'Offline',
+              },
+              { label: 'ONU IP', value: onuInfo.instance },
+              { label: 'ONU Serial Number', value: clientInfo.onuSerialNumber },
+              { label: 'ONU Mac Address', value: clientInfo.onuMacAddress },
+              { label: 'Upstream', value: bandwidth.upStream },
+              { label: 'Downstream', value: bandwidth.downStream },
+            ]"
+          />
+
+          <!-- OLT details card -->
+          <Card
+            header="OLT Details"
+            :details="[
+              {
+                label: 'OLT Status',
+                value: oltStatus === '1' ? 'Online' : 'Offline',
+              },
+              { label: 'OLT IP', value: clientInfo.oltIp },
+              { label: 'OLT Site', value: onuInfo.site_name },
+              { label: 'OLT Interface', value: clientInfo.oltInterface },
+            ]"
+          />
+
+          <!-- Grafana panel -->
+          <div class="grafana-main">
+            <div class="grafana">
+              <iframe
+                v-if="doneApiCalls"
+                :src="`${grafanaApi}/d-solo/d94d1e0e-a6e4-45c4-847f-6603e1c31ccb/subscribers-traffic-rate-and-uptime?orgId=1&from=now-${selectTime}&to=now&var-Subscriber=${selectSubscriber}&panelId=3`"
+                class="grafana-panel"
+                frameborder="0"
+              ></iframe>
+            </div>
+          </div>
         </div>
       </div>
-    </div> -->
+    </div>
+    -->
   </q-page>
 </template>
 
@@ -109,6 +105,10 @@
 import { ref, onMounted, reactive } from "vue";
 import axios from "axios";
 import { getHiveclients } from "src/api/HiveConnectApis/hiveConnect"; // Ensure this is correctly imported
+
+import DropdownButton from "src/components/DropdownButton.vue";
+import ListView from "src/components/ListView.vue";
+import Card from "src/components/Card.vue";
 
 const selectSubscriber = ref("");
 const selectOptions = ref<{ label: string; value: string }[]>([]);
@@ -244,6 +244,54 @@ const getInfoApiPrometheus = async (deviceName: string) => {
 onMounted(() => {
   fetchSubscribers();
 });
+
+// <------- TEST RESKIN -----------
+
+const handleSelectTime = (selectedTime: string[]) => {
+  console.log("Selected Time: ", selectedTime);
+};
+
+const handleSelectSubscriber = (selectedSubscriber: string[]) => {
+  console.log("Selected Subscriber: ", selectSubscriber);
+};
+
+const troubleshootHeaders = [
+  {
+    name: "clientName",
+    label: "Client Name",
+  },
+  {
+    name: "accountNumber",
+    label: "Account Number",
+  },
+  {
+    name: "packageType",
+    label: "Package Type",
+  },
+  {
+    name: "onuStatus",
+    label: "ONU Status",
+  },
+];
+
+const troubleshootItems = [
+  {
+    externalKey: 2,
+    clientName: "Test",
+    accountNumber: "123456789",
+    packageType: "PLAN999",
+    onuStatus: "Online",
+  },
+  {
+    externalKey: 2,
+    clientName: "Test",
+    accountNumber: "123456789",
+    packageType: "PLAN999",
+    onuStatus: "Online",
+  },
+];
+
+// ------------------------------- >
 </script>
 
 <style scoped>

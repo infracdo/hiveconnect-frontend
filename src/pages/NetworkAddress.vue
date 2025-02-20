@@ -1,93 +1,154 @@
 <template>
-  <q-page padding>
-    <q-table
-      title="Network Addresss"
-      :rows="rows"
-      :filter="filter"
-      row-key="name"
-      :columns="columns"
-      :loading="loading"
-      :pagination="{
-        rowsPerPage: 10,
-      }"
-      :dense="$q.screen.lt.md"
-    >
-      <template #body-cell-networkAddress="props">
-        <q-td :props="props" clickable>
-          <router-link
-            class="ip-link"
-            :to="`network-address/${props.row.networkAddress}`"
-          >
-            {{ props.row.networkAddress }}
-          </router-link>
-        </q-td>
-      </template>
-      <template #body-cell-actions="props">
-        <q-td :props="props" clickable icon="edit" />
-      </template>
+  <q-page>
+    <div class="row q-pa-lg">
+      <div class="full-width q-gutter-y-lg">
+        <!-- Headers here -->
+        <div>
+          <!-- Page title -->
+          <div class="text-xl font-semibold text-gray-iron-90 mb-2">
+            Network Address
+          </div>
 
-      <template #top-right>
-        <!-- <q-btn color="primary" label="Add New Network" @click="openModal" /> -->
-        <!-- <q-space /> -->
-        <q-input
-          v-model="filter"
-          filled
-          dense
-          label="Search"
-          debounce="300"
-          color="primary"
+          <!-- Page description -->
+          <p class="text-sm font-regular text-gray-iron-500">
+            There are {{ networkAddressCount }} network
+            {{ networkAddressCount < 2 ? "address" : "addresses" }}
+          </p>
+        </div>
+
+        <!-- Table controls here -->
+        <div class="flex flex-row justify-between w-full">
+          <!-- Search bar filter -->
+          <div class="flex flex-row q-gutter-x-sm">
+            <SearchBar
+              :modelValue="filter"
+              @update:searchValue="filter = $event"
+              :searchFunction="handleSearch"
+              hint="Search by network address"
+            />
+          </div>
+        </div>
+
+        <!-- Content container here -->
+        <div
+          class="border border-gray-iron-100 q-mt-md row full-width bg-white rounded-lg"
         >
-          <template #append>
-            <q-icon name="search" />
-          </template>
-        </q-input>
-      </template>
-    </q-table>
+          <!-- Table for network addresses -->
+          <div class="full-width">
+            <Table
+              :tableColumns="columns"
+              :tableRows="filteredRows"
+              :rowsPerPage="10"
+              :loading="rows.length > 0 ? false : true"
+              :callback="getNetworkAddressData"
+              @rowClick="openAddNewNetworkModal"
+            >
+              <!-- Actions column provision action button -->
+              <template #actions="{ row }">
+                <q-icon
+                  name="edit"
+                  size="sm"
+                  class="cursor-pointer text-gray-iron-900 font-normal hover:text-primary-1000"
+                  @click.stop="openAddNewNetworkModal(row.networkAddress)"
+                />
+              </template>
 
-    <add-new-network-modal :is-open="modalOpen" @close-modal="openModal" />
-    <q-page />
+              <!-- TABLE NOTES (REMINDER) -->
+              <!-- TODO:(1) In current hive, there is an edit button in the actions column -->
+              <!-- TODO:(2) In current hive, the network address should be clickable and navigate to the Network Address Detail page-->
+            </Table>
+
+            <!-- REVIEW: In current hive, it displays 'add new network modal' -->
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Add New Network Modal -->
+    <AddNewNetworkModal
+      :isVisible="modalAddNewNetwork"
+      @update:isVisible="modalAddNewNetwork = $event"
+    />
   </q-page>
 </template>
 
 <script setup lang="ts">
 import { RouterLink } from "vue-router";
 import { useNetworkStore } from "src/stores/network-address/network-address";
-import { QTableProps } from "quasar";
-import { ref, onMounted } from "vue";
+import { event, QTableProps } from "quasar";
+import { ref, watchEffect, computed } from "vue";
 
 import { getNetworkAddresses } from "src/api/HiveConnectApis/hiveConnect";
 import AddNewNetworkModal from "src/components/NetworkAddress/AddNewNetworkModal.vue";
 
+// RECENTLY ADDED //
+import { useRouter } from "vue-router";
+import SearchBar from "src/components/SearchBar.vue";
+import Table from "src/components/Table.vue";
+import { ipAddress } from "@vuelidate/validators";
+
+// Store search term/s from SearchBar
 const filter = ref("");
 const store = useNetworkStore();
+// const rows = ref<INetworkAddress[]>([]);
 const rows = ref([]);
-const columns: QTableProps["columns"] = store.$state.networkColumn;
+// RECENTLY UPDATED: returns an empty array if the data is undefined
+// Define table column from 'network-address' Pinia store
+const columns: QTableProps["columns"] = store.$state.networkColumn || [];
 const modalOpen = ref(false);
 const loading = ref<boolean>(false);
 
 const openModal = () => {
   modalOpen.value = !modalOpen.value;
 };
-onMounted(async () => {
-  loading.value = true;
-  try {
-    rows.value = await getNetworkAddresses();
-  } catch (error) {}
-  loading.value = false;
-});
-</script>
 
-<style scoped>
-.body--dark .ip-link {
-  color: white;
-}
-.ip-link {
-  cursor: pointer;
-  text-decoration: none;
-  color: black;
-}
-.ip-link:hover {
-  color: blue;
-  text-decoration: underline;
-}
-</style>
+watchEffect(async () => {
+  rows.value = await getNetworkAddresses();
+});
+
+// RECENTLY ADDED //
+
+const router = useRouter();
+const modalAddNewNetwork = ref(false);
+
+// Count total number of rows (network addresses) in the table to display in the page description
+const networkAddressCount = computed(() => rows.value.length);
+
+// Method triggered when entering in SearchBar
+const handleSearch = (event: KeyboardEvent) => {
+  filter.value = (event.target as HTMLInputElement).value;
+};
+
+// Display row/s based on search term
+const filteredRows = computed(() => {
+  if (!filter.value) return rows.value;
+
+  return rows.value.filter((row) =>
+    Object.values(row).some(
+      (value) =>
+        value &&
+        value.toString().toLowerCase().includes(filter.value.toLowerCase())
+    )
+  );
+});
+
+// Navigate to the Network Address details page
+const getNetworkAddressData = (
+  event: Event,
+  row: any,
+  index: number,
+  module: string
+) => {
+  console.log("Network Address table for details navigation clicked.");
+
+  router.push({
+    name: "network-address-details",
+    params: { ipAddress: row.networkAddress },
+    state: { networkAddressData: { ...row } },
+  });
+};
+
+const openAddNewNetworkModal = async (networkAddress: string) => {
+  modalAddNewNetwork.value = true;
+};
+</script>
