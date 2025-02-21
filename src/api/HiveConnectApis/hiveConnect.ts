@@ -54,7 +54,8 @@ export const getIpAddresses = async (
 ): Promise<IipAddressesOfCidrBlock[]> => {
   try {
     console.log(
-      "front end accessing backend hive api /getIpAddressesOfCidrBlock"
+      "front end accessing backend hive api /getIpAddressesOfCidrBlock/" +
+        ipAddress
     );
     const { data } = await api.get("/getIpAddressesOfCidrBlock/" + ipAddress);
 
