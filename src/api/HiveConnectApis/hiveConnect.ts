@@ -3,6 +3,7 @@ import { useDevicesStore } from "src/stores/rogue-device/rogue-devices";
 import { useNetworkStore } from "src/stores/network-address/network-address";
 import {
   IClient,
+  IHiveClient,
   IRogueDevices,
   IipAddressesOfCidrBlock,
   IOltSiteByIp,
@@ -103,7 +104,7 @@ export const getNetworkSiteOltIp = async (): Promise<IOltSiteByIp[]> => {
   }
 };
 
-export const getHiveClients = async (): Promise<IClient[]> => {
+export const getHiveClients = async (): Promise<IHiveClient[]> => {
   try {
     console.log(
       "front end accessing backend hive api /getprovisionedsubscribers"

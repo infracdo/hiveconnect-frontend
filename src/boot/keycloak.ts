@@ -36,8 +36,7 @@ export default boot(({ app, router }) => {
       if (authenticated) {
         app.config.globalProperties.$keycloak = keycloak;
         axios.defaults.headers.common["Authorization"] =
-          "Bearer " +
-          "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJmcm9udGVuZGFjY291bnQiLCJpYXQiOjE3NDAzNjEzNTJ9.hThKfp_JfzgHNUCnUWLRlWo4Hdkteh0_uQ39fcYYtPQ";
+          "Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJmcm9udGVuZGFjY291bnQiLCJpYXQiOjE3NDAzNjQxMzN9.1Zv_tbtL0RlWo4pLIQ2Kwhihe8wWwAefgzv06PmbIoo";
 
         const realmRoles = keycloak.tokenParsed?.realm_access?.roles || [];
         let resourceRoles: string[] = [];

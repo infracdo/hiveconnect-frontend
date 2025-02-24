@@ -1,0 +1,103 @@
+import { defineStore } from "pinia";
+import { QTableProps } from "quasar";
+export const useClientStore = defineStore("client", {
+  state: () => ({
+    clientDetail: {
+      subscriber_name: "",
+      serial_number: "",
+      acc_no: "",
+      package_type: "",
+      ssid: "",
+      password: "",
+      mode: "",
+      olt_ip: "",
+      olt_interface: "",
+    },
+    modalIsOpen: false,
+    subscribercolumns: [
+      {
+        name: "id",
+        label: "ID",
+        field: "id",
+        align: "left",
+        sortable: true,
+      },
+      {
+        name: "subscriberAccountNumber",
+        label: "Account No.",
+        field: "subscriberAccountNumber",
+        align: "left",
+        sortable: true,
+      },
+      {
+        name: "clientName",
+        label: "Subscriber Name",
+        field: "clientName",
+        align: "left",
+        sortable: true,
+      },
+      {
+        name: "packageType",
+        label: "Package Type ",
+        field: "packageType",
+        align: "left",
+        sortable: true,
+      },
+      {
+        name: "onuDeviceName",
+        label: "Device Name",
+        field: "onuDeviceName",
+        align: "left",
+        sortable: true,
+      },
+      {
+        name: "ipAssigned",
+        label: "IP Assigned",
+        field: "ipAssigned",
+        align: "left",
+        sortable: true,
+      },
+      {
+        name: "onuSerialNumber",
+        label: "ONU Serial Number",
+        field: "onuSerialNumber",
+        align: "left",
+        sortable: true,
+      },
+      {
+        name: "onuMacAddress",
+        label: "ONU Mac Address",
+        field: "onuMacAddress",
+        align: "left",
+        sortable: true,
+      },
+      {
+        name: "oltIp",
+        label: "OLT IP",
+        field: "oltIp",
+        align: "left",
+        sortable: true,
+      },
+      {
+        name: "status",
+        label: "STATUS",
+        field: "status",
+        align: "left",
+        sortable: true,
+      },
+      {
+        name: "ssidName",
+        label: "SSID",
+        field: "ssidName",
+        align: "left",
+        sortable: true,
+      },
+      {
+        name: "actions",
+        label: "Actions",
+        field: "",
+        align: "center",
+      },
+    ] as QTableProps["columns"],
+  }),
+});
