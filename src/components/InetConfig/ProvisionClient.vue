@@ -78,12 +78,12 @@
             >
               <div class="flex flex-col gap-1">
                 <p class="font-semibold text-gray-iron-900">SSID</p>
-                <p class="text-gray-iron-900">SSID-test</p>
+                <p class="text-gray-iron-900">{{ props.ssid.name }}</p>
               </div>
 
               <div class="flex flex-col gap-1">
                 <p class="font-semibold">Password</p>
-                <p class="text-gray-iron-900">password-test</p>
+                <p class="text-gray-iron-900">{{ props.ssid.pw }}</p>
               </div>
             </div>
           </div>
