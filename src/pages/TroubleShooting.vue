@@ -105,10 +105,11 @@
 import { ref, onMounted, reactive } from "vue";
 import axios from "axios";
 import { getHiveclients } from "src/api/HiveConnectApis/hiveConnect"; // Ensure this is correctly imported
-
+import { keycloak } from "src/boot/keycloak";
 import DropdownButton from "src/components/DropdownButton.vue";
 import ListView from "src/components/ListView.vue";
 import Card from "src/components/Card.vue";
+import logUserAction from "src/util/logservice";
 
 const selectSubscriber = ref("");
 const selectOptions = ref<{ label: string; value: string }[]>([]);
@@ -253,6 +254,11 @@ const handleSelectTime = (selectedTime: string[]) => {
 
 const handleSelectSubscriber = (selectedSubscriber: string[]) => {
   console.log("Selected Subscriber: ", selectSubscriber);
+  console.log(
+    `user ${
+      keycloak.tokenParsed.given_name
+    } has accessed the subscriber details of ${selectedSubscriber.toString()}`
+  );
 };
 
 const troubleshootHeaders = [
