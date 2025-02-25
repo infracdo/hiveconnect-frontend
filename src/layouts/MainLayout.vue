@@ -2,8 +2,8 @@
   <q-layout view="lhh lpR lFf" class="bg-hiveconnect-slate pr-4">
     <q-drawer
       show-if-above
-      v-model="leftDrawerOpen"
-      :mini="!leftDrawerOpen || miniState"
+      v-model="drawer"
+      :mini="!drawer || miniState"
       @click.capture="drawerClick"
       :width="289"
       :breakpoint="500"
@@ -16,11 +16,40 @@
         <DrawerHeader />
         <q-separator inset />
         <q-list padding dense>
-          <EssentialLink
+          <DrawerTile
+            title="Provision"
+            icon="bi-person-fill-gear"
+            to="inetconfig"
+          />
+
+          <DrawerExpansionTile title="Subscribers" icon="bi-people-fill">
+            <DrawerTileChild title="Provisioned Subscribers" to="provisioned" />
+            <DrawerTileChild title="Migration Subscribers" to="migration" />
+          </DrawerExpansionTile>
+
+          <DrawerTile
+            title="Rogue Devices"
+            icon="bi-router-fill"
+            to="roguedevices"
+          />
+
+          <DrawerTile
+            title="Network Address"
+            icon="bi-hdd-network-fill"
+            to="network-address"
+          />
+
+          <DrawerTile
+            title="Troubleshoot"
+            icon="bi-wrench"
+            to="troubleshooting"
+          />
+
+          <!-- <EssentialLink
             v-for="link in filteredLinksList"
             :key="link.title"
             v-bind="link"
-          />
+          /> -->
 
           <div class="flex-grow"></div>
           <DrawerFooter />
@@ -47,11 +76,18 @@ import EssentialLink, {
 } from "components/EssentialLink.vue";
 import DrawerHeader from "src/components/DrawerHeader.vue";
 import DrawerFooter from "src/components/DrawerFooter.vue";
-import router from "src/router";
+import DrawerTile from "src/components/DrawerTile.vue";
+import DrawerTileChild from "src/components/DrawerTileChild.vue";
+import DrawerExpansionTile from "src/components/DrawerExpansionTile.vue";
+import { useRouter } from "vue-router";
 
 const $q = useQuasar();
+const isDarkMode = ref(true);
+const miniState = ref(false);
+const drawer = ref(false);
+const router = useRouter();
+const activeLink = ref<string>("");
 
-const leftDrawerOpen = ref(false);
 const drawerClick = () => {
   if (miniState.value) {
     miniState.value = false;
@@ -70,6 +106,12 @@ const essentialLinks = [
     icon: "bi-person-fill-check",
     link: "/provisioned",
     roles: ["HIVECONNECT_PROVISIONED_VIEW"],
+  },
+  {
+    title: "Migration Subscribers",
+    icon: "bi-people-fill",
+    link: "/migration",
+    roles: ["HIVECONNECT_ROGUE_DEVICES_VIEW"],
   },
   {
     title: "Rogue Devices",
@@ -91,6 +133,11 @@ const essentialLinks = [
   },
 ];
 
+const navigate = (link: string) => {
+  activeLink.value = link;
+  router.push(`/${link}`);
+};
+
 // const isDarkMode = ref(true);
 
 // watch(
@@ -102,9 +149,7 @@ const essentialLinks = [
 //       $q.dark.toggle();
 //     }
 //   }
-// );
-const isDarkMode = ref(true);
-const miniState = ref(false);
+// )
 
 const filteredLinksList = essentialLinks.filter((link) => {
   const resourceRoles =

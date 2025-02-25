@@ -79,10 +79,7 @@
             </div>
           </div>
 
-          <div
-            class="mb-6"
-            style="display: flex; flex-direction: row; gap: 8.5em"
-          >
+          <div class="flex flex-row justify-between mb-6">
             <div class="flex flex-col">
               <p class="text-xs text-gray-iron-500">SITE</p>
               <p class="text-sm text-gray-iron-900 leading-5">

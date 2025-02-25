@@ -48,7 +48,7 @@
             class="ml-2"
             color="bg-primary-600"
             textColor="text-white"
-            :label="buttonLabel"
+            :label="submitButton"
             type="submit"
             button="modal"
           />
@@ -71,7 +71,7 @@ const props = withDefaults(
     actionHandler: () => void;
     width?: string;
     height?: string;
-    showSaveButton?: boolean;
+    submitButton: string;
   }>(),
   {
     subAction: "add",
@@ -82,9 +82,9 @@ const props = withDefaults(
 // Tracks state of modal if visible or not
 const localIsVisible = ref(props.isVisible);
 // Define a computed property to change the button label based on the state of showSaveButton prop
-const buttonLabel = computed(() =>
-  props.showSaveButton ? "Save" : "Activate"
-);
+// const buttonLabel = computed(() =>
+//   props.showSaveButton ? "Save" : "Activate"
+// );
 
 const emit = defineEmits<{
   (event: "update:isVisible", value: boolean): void;

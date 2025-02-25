@@ -15,9 +15,11 @@ const keycloak = new Keycloak({
   clientId: "test-hiveconnect-frontend",
 });
 
-console.log("KeycloakURL", process.env.VUE_APP_KEYCLOAK_URL);
-console.log("KeycloakRealm", process.env.VUE_APP_KEYCLOAK_REALM);
-console.log("KeycloakClientId", process.env.VUE_APP_KEYCLOAK_CLIENT_ID);
+const JWT_TOKEN = import.meta.env.VITE_PROVISION_BEARER_TOKEN;
+
+// console.log("KeycloakURL", process.env.VUE_APP_KEYCLOAK_URL);
+// console.log("KeycloakRealm", process.env.VUE_APP_KEYCLOAK_REALM);
+// console.log("KeycloakClientId", process.env.VUE_APP_KEYCLOAK_CLIENT_ID);
 
 export default boot(({ app, router }) => {
   let isKeycloakInitialized = false;
@@ -35,8 +37,7 @@ export default boot(({ app, router }) => {
     .then((authenticated) => {
       if (authenticated) {
         app.config.globalProperties.$keycloak = keycloak;
-        axios.defaults.headers.common["Authorization"] =
-          "Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJmcm9udGVuZGFjY291bnQiLCJpYXQiOjE3NDAzNjQxMzN9.1Zv_tbtL0RlWo4pLIQ2Kwhihe8wWwAefgzv06PmbIoo";
+        axios.defaults.headers.common["Authorization"] = "Bearer " + JWT_TOKEN;
 
         const realmRoles = keycloak.tokenParsed?.realm_access?.roles || [];
         let resourceRoles: string[] = [];

@@ -22,18 +22,28 @@
         <div class="flex flex-row-reverse w-full">
           <!-- Dropdown button here -->
           <div class="flex flex-row q-gutter-x-md items-center">
-            <!-- Refresh button here -->
-            <q-icon flat name="autorenew" size="sm" />
+            <!-- Refresh button -->
+            <q-icon
+              @click="fetchClientInfo(selectSubscriber)"
+              flat
+              name="autorenew"
+              size="sm"
+              class="cursor-pointer"
+            />
 
-            <!-- Select time dropdown button here -->
-            <!-- <DropdownButton
+            <!-- Select time dropdown button -->
+            <DropdownButton
+              v-model="selectTime"
               @select="handleSelectTime"
               :columnOptions="timeOptions"
               label="Select Time"
-            /> -->
+            />
 
+            <!-- Select subscriber dropdown button -->
             <DropdownButton
+              v-model="selectSubscriber"
               @select="handleSelectSubscriber"
+              @update:model-value="fetchClientInfo($event)"
               :columnOptions="selectOptions"
               label="Select Subscriber"
             />
@@ -43,15 +53,14 @@
         <!-- Content container here -->
         <div class="full-width">
           <!-- Client details card -->
-          <!-- TODO: check the 'packageType' variable since it seems that it hasn't been defined -->
-          <!-- <Card
+          <Card
             header="Client Details"
             :details="[
               { label: 'Client Name', value: clientInfo.clientName },
               { label: 'Account Number', value: clientInfo.accountNumber },
               { label: 'Package Type', value: clientInfo.packageType },
             ]"
-          /> -->
+          />
 
           <!-- ONU details card -->
           <Card
@@ -59,7 +68,11 @@
             :details="[
               {
                 label: 'ONU Status',
-                value: onuStatus === '1' ? 'Online' : 'Offline',
+                value: selectSubscriber
+                  ? onuStatus === '1'
+                    ? 'Online'
+                    : 'Offline'
+                  : '',
               },
               { label: 'ONU IP', value: onuInfo.instance },
               { label: 'ONU Serial Number', value: clientInfo.onuSerialNumber },
@@ -75,7 +88,11 @@
             :details="[
               {
                 label: 'OLT Status',
-                value: oltStatus === '1' ? 'Online' : 'Offline',
+                value: selectSubscriber
+                  ? oltStatus === '1'
+                    ? 'Online'
+                    : 'Offline'
+                  : '',
               },
               { label: 'OLT IP', value: clientInfo.oltIp },
               { label: 'OLT Site', value: onuInfo.site_name },
@@ -91,13 +108,13 @@
                 :src="`${grafanaApi}/d-solo/d94d1e0e-a6e4-45c4-847f-6603e1c31ccb/subscribers-traffic-rate-and-uptime?orgId=1&from=now-${selectTime}&to=now&var-Subscriber=${selectSubscriber}&panelId=3`"
                 class="grafana-panel"
                 frameborder="0"
-              ></iframe>
+              >
+              </iframe>
             </div>
           </div>
         </div>
       </div>
     </div>
-    -->
   </q-page>
 </template>
 
@@ -105,9 +122,7 @@
 import { ref, onMounted, reactive } from "vue";
 import axios from "axios";
 import { getHiveclients } from "src/api/HiveConnectApis/hiveConnect"; // Ensure this is correctly imported
-import { keycloak } from "src/boot/keycloak";
 import DropdownButton from "src/components/DropdownButton.vue";
-import ListView from "src/components/ListView.vue";
 import Card from "src/components/Card.vue";
 import logUserAction from "src/util/logservice";
 
@@ -120,12 +135,12 @@ const onuInfo = ref({
   instance: "",
   site_name: "",
 });
-const onuStatus = ref("");
-const oltStatus = ref("");
+const onuStatus = ref<string | null>(null);
+const oltStatus = ref<string | null>(null);
 const prometheusApi = process.env.PROVISION_API_PROMETHEUS;
 const grafanaApi = process.env.PROVISION_API_GRAFANA;
 const timeOptions = [
-  { label: "No Evaluation Time", value: null },
+  { label: "No Evaluation Time", value: "" },
   { label: "Last 5 minutes", value: "5m" },
   { label: "Last 15 minutes", value: "15m" },
   { label: "Last 30 minutes", value: "30m" },
@@ -146,6 +161,7 @@ const clientInfo = reactive({
   onuMacAddress: "",
   oltSite: "",
   oltInterface: "",
+  packageType: "",
 });
 
 const bandwidth = reactive({
@@ -246,13 +262,13 @@ onMounted(() => {
   fetchSubscribers();
 });
 
-// <------- TEST RESKIN -----------
-
-const handleSelectTime = (selectedTime: string[]) => {
-  console.log("Selected Time: ", selectedTime);
+const handleSelectTime = (selectedTime: string) => {
+  selectTime.value = selectedTime;
 };
 
-const handleSelectSubscriber = (selectedSubscriber: string[]) => {
+const handleSelectSubscriber = (selectedSubscriber: string) => {
+  selectSubscriber.value = selectedSubscriber;
+  fetchClientInfo(selectedSubscriber);
   console.log("Selected Subscriber: ", selectSubscriber);
   console.log(
     `user ${

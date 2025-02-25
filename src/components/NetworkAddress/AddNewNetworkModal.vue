@@ -30,50 +30,54 @@
 
           <q-card-section class="mt-4 p-0" style="z-index: 1">
             <div class="mb-4" style="display: flex; gap: 16px">
-              <q-input
+              <!-- Network address input field -->
+              <Inputs
+                :input-style="{ 'text-transform': 'uppercase' }"
                 v-model="addNewNetwork.networkAddress"
-                outlined
                 label="Network Addresss"
-              />
-              <q-field outlined label="Network Type" stack-label class="">
-                <template #control>
-                  <div class="q-gutter-md q-mt-xs">
-                    <q-radio
-                      v-model.trim="addNewNetwork.networkType"
-                      dense
-                      val="Enterprise"
-                      label="Enterprise"
-                    />
-                    <q-radio
-                      v-model.trim="addNewNetwork.networkType"
-                      dense
-                      val="Residential"
-                      label="Residential"
-                    />
-                  </div>
-                </template>
-              </q-field>
-              <q-input
-                v-if="addNewNetwork.networkType === 'Enterprise'"
-                v-model="addNewNetwork.accountNumber"
-                outlined
-                label="Account Number"
+                required
               />
 
-              <q-input
+              <!-- Network type radiobutton field -->
+              <RadioButton
+                v-model="addNewNetwork.networkType"
+                label="Network Type"
+                :options="networkTypeOptions"
+                required
+              />
+
+              <!-- Account number input field (only shown if 'Enterprise' is selected in radiobutton) -->
+              <Inputs
+                v-if="addNewNetwork.networkType === 'Enterprise'"
+                :input-style="{ 'text-transform': 'uppercase' }"
+                v-model="addNewNetwork.accountNumber"
+                label="Account Number"
+                required
+              />
+            </div>
+
+            <div class="mb-4" style="display: flex; gap: 16px">
+              <Inputs
+                :input-style="{ 'text-transform': 'uppercase' }"
                 v-model="addNewNetwork.vlanId"
-                outlined
                 label="VLAN ID"
+                required
               />
-              <q-input
+              <Inputs
+                :input-style="{ 'text-transform': 'uppercase' }"
                 v-model="addNewNetwork.networkName"
-                outlined
                 label="Site"
+                required
               />
-              <q-input
+            </div>
+
+            <div class="mb-4" style="display: flex; gap: 16px">
+              <Inputs
+                :input-style="{ 'text-transform': 'uppercase' }"
                 v-model="addNewNetwork.location"
-                outlined
                 label="Notes"
+                required
+                class="w-full"
               />
             </div>
           </q-card-section>
@@ -110,6 +114,7 @@
 import { reactive, ref, watch } from "vue";
 import Buttons from "../inputs/Buttons.vue";
 import Inputs from "../inputs/Inputs.vue";
+import RadioButton from "../RadioButton.vue";
 
 const props = defineProps<{
   isVisible: boolean;
@@ -124,7 +129,21 @@ const addNewNetwork = reactive({
   location: "",
 });
 
+const networkTypeOptions = [
+  { value: "Enterprise", label: "Enterprise" },
+  { value: "Residential", label: "Residential" },
+];
+
 const localIsVisible = ref(props.isVisible);
+
+// Define inputValue
+const inputValue = ref("");
+// Method to remove leading whitespace in inputs during typing
+const noLeadingWhitespace = (event: Event) => {
+  const input = event.target as HTMLInputElement;
+  input.value = input.value.replace(/^\s+/, "");
+  inputValue.value = input.value;
+};
 
 const emit = defineEmits<{
   (event: "update:isVisible", value: boolean): void;
