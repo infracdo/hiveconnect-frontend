@@ -89,14 +89,13 @@
 
 <script setup lang="ts">
 import { onMounted, ref, computed } from "vue";
+import Swal from "sweetalert2";
 import { getHiveClients } from "src/api/HiveConnectApis/hiveConnect";
 import { useSubscriberStore } from "src/stores/subscriber/subscriber-store";
 import { useClientStore } from "src/stores/subscriber/client-store";
-import { IHiveClient } from "src/api/HiveConnectApis/types";
+import { IClient } from "src/api/HiveConnectApis/types";
+import { searchRows } from "src/util/search";
 import TroubleshootClient from "src/components/InetConfig/TroubleshootClient.vue";
-
-// Recently added
-import Swal from "sweetalert2";
 import SearchBar from "src/components/SearchBar.vue";
 import DropdownButton from "src/components/DropdownButton.vue";
 import Table from "src/components/Table.vue";
@@ -106,13 +105,13 @@ import Selects from "src/components/inputs/Selects.vue";
 import Inputs from "src/components/inputs/Inputs.vue";
 
 const store = useClientStore();
-// Recently updated: null array is passed if the data is undefined
 const columns = store.$state.subscribercolumns || [];
-const rowsHive = ref<IHiveClient[]>([]);
+const rowsHive = ref<IClient[]>([]);
 const deviceName = ref("");
 const clientId = ref(0);
 const openTroubleShootModal = ref(false);
 const filter = ref("");
+const loading = ref(false);
 // const visibleColumns = ref([
 //   "subscriberAccountNumber",
 //   "subscriberName",
@@ -125,7 +124,6 @@ const filter = ref("");
 //   "actions",
 // ]);
 
-const loading = ref(false);
 const openTroubleshootModal = (onuDeviceName: string, id: number) => {
   deviceName.value = onuDeviceName;
   console.log(typeof id, " id value is ", id);
@@ -151,38 +149,15 @@ const getProvisioned = async (): Promise<void> => {
   loading.value = false;
 };
 
-// ============================================================================
-
-// RECENTLY ADDED!!!
+// Filter rows based on search term
+const filteredRows = computed(() => {
+  return searchRows(rowsHive.value, filter.value);
+});
 
 // Function to update the filter value when the user enters something in the SearchBar
 const handleSearch = (event: KeyboardEvent) => {
   filter.value = (event.target as HTMLInputElement).value;
 };
-
-// Filter rows based on search term
-const filteredRows = computed(() => {
-  if (!filter.value) return rowsHive.value;
-
-  const searchTerm = filter.value.toLowerCase();
-  return rowsHive.value.filter((row) => {
-    return (
-      row.id.toString().toLowerCase().includes(searchTerm) ||
-      row.subscriberAccountNumber
-        .toString()
-        .toLowerCase()
-        .includes(searchTerm) ||
-      row.clientName.toString().toLowerCase().includes(searchTerm) ||
-      row.packageType.toString().toLowerCase().includes(searchTerm) ||
-      row.onuDeviceName.toString().toLowerCase().includes(searchTerm) ||
-      row.ipAssigned.toString().toLowerCase().includes(searchTerm) ||
-      row.onuSerialNumber.toString().toLowerCase().includes(searchTerm) ||
-      row.onuMacAddress.toString().toLowerCase().includes(searchTerm) ||
-      row.oltIp.toString().toLowerCase().includes(searchTerm) ||
-      row.status.toString().toLowerCase().includes(searchTerm)
-    );
-  });
-});
 
 // Initialize modal display to false
 const modalIsVisible = ref(false);

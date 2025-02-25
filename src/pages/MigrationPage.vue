@@ -158,7 +158,6 @@ import DropdownButton from "src/components/DropdownButton.vue";
 import Table from "src/components/Table.vue";
 import Modal from "src/components/Modal.vue";
 import Inputs from "src/components/inputs/Inputs.vue";
-import Selects from "src/components/inputs/Selects.vue";
 import { searchRows } from "src/util/search";
 
 const store = useMigrationSubscriberStore();
@@ -194,9 +193,6 @@ const statusOptions = ref([
   { label: "Onhold", value: "ONHOLD" },
   { label: "Active", value: "ACTIVE" },
 ]);
-
-// Define select status options as object
-const status = ref([{ label: "Migrated", value: "Migrated" }]);
 
 // Count total number of rows (clients) to display it in the description
 const clientCount = computed(() => rows.value.length);
@@ -287,11 +283,12 @@ const handleUpdateForMigrationSubscriber = async () => {
       if (response.status == 200) {
         Swal.fire({
           title: "Success",
-          text: "Subscriber status updated successfully.",
+          text: "Subscriber migrated successfully.",
           icon: "success",
           confirmButtonColor: "#1d6499",
           allowOutsideClick: false,
         }).then(() => {
+          refreshTable();
           closeModal();
         });
       } else {

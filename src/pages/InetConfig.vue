@@ -153,6 +153,8 @@
           v-model="selectedLocation"
           label="Select Location"
           :options="locations"
+          optionLabel="label"
+          optionValue="value"
           required
           class="w-full"
         />
@@ -209,6 +211,7 @@
 <script setup lang="ts">
 import { QTableProps, useQuasar } from "quasar";
 import { ref, watchEffect, watch, onMounted, computed, reactive } from "vue";
+import Swal from "sweetalert2";
 import { useSubscriberStore } from "src/stores/subscriber/subscriber-store";
 import {
   getClients,
@@ -226,11 +229,8 @@ import {
   GroupedNetworkSite,
   IOlt,
 } from "src/api/HiveConnectApis/types";
-
+import { searchRows } from "src/util/search";
 import { IserialAndMac, IsubsriberType } from "src/components/models";
-
-// Recently added
-import Swal from "sweetalert2";
 import SearchBar from "src/components/SearchBar.vue";
 import DropdownButton from "src/components/DropdownButton.vue";
 import Table from "src/components/Table.vue";
@@ -241,79 +241,44 @@ import ProvisionClient from "src/components/InetConfig/ProvisionClient.vue";
 
 const $q = useQuasar();
 const store = useSubscriberStore();
-const dataId = ref<string>();
-
-const ssid = reactive({
-  name: "",
-  pw: "",
-});
-
-const showProvisionResult = ref(false);
-const showSkeletonDancing = ref(false);
-
-const responses = reactive({
-  autoConfig: "",
-  monitoring: "",
-  provisionCheck: "",
-});
-
-const responseStatus = reactive({
-  autoConfig: false,
-  monitoring: false,
-  provisionCheck: false,
-});
-
-const result = ref("");
-
-// Define table rows
-const rows = ref<IClient[]>([]);
-
-// Defind to be displayed columns
-const visibleColumns = ref([
-  "newSubscriberId",
-  "subscriberAccountNumber",
-  "subscriberName",
-  "packageType",
-  "actions",
-]);
-
-// Options for selecting visible columns
-const columnOptions = ref([
-  { value: "newSubscriberId", label: "Subscriber ID" },
-  { value: "subscriberAccountNumber", label: "Account Number" },
-  { value: "subscriberName", label: "Subscriber Name" },
-  { value: "packageType", label: "Package Type" },
-]);
-
-// Store search terms inputted in SearchBar
-const filter = ref("");
-// Filter rows based on search term
-const filteredRows = computed(() => {
-  if (!filter.value) return rows.value;
-
-  const searchTerm = filter.value.toLowerCase();
-  return rows.value.filter((row) => {
-    return (
-      row.newSubscriberId.toString().toLowerCase().includes(searchTerm) ||
-      row.subscriberAccountNumber.toLowerCase().includes(searchTerm) ||
-      row.subscriberName.toLowerCase().includes(searchTerm) ||
-      row.packageType.toLowerCase().includes(searchTerm)
-    );
-  });
-});
-
-// For table columns (define table columns)
 const columns: QTableProps["columns"] = store.$state.subscribercolumns?.length
   ? store.$state.subscribercolumns
-  : []; // define all the visible columns in Provision
-
-// Initialize modal visibility to false (modal is hidden initally)
+  : [];
+const rows = ref<IClient[]>([]);
+const dataId = ref<string>();
+const filter = ref("");
+const result = ref("");
 const modalOpen = ref(false);
-
+const inputValue = ref("");
 const deviceName = ref("");
 const clientId = ref(0);
 const loading = ref(false);
+const modalProvisionChecking = ref(false);
 let serialAndMac: IserialAndMac[] = [];
+const selectedOnuSerialNumber = ref("");
+const onuMacAddress = ref("");
+const optionsOltIp = ref<IOlt[]>([]);
+const filteredOptions = ref<IOlt[]>([]);
+const selectedNetworkSiteValue = ref<number>(0);
+const networkSites = ref<IOltSite[]>([]);
+const selectedNetworkSite = ref<IOltSite | null>(null);
+const filteredNetworkSites = ref<IOltSite[]>([]); // List of sites filtered by selected location
+const selectedOltIp = ref(null);
+const networkSiteOltIp = ref<IOltSiteByIp[]>([]);
+const selectedLocation = ref("");
+const showProvisionResult = ref(false);
+const showSkeletonDancing = ref(false);
+
+interface IOltSite {
+  oltNetworksite: string;
+  oltIps: {
+    id: number;
+    oltIp: string;
+    oltName: string;
+    newOltId: number;
+  }[];
+}
+
 const client = ref<IsubsriberType>({
   newSubscriberId: 0,
   bucketId: 0, //added
@@ -330,6 +295,118 @@ const client = ref<IsubsriberType>({
   oltReportedUpstream: 0,
   oltReportedDownstream: 0,
 });
+
+const NewClient = reactive({
+  bucketId: "",
+  clientId: "",
+  accountNumber: "",
+  packageType: "",
+  oltReportedUpstream: 0,
+  oltReportedDownstream: 0,
+  serialAndMac: {
+    serialNum: "",
+    macAddress: "",
+  },
+  oltIp: "",
+  newOltId: 0,
+  clientName: "",
+});
+
+const ssid = reactive({
+  name: "",
+  pw: "",
+});
+
+const responses = reactive({
+  autoConfig: "",
+  monitoring: "",
+  provisionCheck: "",
+});
+
+const responseStatus = reactive({
+  autoConfig: false,
+  monitoring: false,
+  provisionCheck: false,
+});
+
+// Define to be displayed columns
+const visibleColumns = ref([
+  "newSubscriberId",
+  "subscriberAccountNumber",
+  "subscriberName",
+  "packageType",
+  "actions",
+]);
+
+// Options for selecting visible columns
+const columnOptions = ref([
+  { value: "newSubscriberId", label: "Subscriber ID" },
+  { value: "subscriberAccountNumber", label: "Account Number" },
+  { value: "subscriberName", label: "Subscriber Name" },
+  { value: "packageType", label: "Package Type" },
+]);
+
+// Define values that is equivalent to the database data for mapping
+// NOTE: add objects in case there are new stored data in database for 'olt_network_site' column
+// NOTE: remove this if a 'location' values can now be retrieved from the database
+const getFullLocationName = (key: string): string => {
+  const mapping: { [key: string]: string } = {
+    MBY: "MALAYBALAY",
+    CDO: "CDO",
+    DVO: "DAVAO",
+    BTN: "BUTUAN",
+  };
+  return mapping[key] || key;
+};
+
+// Define select location options as object
+const locations = ref([
+  { label: "UAT", value: "UAT" },
+  { label: "CDO", value: "CDO" },
+  { label: "MALAYBALAY", value: "MBY" },
+  { label: "DAVAO", value: "DAVAO" },
+  { label: "BUTUAN", value: "BUTUAN" },
+  { label: "DIGOS", value: "DIGOS" },
+  { label: "GENSAN", value: "GENSAN" },
+  { label: "TAGUM", value: "TAGUM" },
+  { label: "CEBU", value: "CEBU" },
+  { label: "KORONADAL", value: "KORONADAL" },
+  { label: "SANTIAGO", value: "SANTIAGO" },
+  { label: "SANTO TOMAS", value: "SANTO TOMAS" },
+  { label: "VALENCIA", value: "VALENCIA" },
+  { label: "PAGADIAN", value: "PAGADIAN" },
+  { label: "ILIGAN", value: "ILIGAN" },
+  { label: "PANABO", value: "PANABO" },
+  { label: "SAN FRANZ", value: "SAN FRANZ" },
+  { label: "BISLIG", value: "BISLIG" },
+  { label: "TANDAG", value: "TANDAG" },
+  { label: "TACLOBAN", value: "TACLOBAN" },
+]);
+
+// Count total number of rows (clients) to display it in the description
+const clientCount = computed(() => rows.value.length);
+
+// Method to remove leading whitespace in inputs during typing
+const noLeadingWhitespace = (event: Event) => {
+  const input = event.target as HTMLInputElement;
+  input.value = input.value.replace(/^\s+/, "");
+  inputValue.value = input.value;
+};
+
+// Filter rows based on search term
+const filteredRows = computed(() => {
+  return searchRows(rows.value, filter.value);
+});
+
+// Function to update the filter value when the user types in the SearchBar
+const handleSearch = (event: KeyboardEvent) => {
+  filter.value = (event.target as HTMLInputElement).value;
+};
+
+const handleColumnSelect = (selectedOptions: string[]) => {
+  visibleColumns.value = selectedOptions;
+  localStorage.setItem("visibleColumns", JSON.stringify(selectedOptions));
+};
 
 const openModal = async (newSubscriberId: number) => {
   // $q.loading.show();
@@ -363,20 +440,6 @@ const refreshTable = async () => {
     loading.value = false;
   }
 };
-const getAllClients = async () => {
-  try {
-    await refreshTable();
-  } catch (error) {
-    throw new Error("Cannot get Clients info.");
-  }
-};
-onMounted(getAllClients);
-
-// RECENTLY ADDED!!
-
-//* Initialization of variables *//
-
-const modalProvisionChecking = ref(false);
 
 // const openProvisionModal = async (event: any) => {
 //   // $q.loading.show();
@@ -385,64 +448,48 @@ const modalProvisionChecking = ref(false);
 //   // $q.loading.hide();
 // };
 
-interface IOltSite {
-  oltNetworksite: string;
-  oltIps: {
-    id: number;
-    oltIp: string;
-    oltName: string;
-    newOltId: number;
-  }[];
-}
-
-// Count total number of rows (clients) to display it in the description
-const clientCount = computed(() => rows.value.length);
-
-const selectedOnuSerialNumber = ref("");
-const onuMacAddress = ref("");
-
-const optionsOltIp = ref<IOlt[]>([]);
-const filteredOptions = ref<IOlt[]>([]);
-
-const selectedNetworkSiteValue = ref<number>(0);
-const networkSites = ref<IOltSite[]>([]);
-const selectedNetworkSite = ref<IOltSite | null>(null);
-const filteredNetworkSites = ref<IOltSite[]>([]); // List of sites filtered by selected location
-
-const selectedOltIp = ref(null);
-const networkSiteOltIp = ref<IOltSiteByIp[]>([]);
-
-const selectedLocation = ref("");
-// Define select location options as object
-const locations = ref([
-  { label: "UAT", value: "UAT" },
-  { label: "CDO", value: "CDO" },
-  { label: "MALAYBALAY", value: "MALAYBALAY" },
-  { label: "DAVAO", value: "DAVAO" },
-  { label: "BUTUAN", value: "BUTUAN" },
-  { label: "DIGOS", value: "DIGOS" },
-  { label: "GENSAN", value: "GENSAN" },
-  { label: "TAGUM", value: "TAGUM" },
-  { label: "CEBU", value: "CEBU" },
-  { label: "KORONADAL", value: "KORONADAL" },
-  { label: "SANTIAGO", value: "SANTIAGO" },
-  { label: "SANTO TOMAS", value: "SANTO TOMAS" },
-  { label: "VALENCIA", value: "VALENCIA" },
-  { label: "PAGADIAN", value: "PAGADIAN" },
-  { label: "ILIGAN", value: "ILIGAN" },
-  { label: "PANABO", value: "PANABO" },
-  { label: "SAN FRANZ", value: "SAN FRANZ" },
-  { label: "BISLIG", value: "BISLIG" },
-  { label: "TANDAG", value: "TANDAG" },
-  { label: "TACLOBAN", value: "TACLOBAN" },
-]);
-
-const handleColumnSelect = (selectedOptions: string[]) => {
-  visibleColumns.value = selectedOptions;
-  localStorage.setItem("visibleColumns", JSON.stringify(selectedOptions));
+const getAllClients = async () => {
+  try {
+    await refreshTable();
+  } catch (error) {
+    throw new Error("Cannot get Clients info.");
+  }
 };
 
-//* Methods Area *//
+// Filter the network sites according to the location selected by user in the modal form
+// Returns a list of network sites in 'Select Network Site (VLAN)' select field if OLT network site matches the selected location
+const filterNetworkSites = () => {
+  // Log the selected location being filtered
+  console.log("Filtering network sites by location:", selectedLocation.value);
+
+  // Log the original network sites before filtering
+  console.log("Original network sites:", networkSites.value);
+
+  // Get the full location name from the location mapping
+  const fullLocationName = getFullLocationName(selectedLocation.value);
+
+  // Check if the selected location is empty or the default option
+  if (fullLocationName === "" || fullLocationName === "Select Location") {
+    filteredNetworkSites.value = networkSites.value; // Return all sites if no valid selection
+  } else {
+    // Filter the network sites based on the selected location
+    filteredNetworkSites.value = networkSites.value.filter((site) => {
+      // Determine if the site matches the selected location
+      const matches = site.oltNetworksite
+        .toLowerCase()
+        .includes(selectedLocation.value.toLowerCase());
+
+      // Log the site being checked and whether it matches
+      console.log(`Checking site: ${site.oltNetworksite}, matches: ${matches}`);
+
+      // Return true if there's a match
+      return matches;
+    });
+  }
+
+  // Log the filtered network sites after processing
+  console.log("Filtered network sites:", filteredNetworkSites.value);
+};
 
 // Group OLT according to their OLT Network Site
 // Creates and returns an array oy OLT Networki Sites (e.g. CDO_vlan2010)
@@ -502,89 +549,6 @@ const transformData = async () => {
   filteredNetworkSites.value = networkSites.value;
   console.log("networkSites:", networkSites.value);
 };
-
-// Function to update the filter value when the user types in the SearchBar
-const handleSearch = (event: KeyboardEvent) => {
-  filter.value = (event.target as HTMLInputElement).value;
-};
-
-// Filter the network sites according to the location selected by user in the modal form
-// Returns a list of network sites in 'Select Network Site (VLAN)' select field if OLT network site matches the selected location
-const filterNetworkSites = () => {
-  // Log the selected location being filtered
-  console.log("Filtering network sites by location:", selectedLocation.value);
-
-  // Log the original network sites before filtering
-  console.log("Original network sites:", networkSites.value);
-
-  // Check if the selected location is empty or the default option
-  if (
-    selectedLocation.value === "" ||
-    selectedLocation.value === "Select Location"
-  ) {
-    filteredNetworkSites.value = networkSites.value; // Return all sites if no valid selection
-  } else {
-    // Filter the network sites based on the selected location
-    filteredNetworkSites.value = networkSites.value.filter((site) => {
-      // Determine if the site matches the selected location
-      const matches = site.oltNetworksite
-        .toLowerCase()
-        .includes(selectedLocation.value.toLowerCase());
-
-      // Log the site being checked and whether it matches
-      console.log(`Checking site: ${site.oltNetworksite}, matches: ${matches}`);
-
-      // Return true if there's a match
-      return matches;
-    });
-  }
-
-  // Log the filtered network sites after processing
-  console.log("Filtered network sites:", filteredNetworkSites.value);
-};
-
-//* Lifecycle Hooks *//
-
-watch(
-  () => client.oltIp,
-  (newOltIp) => {
-    if (newOltIp && selectedNetworkSite.value) {
-      // Find the corresponding newOltId based on selected OLT IP
-      const selectedOlt = selectedNetworkSite.value.oltIps.find(
-        (olt) => olt.oltIp === newOltIp
-      );
-      client.value.newOltId = selectedOlt ? selectedOlt.newOltId : null;
-      console.log("newOltId after oltIp selection:", client.value.newOltId);
-    }
-  }
-);
-
-onMounted(async () => {
-  console.log("onMounted triggered, starting data transformation...");
-
-  try {
-    await transformData();
-    console.log("Data transformation completed.");
-  } catch (error) {
-    console.error("Error during data transformation:", error);
-  }
-});
-
-const NewClient = reactive({
-  bucketId: "",
-  clientId: "",
-  accountNumber: "",
-  packageType: "",
-  oltReportedUpstream: 0,
-  oltReportedDownstream: 0,
-  serialAndMac: {
-    serialNum: "",
-    macAddress: "",
-  },
-  oltIp: "",
-  newOltId: 0,
-  clientName: "",
-});
 
 const provisionClient = async (clientData: typeof NewClient): Promise<void> => {
   // $q.loading.show();
@@ -715,14 +679,19 @@ const handleActivateClient = async () => {
   }
 };
 
-// Define inputValue
-const inputValue = ref("");
-// Method to remove leading whitespace in inputs during typing
-const noLeadingWhitespace = (event: Event) => {
-  const input = event.target as HTMLInputElement;
-  input.value = input.value.replace(/^\s+/, "");
-  inputValue.value = input.value;
-};
+watch(
+  () => client.oltIp,
+  (newOltIp) => {
+    if (newOltIp && selectedNetworkSite.value) {
+      // Find the corresponding newOltId based on selected OLT IP
+      const selectedOlt = selectedNetworkSite.value.oltIps.find(
+        (olt) => olt.oltIp === newOltIp
+      );
+      client.value.newOltId = selectedOlt ? selectedOlt.newOltId : null;
+      console.log("newOltId after oltIp selection:", client.value.newOltId);
+    }
+  }
+);
 
 // Watch for selected ONU serial number and assign mac address
 watch(selectedOnuSerialNumber, (newSerialNumber) => {
@@ -744,5 +713,18 @@ watch(selectedNetworkSiteValue, (newValue) => {
     (site) => site.oltIps?.[0]?.newOltId === newValue
   );
   selectedNetworkSite.value = selectedSite || null;
+});
+
+onMounted(getAllClients);
+
+onMounted(async () => {
+  console.log("onMounted triggered, starting data transformation...");
+
+  try {
+    await transformData();
+    console.log("Data transformation completed.");
+  } catch (error) {
+    console.error("Error during data transformation:", error);
+  }
 });
 </script>

@@ -67,28 +67,25 @@
 </template>
 
 <script setup lang="ts">
-import { RouterLink } from "vue-router";
-import { event, QTableProps } from "quasar";
 import { ref, watchEffect, computed } from "vue";
+import { event, QTableProps } from "quasar";
+import { useRouter } from "vue-router";
 import { useNetworkStore } from "src/stores/network-address/network-address";
 import { getNetworkAddresses } from "src/api/HiveConnectApis/hiveConnect";
 import { INetworkAddresses } from "src/api/HiveConnectApis/types";
+import { searchRows } from "src/util/search";
+import { ipAddress } from "@vuelidate/validators";
 import AddNewNetworkModal from "src/components/NetworkAddress/AddNewNetworkModal.vue";
-
-// RECENTLY ADDED //
-import { useRouter } from "vue-router";
 import SearchBar from "src/components/SearchBar.vue";
 import Table from "src/components/Table.vue";
-import { ipAddress } from "@vuelidate/validators";
 
 // Store search term/s from SearchBar
 const filter = ref("");
 const store = useNetworkStore();
 const rows = ref<INetworkAddresses[]>([]);
-// const rows = ref([]);
-// RECENTLY UPDATED: returns an empty array if the data is undefined
-// Define table column from 'network-address' Pinia store
 const columns: QTableProps["columns"] = store.$state.networkColumn || [];
+const router = useRouter();
+const modalAddNewNetwork = ref(false);
 const modalOpen = ref(false);
 const loading = ref<boolean>(false);
 
@@ -100,31 +97,18 @@ watchEffect(async () => {
   rows.value = await getNetworkAddresses();
 });
 
-// RECENTLY ADDED //
-
-const router = useRouter();
-const modalAddNewNetwork = ref(false);
-
 // Count total number of rows (network addresses) in the table to display in the page description
 const networkAddressCount = computed(() => rows.value.length);
+
+// Display row/s based on search term
+const filteredRows = computed(() => {
+  return searchRows(rows.value, filter.value);
+});
 
 // Method triggered when entering in SearchBar
 const handleSearch = (event: KeyboardEvent) => {
   filter.value = (event.target as HTMLInputElement).value;
 };
-
-// Display row/s based on search term
-const filteredRows = computed(() => {
-  if (!filter.value) return rows.value;
-
-  return rows.value.filter((row) =>
-    Object.values(row).some(
-      (value) =>
-        value &&
-        value.toString().toLowerCase().includes(filter.value.toLowerCase())
-    )
-  );
-});
 
 // Navigate to the Network Address details page
 const getNetworkAddressData = (
