@@ -1,12 +1,10 @@
 <template>
   <div class="flex flex-col">
-    <div class="overflow-x-auto sm:-mx-6 lg:-mx-8">
-      <div class="inline-block min-w-full sm:px-6 lg:px-12">
+    <div class="overflow-x-auto w-full">
+      <div class="inline-block min-w-full">
         <div class="overflow-hidden">
           <!-- Table header -->
-          <table
-            class="table-fixed min-w-full text-left text-sm last:text-right"
-          >
+          <table class="table-fixed min-w-full text-left text-sm">
             <thead class="border-b border-neutral-200 font-medium">
               <tr class="text-gray-iron-500">
                 <th
@@ -17,8 +15,8 @@
                   :key="header.name"
                   :class="
                     header.name === 'actions'
-                      ? 'pr-6 pt-6 pb-2 font-light text-xs uppercase text-primary-gray-500 text-center'
-                      : 'pr-6 pt-6 pb-2 font-light text-xs uppercase text-primary-gray-500'
+                      ? 'whitespace-nowrap px-4 pt-6 pb-2 font-light text-xs uppercase text-primary-gray-500 text-center'
+                      : 'whitespace-nowrap px-4 pt-6 pb-2 font-light text-xs uppercase text-primary-gray-500'
                   "
                 >
                   {{ header.label }}
@@ -42,8 +40,8 @@
                   :key="column.name"
                   :class="
                     column.name === 'actions'
-                      ? 'pr-6 py-2 text-gray-iron-900 font-normal text-center'
-                      : 'pr-6 py-2 text-gray-iron-900 font-normal'
+                      ? 'px-4 py-2 text-gray-iron-900 font-normal text-center'
+                      : 'px-4 py-2 text-gray-iron-900 font-normal'
                   "
                 >
                   <slot
@@ -57,37 +55,37 @@
               </tr>
             </tbody>
           </table>
-
-          <!-- Pagination controls -->
-          <div class="flex justify-end items-center mt-4">
-            <q-btn
-              @click="prevPage"
-              flat
-              no-caps
-              :disable="currentPage === 1"
-              class="px-4 py-2 rounded text-primary-600"
-            >
-              <q-icon name="chevron_left" size="xs" />
-              <p class="font-semibold">Prev</p>
-            </q-btn>
-
-            <span class="mx-2 text-gray-iron-500">
-              {{ itemsDisplayed }} of {{ tableRows.length }}
-            </span>
-
-            <q-btn
-              @click="nextPage"
-              flat
-              no-caps
-              :disable="currentPage === totalPages"
-              class="px-4 py-2 rounded text-primary-600"
-            >
-              <p class="font-semibold">Next</p>
-              <q-icon name="chevron_right" size="xs" />
-            </q-btn>
-          </div>
         </div>
       </div>
+    </div>
+
+    <!-- Pagination controls -->
+    <div class="flex justify-end items-center">
+      <q-btn
+        @click="prevPage"
+        flat
+        no-caps
+        :disable="currentPage === 1"
+        class="px-4 py-2 rounded text-primary-600"
+      >
+        <q-icon name="chevron_left" size="xs" />
+        <p class="font-semibold">Prev</p>
+      </q-btn>
+
+      <span class="mx-2 text-gray-iron-500">
+        {{ itemsDisplayed }} of {{ tableRows.length }}
+      </span>
+
+      <q-btn
+        @click="nextPage"
+        flat
+        no-caps
+        :disable="currentPage === totalPages"
+        class="px-4 py-2 rounded text-primary-600"
+      >
+        <p class="font-semibold">Next</p>
+        <q-icon name="chevron_right" size="xs" />
+      </q-btn>
     </div>
   </div>
 </template>
@@ -171,3 +169,10 @@ const handleCallback = (event: Event, row: TableRow, index: number) => {
   }
 };
 </script>
+
+<style scoped>
+.overflow-x-auto {
+  max-width: 100%;
+  overflow-x: auto;
+}
+</style>

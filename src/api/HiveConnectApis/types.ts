@@ -36,9 +36,39 @@ export interface IClient {
   ssidName: string;
 }
 
+export interface IMigrationSubscriber {
+  id: number;
+  subscriberAccountNumber: string;
+  clientName: string;
+  ipAssigned: string;
+  onuSerialNumber: string;
+  site: number;
+  oltIp: string;
+  oltInterface: string;
+  onuMacAddress: string;
+  onuDeviceName: string;
+  packageType: string;
+  oltReportedUpstream: string;
+  oltReportedDownstream: string;
+  provision: string;
+  status: string;
+  ssidName: string;
+}
+
+// Added for subscriber provisioning data type
+export interface ISubscriberProvision {
+  accountNo: string;
+  clientName: string;
+  serialNumber: string;
+  macAddress: string;
+  olt: string;
+  oltId: string;
+  packageType: string;
+}
+
 // added new interface for OLT IP
 export interface IOltSiteByIp {
-  newOltId: number;
+  // newOltId: number;
   newoltId: number;
   oltName: string;
   oltIp: string;
@@ -110,4 +140,14 @@ export interface IPackageDetails {
   name: string;
   id: number;
   packageTypeId: string;
+}
+
+export interface IOltSite {
+  oltNetworksite: string;
+  oltIps: {
+    id: number;
+    oltIp: string;
+    oltName: string;
+    newOltId: number;
+  }[];
 }

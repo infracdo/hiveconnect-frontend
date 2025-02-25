@@ -67,12 +67,7 @@
                   name="assignment"
                   size="sm"
                   class="cursor-pointer text-gray-iron-900 font-normal hover:text-primary-1000"
-                  @click="
-                    openTroubleshootModal(
-                      row.onuDeviceName,
-                      row.newSubscriberId
-                    )
-                  "
+                  @click="openTroubleshootModal(row.onuDeviceName, row.id)"
                 />
               </template>
             </Table>
@@ -96,7 +91,8 @@
 import { onMounted, ref, computed } from "vue";
 import { getHiveClients } from "src/api/HiveConnectApis/hiveConnect";
 import { useSubscriberStore } from "src/stores/subscriber/subscriber-store";
-import { IClient } from "src/api/HiveConnectApis/types";
+import { useClientStore } from "src/stores/subscriber/client-store";
+import { IHiveClient } from "src/api/HiveConnectApis/types";
 import TroubleshootClient from "src/components/InetConfig/TroubleshootClient.vue";
 
 // Recently added
@@ -109,10 +105,10 @@ import Buttons from "src/components/inputs/Buttons.vue";
 import Selects from "src/components/inputs/Selects.vue";
 import Inputs from "src/components/inputs/Inputs.vue";
 
-const store = useSubscriberStore();
+const store = useClientStore();
 // Recently updated: null array is passed if the data is undefined
 const columns = store.$state.subscribercolumns || [];
-const rowsHive = ref<IClient[]>([]);
+const rowsHive = ref<IHiveClient[]>([]);
 const deviceName = ref("");
 const clientId = ref(0);
 const openTroubleShootModal = ref(false);
@@ -130,13 +126,10 @@ const filter = ref("");
 // ]);
 
 const loading = ref(false);
-const openTroubleshootModal = (
-  onuDeviceName: string,
-  newSubscriberId: number
-) => {
+const openTroubleshootModal = (onuDeviceName: string, id: number) => {
   deviceName.value = onuDeviceName;
-  console.log(typeof newSubscriberId, " id value is ", newSubscriberId);
-  clientId.value = newSubscriberId;
+  console.log(typeof id, " id value is ", id);
+  clientId.value = id;
   openTroubleShootModal.value = !openTroubleShootModal.value;
 };
 
@@ -174,18 +167,19 @@ const filteredRows = computed(() => {
   const searchTerm = filter.value.toLowerCase();
   return rowsHive.value.filter((row) => {
     return (
-      row.newSubscriberId.toString().toLowerCase().includes(searchTerm) ||
-      row.subscriberName.toString().toLowerCase().includes(searchTerm) ||
+      row.id.toString().toLowerCase().includes(searchTerm) ||
       row.subscriberAccountNumber
         .toString()
         .toLowerCase()
         .includes(searchTerm) ||
+      row.clientName.toString().toLowerCase().includes(searchTerm) ||
       row.packageType.toString().toLowerCase().includes(searchTerm) ||
+      row.onuDeviceName.toString().toLowerCase().includes(searchTerm) ||
+      row.ipAssigned.toString().toLowerCase().includes(searchTerm) ||
       row.onuSerialNumber.toString().toLowerCase().includes(searchTerm) ||
       row.onuMacAddress.toString().toLowerCase().includes(searchTerm) ||
       row.oltIp.toString().toLowerCase().includes(searchTerm) ||
-      row.onuDeviceName.toString().toLowerCase().includes(searchTerm) ||
-      row.ipAssigned.toString().toLowerCase().includes(searchTerm)
+      row.status.toString().toLowerCase().includes(searchTerm)
     );
   });
 });
@@ -230,8 +224,8 @@ const client = ref(<Client>{
 // Method to display modal when the action button in row is clicked
 const openModal = (row: any) => {
   client.value = {
-    subscriberName: row.subscriberName,
-    accountNo: row.accountNo,
+    subscriberName: row.clientName,
+    accountNo: row.subscriberAccountNumber,
     packageType: row.packageType,
     onuStatus: row.onuStatus,
     onuIp: row.onuIp,
@@ -241,7 +235,7 @@ const openModal = (row: any) => {
     downstream: row.downstream,
     oltStatus: row.oltStatus,
     oltIp: row.oltIp,
-    oltSite: row.oltSite,
+    oltSite: row.site,
     oltInterface: row.oltInterface,
   };
 
@@ -252,7 +246,7 @@ const openModal = (row: any) => {
 
 // Select visible columns options
 const columnOptions = ref([
-  { value: "newSubscriberId", label: "ID" },
+  { value: "id", label: "ID" },
   { value: "subscriberAccountNumber", label: "Acount No." },
   { value: "subscriberName", label: "Subscriber Name" },
   { value: "packageType", label: "Package Type" },
@@ -261,6 +255,7 @@ const columnOptions = ref([
   { value: "onuSerialNumber", label: "ONU Serial Number" },
   { value: "onuMacAddress", label: "ONU Mac Address" },
   { value: "oltIp", label: "OLT IP" },
+  { value: "status", label: "STATUS" },
   { value: "ssidName", label: "SSID" },
 ]);
 
@@ -279,6 +274,7 @@ const visibleColumns = ref<string[]>(
         "onuSerialNumber",
         "onuMacAddress",
         "oltIp",
+        "site",
         "ssidName",
         "actions",
       ]

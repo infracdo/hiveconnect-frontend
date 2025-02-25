@@ -5,6 +5,7 @@ import axios from "axios";
 import { auth } from "src/stores/auth";
 import { VueKeycloakOptions } from "@dsb-norge/vue-keycloak-js/dist/types";
 import routes from "src/router/routes";
+import logUserAction from "src/util/logservice";
 
 const store = auth();
 
@@ -14,12 +15,18 @@ const keycloak = new Keycloak({
   clientId: "test-hiveconnect-frontend",
 });
 
-console.log("KeycloakURL", process.env.VUE_APP_KEYCLOAK_URL);
-console.log("KeycloakRealm", process.env.VUE_APP_KEYCLOAK_REALM);
-console.log("KeycloakClientId", process.env.VUE_APP_KEYCLOAK_CLIENT_ID);
+const JWT_TOKEN = import.meta.env.VITE_PROVISION_BEARER_TOKEN;
+
+// console.log("KeycloakURL", process.env.VUE_APP_KEYCLOAK_URL);
+// console.log("KeycloakRealm", process.env.VUE_APP_KEYCLOAK_REALM);
+// console.log("KeycloakClientId", process.env.VUE_APP_KEYCLOAK_CLIENT_ID);
 
 export default boot(({ app, router }) => {
   let isKeycloakInitialized = false;
+
+  const getUsername = () => {
+    return keycloak.tokenParsed?.preferred_username || null;
+  };
 
   keycloak
     .init({
@@ -30,8 +37,7 @@ export default boot(({ app, router }) => {
     .then((authenticated) => {
       if (authenticated) {
         app.config.globalProperties.$keycloak = keycloak;
-        axios.defaults.headers.common["Authorization"] =
-          "Bearer " + keycloak.token;
+        axios.defaults.headers.common["Authorization"] = "Bearer " + JWT_TOKEN;
 
         const realmRoles = keycloak.tokenParsed?.realm_access?.roles || [];
         let resourceRoles: string[] = [];
@@ -119,9 +125,26 @@ export default boot(({ app, router }) => {
       to.meta?.roles &&
       to.meta.roles.some((role) => resourceRoles.includes(role))
     ) {
+      // TODO; LOG USER ACCESS TO ROUTES
+      console.log(
+        "user " +
+          keycloak.tokenParsed.preferred_username +
+          " has accessed route " +
+          to.path
+      );
+      logUserAction(`${to.path}`, `accessed route`, `200 OK`);
       // Redirect to the first matching route
       next(); // Exit after the first match
     } else {
+      // TODO; LOG USER ACCESS TO ROUTES
+      console.log(
+        `user ${keycloak.tokenParsed.preferred_username} attempted to access route ${to.path} but does not have the required roles`
+      );
+
+      console.log(
+        `user:${keycloak.tokenParsed.preferred_username} client ip:${navigator.userAgent} ${navigator.userAgent} ${to.path} but does not have the required roles`
+      );
+      logUserAction(`${to.path}`, `accessed route`, `403 FORBIDDEN`);
       next(false);
     }
   });

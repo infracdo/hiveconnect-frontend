@@ -52,13 +52,7 @@
                   @click.stop="openAddNewNetworkModal(row.networkAddress)"
                 />
               </template>
-
-              <!-- TABLE NOTES (REMINDER) -->
-              <!-- TODO:(1) In current hive, there is an edit button in the actions column -->
-              <!-- TODO:(2) In current hive, the network address should be clickable and navigate to the Network Address Detail page-->
             </Table>
-
-            <!-- REVIEW: In current hive, it displays 'add new network modal' -->
           </div>
         </div>
       </div>
@@ -74,11 +68,11 @@
 
 <script setup lang="ts">
 import { RouterLink } from "vue-router";
-import { useNetworkStore } from "src/stores/network-address/network-address";
 import { event, QTableProps } from "quasar";
 import { ref, watchEffect, computed } from "vue";
-
+import { useNetworkStore } from "src/stores/network-address/network-address";
 import { getNetworkAddresses } from "src/api/HiveConnectApis/hiveConnect";
+import { INetworkAddresses } from "src/api/HiveConnectApis/types";
 import AddNewNetworkModal from "src/components/NetworkAddress/AddNewNetworkModal.vue";
 
 // RECENTLY ADDED //
@@ -90,8 +84,8 @@ import { ipAddress } from "@vuelidate/validators";
 // Store search term/s from SearchBar
 const filter = ref("");
 const store = useNetworkStore();
-// const rows = ref<INetworkAddress[]>([]);
-const rows = ref([]);
+const rows = ref<INetworkAddresses[]>([]);
+// const rows = ref([]);
 // RECENTLY UPDATED: returns an empty array if the data is undefined
 // Define table column from 'network-address' Pinia store
 const columns: QTableProps["columns"] = store.$state.networkColumn || [];

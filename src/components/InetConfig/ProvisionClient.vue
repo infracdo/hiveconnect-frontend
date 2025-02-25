@@ -2,13 +2,24 @@
   <q-dialog v-model="localIsVisible" persistent class="rounded-lg">
     <q-card
       class="px-6 pb-6 dialog-content"
-      style="
-        width: 650px;
-        max-width: 100%;
-        height: 350px;
-        max-height: 100;
-        display: flex;
-        flex-direction: column;
+      :style="
+        props.responseStatus.autoConfig
+          ? {
+              width: '650px',
+              maxWidth: '100%',
+              height: '350px',
+              maxHeight: '100',
+              display: 'flex',
+              flexDirection: 'column',
+            }
+          : {
+              width: '650px',
+              maxWidth: '100%',
+              height: '200px',
+              maxHeight: '100',
+              display: 'flex',
+              flexDirection: 'column',
+            }
       "
     >
       <div style="flex: 1; display: flex; flex-direction: column">
@@ -27,28 +38,60 @@
           >
             <!-- Preprovision Checking -->
             <div class="text-gray-iron-900">
-              Preprovision Checking:
-              <span
-                :class="
-                  props.responseStatus.provisionCheck
-                    ? 'text-positive'
-                    : 'text-warning'
-                "
-                >{{ props.responses.provisionCheck }}</span
-              >
+              <div class="flex flex-row items-center">
+                <div class="mr-2">
+                  <q-spinner-tail
+                    v-if="
+                      props.responses.provisionCheck ===
+                      'Preprovision checking ...'
+                    "
+                    color="primary"
+                    size="1.5em"
+                  />
+                </div>
+                <div>
+                  Preprovision Checking:
+                  <span
+                    :class="
+                      props.responseStatus.provisionCheck
+                        ? 'text-positive'
+                        : 'text-warning'
+                    "
+                  >
+                    {{ props.responses.provisionCheck }}
+                  </span>
+                </div>
+              </div>
             </div>
 
             <!-- Auto Config Checking -->
-            <div class="text-gray-iron-900">
-              Auto Config:
-              <span
-                :class="
-                  props.responseStatus.autoConfig
-                    ? 'text-positive'
-                    : 'text-warning'
-                "
-                >{{ props.responses.autoConfig }}</span
-              >
+            <div
+              v-if="props.responseStatus.provisionCheck"
+              class="text-gray-iron-900"
+            >
+              <div class="flex flex-row items-center">
+                <div class="mr-2">
+                  <q-spinner-tail
+                    v-if="
+                      props.responses.autoConfig === 'Executing Auto Config...'
+                    "
+                    color="primary"
+                    size="1.5em"
+                  />
+                </div>
+                <div>
+                  Auto Config:
+                  <span
+                    :class="
+                      props.responseStatus.autoConfig
+                        ? 'text-positive'
+                        : 'text-warning'
+                    "
+                  >
+                    {{ props.responses.autoConfig }}
+                  </span>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -91,6 +134,11 @@
 
         <!-- OK button to close modal -->
         <div
+          v-if="
+            props.responseStatus.autoConfig ||
+            (props.responses.provisionCheck !== 'Preprovision checking ...' &&
+              props.responses.autoConfig !== 'Executing Auto Config...')
+          "
           class="mt-4"
           style="display: flex; justify-content: center; margin-top: auto"
         >
@@ -109,16 +157,16 @@
 
 <script setup lang="ts">
 import { reactive, ref, watch } from "vue";
-import { useQuasar } from "quasar";
-import {
-  executeAutoConfig,
-  executeMonitoring,
-  preProvisionCheck,
-} from "src/api/HiveConnectApis/hiveConnect";
-import { IsubsriberType, IserialAndMac } from "../models";
+// import { useQuasar } from "quasar";
+// import {
+//   executeAutoConfig,
+//   executeMonitoring,
+//   preProvisionCheck,
+// } from "src/api/HiveConnectApis/hiveConnect";
+// import { IsubsriberType, IserialAndMac } from "../models";
 import Buttons from "../inputs/Buttons.vue";
 
-const $q = useQuasar();
+// const $q = useQuasar();
 
 const props = defineProps<{
   isVisible: boolean;
@@ -158,27 +206,27 @@ watch(localIsVisible, (newVal) => {
   emit("update:isVisible", newVal);
 });
 
-const ssid = reactive({
-  name: "",
-  pw: "",
-});
+// const ssid = reactive({
+//   name: "",
+//   pw: "",
+// });
 
-const showProvisionResult = ref(false);
-const showSkeletonDancing = ref(false);
+// const showProvisionResult = ref(false);
+// const showSkeletonDancing = ref(false);
 
-const responses = reactive({
-  autoConfig: "",
-  monitoring: "",
-  provisionCheck: "",
-});
+// const responses = reactive({
+//   autoConfig: "",
+//   monitoring: "",
+//   provisionCheck: "",
+// });
 
-const responseStatus = reactive({
-  autoConfig: false,
-  monitoring: false,
-  provisionCheck: false,
-});
+// const responseStatus = reactive({
+//   autoConfig: false,
+//   monitoring: false,
+//   provisionCheck: false,
+// });
 
-const result = ref("");
+// const result = ref("");
 
 // METHODS
 </script>

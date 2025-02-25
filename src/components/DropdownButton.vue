@@ -29,7 +29,6 @@
         </q-item-section>
       </q-item>
     </q-list>
-    <!-- <slot v-else /> -->
   </q-btn-dropdown>
 </template>
 
@@ -40,10 +39,11 @@ const props = defineProps<{
   label: string | string[];
   columnOptions: { label: string; value: string }[];
   showCheckbox?: boolean;
-  selectedOptions?: string[];
+  selectedOptions?: string[] | string;
+  modelValue?: any;
 }>();
 
-const emit = defineEmits(["select"]);
+const emit = defineEmits(["select", "update:modelValue"]);
 const selectedOptions = ref<string[]>([...(props.selectedOptions || [])]);
 
 const computedLabel = computed(() =>
@@ -55,6 +55,7 @@ const emitSelection = (option: { label: string; value: string }) => {
     emit("select", selectedOptions.value);
   } else {
     emit("select", option);
+    emit("update:modelValue", option.value);
   }
 };
 
@@ -67,8 +68,12 @@ watch(selectedOptions, (newValue) => {
 watch(
   () => props.selectedOptions,
   (newValue) => {
-    if (newValue) {
+    if (Array.isArray(newValue)) {
       selectedOptions.value = [...newValue];
+    } else if (typeof newValue === "string") {
+      selectedOptions.value = [newValue];
+    } else {
+      selectedOptions.value = [];
     }
   },
   { deep: true }

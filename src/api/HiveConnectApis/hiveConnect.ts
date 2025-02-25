@@ -16,12 +16,23 @@ const networkStore = useNetworkStore();
 const kc = auth();
 
 const API_BASE_URL = process.env.PROVISION_API_URL;
+// const JWT_TOKEN = import.meta.env.VITE_PROVISION_BEARER_TOKEN;
 
 const api = axios.create({
   baseURL: API_BASE_URL,
   // baseURL: 'http://172.91.0.17:8888',
   timeout: 0,
 });
+
+// api.interceptors.request.use(
+//   (config) => {
+//     config.headers.Authorization = `Bearer ${JWT_TOKEN}`;
+//     return config;
+//   },
+//   (error) => {
+//     return Promise.reject(error);
+//   }
+// );
 
 // export const getDevices = async (): Promise<IRogueDevices[]> => {
 //   try {
@@ -35,6 +46,220 @@ const api = axios.create({
 //   }
 // };
 
+//* AUTO PROVISION APIs *//
+
+// POST: /preprovisionCheck
+export const preProvisionCheck = async (
+  accNum: string,
+  clientName: string,
+  serialNum: string,
+  macaddress: string,
+  olt: string,
+  packageType: string,
+  newOltId: number
+  // downstream: number, //added
+  // upstream: number, //added
+) => {
+  const { data } = await api.post("/preprovisionCheck", {
+    accountNo: accNum,
+    clientName: clientName,
+    serialNumber: serialNum,
+    macAddress: macaddress,
+    olt: olt,
+    oltId: newOltId,
+    packageType: packageType,
+    // downstream: downstream, //added
+    // upstream: upstream, //added
+  });
+
+  console.log("Accessing '/preprovisionCheck' api:", data);
+  return data;
+};
+
+// POST: /executeAutoConfig
+export const executeAutoConfig = async (
+  accNum: string,
+  clientName: string,
+  serialNum: string,
+  macaddress: string,
+  olt: string,
+  packageType: string,
+  newOltId: number
+  // downstream: number,
+  // upstream: number
+) => {
+  const { data } = await api.post("/executeAutoConfig", {
+    accountNo: accNum,
+    clientName: clientName,
+    serialNumber: serialNum,
+    macAddress: macaddress,
+    olt: olt,
+    packageType: packageType,
+    oltId: newOltId,
+    // downstream: downstream, //added
+    // upstream: upstream, //added
+  });
+
+  console.log("Accessing '/executeAutoConfig' api:", data);
+  return data;
+};
+
+// POST: /executeMonitoring
+export const executeMonitoring = async (
+  accNum: string,
+  clientName: string,
+  serialNum: string,
+  macaddress: string,
+  olt: string,
+  packageType: string,
+  newOltId: number
+  // downstream: number,
+  // upstream: number
+) => {
+  const { data } = await api.post("/executeMonitoring", {
+    accountNo: accNum,
+    clientName: clientName,
+    serialNumber: serialNum,
+    macAddress: macaddress,
+    olt: olt,
+    oltId: newOltId,
+    packageType: packageType,
+    // downstream: downstream, //added
+    // upstream: upstream, //added
+  });
+
+  console.log("Accessing '/executeMonitoring' api:", data);
+  return data;
+};
+
+//==============================================================================================
+
+//* SUBSCRIBER APIs *//
+
+//<-------------------------- HIVE/FOR PROVISION ------------------------------------->
+// GET: /getsubscribers
+export const getClients = async (): Promise<IClient[]> => {
+  try {
+    console.log("front end accessing backend hive api /getsubscribers");
+    const { data } = await api.get("/getsubscribers"); //get new client from billing
+    return data;
+  } catch (error) {
+    console.log("Could not retrieve Client/Subscriber Data!", error);
+    throw error;
+  }
+};
+
+// GET: /getprovisionedsubscribers
+export const getProvisionedHiveClients = async (): Promise<IClient[]> => {
+  try {
+    console.log(
+      "front end accessing backend hive api /getprovisionedsubscribers"
+    );
+    const { data } = await api.get("/getprovisionedsubscribers"); //"/getHiveClients"
+    return data;
+  } catch (error) {
+    console.log("Could not retrieve Client/Subscriber Data!", error);
+    throw error;
+  }
+};
+
+// GET: /getHiveClients
+export const getHiveclients = async (): Promise<IClient[]> => {
+  try {
+    const { data } = await api.get("/getHiveClients"); //"/getHiveClients"
+    return data;
+  } catch (error) {
+    console.log("Could not retrieve Client/Subscriber Data!", error);
+    throw error;
+  }
+};
+
+// GET: /getsubscriberbyid/{id}
+export const getClientById = async (
+  newsubscriberId: number
+): Promise<IClient> => {
+  try {
+    const { data } = await api.get("/getsubscriberbyid/" + newsubscriberId);
+    return data;
+  } catch (error) {
+    console.log("Could not retrieve Client/Subscriber Data!", error);
+    throw error;
+  }
+};
+
+// GET: /getHiveClientById/{id}
+export const getHiveClientById = async (id: number): Promise<IClient> => {
+  try {
+    const { data } = await api.get("/getHiveClientById/" + id);
+    return data;
+  } catch (error) {
+    console.log("Could not retrieve Client/Subscriber Data!", error);
+    throw error;
+  }
+};
+
+//<-------------------------- FOR MIGRATION ------------------------------------->
+// GET: /getmigratingsubscribers
+export const getForMigrationSubscribers = async () => {
+  try {
+    const { data } = await api.get("/getmigratingsubscribers");
+    console.log("Retrieved For Migration Subscribers data: ", data);
+    return data;
+  } catch (error) {
+    console.log("Could not retrieve For Migration Subscribers data!", error);
+    throw error;
+  }
+};
+
+// POST: /updateMigrationSubscriberStatus
+export const updateForMigrationSubscribers = async (accountNo: string) => {
+  try {
+    const { data } = await api.post("/updateMigrationSubscriberStatus", {
+      subscriberAccountNumber: accountNo,
+    });
+    console.log("Triggered '/updateMigrationSubscriberStatus' API: ", data);
+    return data;
+  } catch (error) {
+    console.log("Could not update for migration subscriber status", error);
+    throw error;
+  }
+};
+
+//==============================================================================================
+
+//* OLT APIs *//
+
+// GET: /getallolt
+// added new api for OLT IP
+export const getNetworkSiteOltIp = async (): Promise<IOltSiteByIp[]> => {
+  try {
+    console.log("front end accessing backend hive api /getallolt");
+    const { data } = await api.get("/getallolt");
+    return data;
+  } catch (error) {
+    console.log("Could not retrieve OLT SiteBy Ip Data!", error);
+    throw error;
+  }
+};
+
+// GET: /getOltByIp/{oltIp}
+export const checkOltSiteByIp = async (
+  oltIp: string
+): Promise<IOltSiteByIp> => {
+  try {
+    const { data } = await api.get("/checkOltSiteByIp/" + oltIp);
+    return data;
+  } catch (error) {
+    console.log("Could not retrieve OLT SiteBy Ip Data!", error);
+    throw error;
+  }
+};
+
+//==============================================================================================
+
+//* ACS APIs *//
+
+// GET: /getRogueDevices
 export const getDevices = async (): Promise<IRogueDevices[]> => {
   try {
     console.log("front end accessing backend hive api /getRogueDevices");
@@ -49,12 +274,18 @@ export const getDevices = async (): Promise<IRogueDevices[]> => {
   }
 };
 
+//==============================================================================================
+
+//* DHCP APIs *//
+
+// GET: /getIpAddressesOfCidrBlock/{cidrBlock}
 export const getIpAddresses = async (
   ipAddress: string | string[]
 ): Promise<IipAddressesOfCidrBlock[]> => {
   try {
     console.log(
-      "front end accessing backend hive api /getIpAddressesOfCidrBlock"
+      "front end accessing backend hive api /getIpAddressesOfCidrBlock/" +
+        ipAddress
     );
     const { data } = await api.get("/getIpAddressesOfCidrBlock/" + ipAddress);
 
@@ -66,6 +297,7 @@ export const getIpAddresses = async (
   }
 };
 
+// GET: /getallnetworks
 export const getNetworkAddresses = async (): Promise<INetworkAddresses[]> => {
   try {
     console.log("front end accessing backend hive api /getallnetworks");
@@ -80,24 +312,19 @@ export const getNetworkAddresses = async (): Promise<INetworkAddresses[]> => {
   }
 };
 
-export const getClients = async (): Promise<IClient[]> => {
+//==============================================================================================
+
+//* PACKAGE TYPE APIs *//
+
+// GET: /checkPackageDetails/{packageType}
+export const checkPackageDetails = async (
+  packageTypeId: string
+): Promise<IPackageDetails> => {
   try {
-    console.log("front end accessing backend hive api /getsubscribers");
-    const { data } = await api.get("/getsubscribers"); //get new client from billing
+    const { data } = await api.get("/checkPackageDetails/" + packageTypeId);
     return data;
   } catch (error) {
-    console.log("Could not retrieve Client/Subscriber Data!", error);
-    throw error;
-  }
-};
-// added new api for OLT IP
-export const getNetworkSiteOltIp = async (): Promise<IOltSiteByIp[]> => {
-  try {
-    console.log("front end accessing backend hive api /getallolt");
-    const { data } = await api.get("/getallolt");
-    return data;
-  } catch (error) {
-    console.log("Could not retrieve OLT SiteBy Ip Data!", error);
+    console.log("Could not retrieve Bandwidth Data!", error);
     throw error;
   }
 };
@@ -115,36 +342,6 @@ export const getHiveClients = async (): Promise<IClient[]> => {
   }
 };
 
-export const getHiveclients = async (): Promise<IClient[]> => {
-  try {
-    const { data } = await api.get("/getHiveClients"); //"/getHiveClients"
-    return data;
-  } catch (error) {
-    console.log("Could not retrieve Client/Subscriber Data!", error);
-    throw error;
-  }
-};
-
-export const getClientById = async (
-  newsubscriberId: number
-): Promise<IClient> => {
-  try {
-    const { data } = await api.get("/getsubscriberbyid/" + newsubscriberId);
-    return data;
-  } catch (error) {
-    console.log("Could not retrieve Client/Subscriber Data!", error);
-    throw error;
-  }
-};
-export const getHiveClientById = async (id: number): Promise<IClient> => {
-  try {
-    const { data } = await api.get("/getHiveClientById/" + id);
-    return data;
-  } catch (error) {
-    console.log("Could not retrieve Client/Subscriber Data!", error);
-    throw error;
-  }
-};
 export const updateClient = async (
   id: number,
 
@@ -164,10 +361,7 @@ export const updateClient = async (
   }
 };
 
-export const testError = async () => {
-  const { data } = await api.post("/simulateHiveMonitoringError");
-  return data;
-};
+// REVIEW: i think ACS auto provision api ni sya
 // -- removed comment
 export const executeProvision = async (
   accNum: string,
@@ -193,80 +387,41 @@ export const executeProvision = async (
   });
   return data;
 };
-export const preProvisionCheck = async (
-  accNum: string,
-  clientName: string,
-  serialNum: string,
-  macaddress: string,
-  olt: string,
-  packageType: string,
-  newOltId: number
-  // downstream: number, //added
-  // upstream: number, //added
-) => {
-  const { data } = await api.post("/preprovisionCheck", {
-    accountNo: accNum,
-    clientName: clientName,
-    serialNumber: serialNum,
-    macAddress: macaddress,
-    olt: olt,
-    oltId: newOltId,
-    packageType: packageType,
-    // downstream: downstream, //added
-    // upstream: upstream, //added
-  });
+
+// export const checkOltInterface = async (deviceName: string) => {
+//   try {
+//     const { data } = await api.get("/checkOltInterface/" + deviceName);
+//     return data;
+//   } catch (error) {
+//     console.log("Could not retrieve Olt Interface Data!", error);
+//     throw error;
+//   }
+// };
+
+// REVIEW: redundant
+export const getAllOlts = async (): Promise<IOlt[]> => {
+  const { data } = await api.get("/getAllOlts");
   return data;
 };
 
-export const executeAutoConfig = async (
-  accNum: string,
-  clientName: string,
-  serialNum: string,
-  macaddress: string,
-  olt: string,
-  packageType: string,
-  newOltId: number
-  // downstream: number,
-  // upstream: number
-) => {
-  const { data } = await api.post("/executeAutoConfig", {
-    accountNo: accNum,
-    clientName: clientName,
-    serialNumber: serialNum,
-    macAddress: macaddress,
-    olt: olt,
-    packageType: packageType,
-    oltId: newOltId,
-    // downstream: downstream, //added
-    // upstream: upstream, //added
-  });
-  return data;
-};
-export const executeMonitoring = async (
-  accNum: string,
-  clientName: string,
-  serialNum: string,
-  macaddress: string,
-  olt: string,
-  packageType: string,
-  newOltId: number
-  // downstream: number,
-  // upstream: number
-) => {
-  const { data } = await api.post("/executeMonitoring", {
-    accountNo: accNum,
-    clientName: clientName,
-    serialNumber: serialNum,
-    macAddress: macaddress,
-    olt: olt,
-    oltId: newOltId,
-    packageType: packageType,
-    // downstream: downstream, //added
-    // upstream: upstream, //added
-  });
+// REVIEW: api currently not in hive backend
+export const getOtcStatus = async (clientId: number) => {
+  const { data } = await api.get("/getOtcStatus/" + clientId);
   return data;
 };
 
+// REVIEW: api currently commented out in hive backend
+export const getOneAvailableIpAddress = async () => {
+  try {
+    const { data } = await api.get("/getOneAvailableIpAddress");
+    return data;
+  } catch (error) {
+    console.log("Could not get One Available IpAddress Data!", error);
+    throw error;
+  }
+};
+
+// REVIEW: api currently not in hive backend
 export const addNewClient = async (
   accNum: string,
   packageType: string,
@@ -288,56 +443,12 @@ export const addNewClient = async (
   return data;
 };
 
-export const getOneAvailableIpAddress = async () => {
-  try {
-    const { data } = await api.get("/getOneAvailableIpAddress");
-    return data;
-  } catch (error) {
-    console.log("Could not get One Available IpAddress Data!", error);
-    throw error;
-  }
-};
+//==============================================================================================
 
-export const checkPackageDetails = async (
-  packageTypeId: string
-): Promise<IPackageDetails> => {
-  try {
-    const { data } = await api.get("/checkPackageDetails/" + packageTypeId);
-    return data;
-  } catch (error) {
-    console.log("Could not retrieve Bandwidth Data!", error);
-    throw error;
-  }
-};
+//* TEST APIs *//
 
-export const checkOltSiteByIp = async (
-  oltIp: string
-): Promise<IOltSiteByIp> => {
-  try {
-    const { data } = await api.get("/checkOltSiteByIp/" + oltIp);
-    return data;
-  } catch (error) {
-    console.log("Could not retrieve OLT SiteBy Ip Data!", error);
-    throw error;
-  }
-};
-
-// export const checkOltInterface = async (deviceName: string) => {
-//   try {
-//     const { data } = await api.get("/checkOltInterface/" + deviceName);
-//     return data;
-//   } catch (error) {
-//     console.log("Could not retrieve Olt Interface Data!", error);
-//     throw error;
-//   }
-// };
-
-export const getAllOlts = async (): Promise<IOlt[]> => {
-  const { data } = await api.get("/getAllOlts");
-  return data;
-};
-
-export const getOtcStatus = async (clientId: number) => {
-  const { data } = await api.get("/getOtcStatus/" + clientId);
+// POST: /simulateHiveMonitoringError
+export const testError = async () => {
+  const { data } = await api.post("/simulateHiveMonitoringError");
   return data;
 };

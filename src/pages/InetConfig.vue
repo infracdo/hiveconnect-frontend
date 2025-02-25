@@ -83,7 +83,8 @@
     <!-- Display modal when a row (client data) is clicked -->
     <Modal
       :isVisible="modalOpen"
-      :title="'Provision Client'"
+      :title="'Provision Subscriber'"
+      :submitButton="'Activate'"
       @update:isVisible="modalOpen = $event"
       :actionHandler="handleActivateClient"
     >
@@ -173,7 +174,6 @@
           emit-value
           map-options
           required
-          class="w-full"
         />
 
         <!-- OLT ip select field -->
@@ -190,7 +190,6 @@
           optionLabel="label"
           optionValue="value"
           required
-          class="w-full"
         />
       </div>
 
@@ -416,7 +415,7 @@ const networkSiteOltIp = ref<IOltSiteByIp[]>([]);
 const selectedLocation = ref("");
 // Define select location options as object
 const locations = ref([
-  { label: "Select Location", value: "" },
+  { label: "UAT", value: "UAT" },
   { label: "CDO", value: "CDO" },
   { label: "MALAYBALAY", value: "MALAYBALAY" },
   { label: "DAVAO", value: "DAVAO" },
@@ -588,7 +587,7 @@ const NewClient = reactive({
 });
 
 const provisionClient = async (clientData: typeof NewClient): Promise<void> => {
-  $q.loading.show();
+  // $q.loading.show();
   showSkeletonDancing.value = true;
   showProvisionResult.value = false;
 
@@ -625,9 +624,9 @@ const provisionClient = async (clientData: typeof NewClient): Promise<void> => {
       clientData.serialAndMac.macAddress,
       clientData.oltIp,
       clientData.packageType,
-      clientData.newOltId,
-      clientData.oltReportedDownstream,
-      clientData.oltReportedUpstream
+      clientData.newOltId
+      // clientData.oltReportedDownstream,
+      // clientData.oltReportedUpstream
     );
     if (response) {
       responses.autoConfig = response.message;
@@ -673,7 +672,7 @@ const provisionClient = async (clientData: typeof NewClient): Promise<void> => {
 // Stop client provision
 const stopProvisionFunction = () => {
   showSkeletonDancing.value = false;
-  $q.loading.hide();
+  // $q.loading.hide();
 };
 
 // Method to trigger form activate button in modal
