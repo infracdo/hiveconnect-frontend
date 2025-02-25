@@ -9,6 +9,7 @@ import {
   IOlt,
   IPackageDetails,
   INetworkAddresses,
+  IHiveClient,
 } from "./types";
 import { auth } from "src/stores/auth";
 const deviceStore = useDevicesStore();
@@ -150,7 +151,7 @@ export const getClients = async (): Promise<IClient[]> => {
 };
 
 // GET: /getprovisionedsubscribers
-export const getProvisionedHiveClients = async (): Promise<IClient[]> => {
+export const getProvisionedHiveClients = async (): Promise<IHiveClient[]> => {
   try {
     console.log(
       "front end accessing backend hive api /getprovisionedsubscribers"
@@ -200,8 +201,11 @@ export const getHiveClientById = async (id: number): Promise<IClient> => {
 
 //<-------------------------- FOR MIGRATION ------------------------------------->
 // GET: /getmigratingsubscribers
-export const getForMigrationSubscribers = async () => {
+export const getForMigrationSubscribers = async (): Promise<IHiveClient[]> => {
   try {
+    console.log(
+      "front end accessing backend hive api /getprovisionedsubscribers"
+    );
     const { data } = await api.get("/getmigratingsubscribers");
     console.log("Retrieved For Migration Subscribers data: ", data);
     return data;
