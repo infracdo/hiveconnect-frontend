@@ -17,7 +17,7 @@ const networkStore = useNetworkStore();
 const kc = auth();
 
 const API_BASE_URL = process.env.PROVISION_API_URL;
-// const JWT_TOKEN = import.meta.env.VITE_PROVISION_BEARER_TOKEN;
+const JWT_TOKEN = import.meta.env.VITE_PROVISION_BEARER_TOKEN;
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -25,15 +25,15 @@ const api = axios.create({
   timeout: 0,
 });
 
-// api.interceptors.request.use(
-//   (config) => {
-//     config.headers.Authorization = `Bearer ${JWT_TOKEN}`;
-//     return config;
-//   },
-//   (error) => {
-//     return Promise.reject(error);
-//   }
-// );
+api.interceptors.request.use(
+  (config) => {
+    config.headers.Authorization = `Bearer ${JWT_TOKEN}`;
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
 
 // export const getDevices = async (): Promise<IRogueDevices[]> => {
 //   try {

@@ -37,7 +37,13 @@ export default boot(({ app, router }) => {
     .then((authenticated) => {
       if (authenticated) {
         app.config.globalProperties.$keycloak = keycloak;
+        console.log("jwt token", JWT_TOKEN);
+
         axios.defaults.headers.common["Authorization"] = "Bearer " + JWT_TOKEN;
+        console.log(
+          "auth header",
+          axios.defaults.headers.common["Authorization"]
+        );
 
         const realmRoles = keycloak.tokenParsed?.realm_access?.roles || [];
         let resourceRoles: string[] = [];
@@ -126,7 +132,6 @@ export default boot(({ app, router }) => {
       to.meta.roles.some((role) => resourceRoles.includes(role))
     ) {
       // TODO; LOG USER ACCESS TO ROUTES
-      console.log("jwt token", JWT_TOKEN);
       console.log(
         "user " +
           keycloak.tokenParsed.preferred_username +
@@ -138,9 +143,6 @@ export default boot(({ app, router }) => {
       next(); // Exit after the first match
     } else {
       // TODO; LOG USER ACCESS TO ROUTES
-      console.log(
-        `user ${keycloak.tokenParsed.preferred_username} attempted to access route ${to.path} but does not have the required roles`
-      );
       console.log(
         `user:${keycloak.tokenParsed.preferred_username} client ip:${navigator.userAgent} ${navigator.userAgent} ${to.path} but does not have the required roles`
       );
