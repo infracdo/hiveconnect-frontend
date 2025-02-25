@@ -126,7 +126,6 @@ export default boot(({ app, router }) => {
       to.meta.roles.some((role) => resourceRoles.includes(role))
     ) {
       // TODO; LOG USER ACCESS TO ROUTES
-      console.log("jwt token", JWT_TOKEN);
       console.log(
         "user " +
           keycloak.tokenParsed.preferred_username +
@@ -141,6 +140,7 @@ export default boot(({ app, router }) => {
       console.log(
         `user ${keycloak.tokenParsed.preferred_username} attempted to access route ${to.path} but does not have the required roles`
       );
+
       console.log(
         `user:${keycloak.tokenParsed.preferred_username} client ip:${navigator.userAgent} ${navigator.userAgent} ${to.path} but does not have the required roles`
       );
