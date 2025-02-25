@@ -36,6 +36,25 @@ export interface IClient {
   ssidName: string;
 }
 
+export interface IHiveClient {
+  id: number;
+  subscriberAccountNumber: string;
+  clientName: string; //added 10-22-24
+  ipAssigned: string;
+  onuSerialNumber: string;
+  site: string;
+  oltIp: string;
+  oltInterface: string;
+  onuMacAddress: string;
+  onuDeviceName: string;
+  packageType: string;
+  oltReportedUpstream: number;
+  oltReportedDownstream: number;
+  provision: string;
+  status: string;
+  ssidName: string;
+}
+
 export interface IMigrationSubscriber {
   id: number;
   subscriberAccountNumber: string;
