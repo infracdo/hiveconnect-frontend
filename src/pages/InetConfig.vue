@@ -604,10 +604,16 @@ const provisionClient = async (clientData: typeof NewClient): Promise<void> => {
     );
     if (response) {
       responses.autoConfig = response.message;
+      ssid.name = response.ssid_name;
+      ssid.pw = response.ssid_pw;
       responseStatus.autoConfig = true;
     }
-  } catch (error) {
-    responses.autoConfig = "Error: " + error;
+  } catch (error: any) {
+    if (error.response.data.message !== "") {
+      responses.autoConfig = error.response.data.message;
+    } else {
+      responses.autoConfig = "Something went wrong!";
+    }
     return stopProvisionFunction();
   }
 
@@ -626,8 +632,6 @@ const provisionClient = async (clientData: typeof NewClient): Promise<void> => {
     );
     if (response) {
       responses.monitoring = response.message;
-      ssid.name = response.ssid_name;
-      ssid.pw = response.ssid_pw;
       responseStatus.monitoring = true;
     }
   } catch (error: any) {
