@@ -329,14 +329,23 @@ const responseStatus = reactive({
   provisionCheck: false,
 });
 
-// Define to be displayed columns
-const visibleColumns = ref([
-  "newSubscriberId",
-  "subscriberAccountNumber",
-  "subscriberName",
-  "packageType",
-  "actions",
-]);
+// When user checks/unchecks an option in the 'Select visible columns' dropdown, it will then save the current state at that point in the local storage
+// --- the moment that state is stored in the local storage, it will always display that column/s even if the page reloads or you navigate to another page
+// --- unless you change the current state (select/deselect an option)
+const savedVisibleColumns = localStorage.getItem("visibleColumns");
+
+// Initial displayed columns
+const visibleColumns = ref<string[]>(
+  savedVisibleColumns
+    ? JSON.parse(savedVisibleColumns)
+    : [
+        "newSubscriberId",
+        "subscriberAccountNumber",
+        "subscriberName",
+        "packageType",
+        "actions",
+      ]
+);
 
 // Options for selecting visible columns
 const columnOptions = ref([
@@ -384,7 +393,7 @@ const locations = ref([
 ]);
 
 // Count total number of rows (clients) to display it in the description
-const clientCount = computed(() => rows.value.length);
+const clientCount = computed(() => rows.value.length || 0);
 
 // Method to remove leading whitespace in inputs during typing
 const noLeadingWhitespace = (event: Event) => {
@@ -395,7 +404,7 @@ const noLeadingWhitespace = (event: Event) => {
 
 // Filter rows based on search term
 const filteredRows = computed(() => {
-  return searchRows(rows.value, filter.value);
+  return searchRows([...rows.value], filter.value);
 });
 
 // Function to update the filter value when the user types in the SearchBar
@@ -404,8 +413,12 @@ const handleSearch = (event: KeyboardEvent) => {
 };
 
 const handleColumnSelect = (selectedOptions: string[]) => {
-  visibleColumns.value = selectedOptions;
-  localStorage.setItem("visibleColumns", JSON.stringify(selectedOptions));
+  if (
+    JSON.stringify(visibleColumns.value) !== JSON.stringify(selectedOptions)
+  ) {
+    visibleColumns.value = selectedOptions;
+    localStorage.setItem("visibleColumns", JSON.stringify(selectedOptions));
+  }
 };
 
 const openModal = async (newSubscriberId: number) => {
@@ -459,10 +472,7 @@ const getAllClients = async () => {
 // Filter the network sites according to the location selected by user in the modal form
 // Returns a list of network sites in 'Select Network Site (VLAN)' select field if OLT network site matches the selected location
 const filterNetworkSites = () => {
-  // Log the selected location being filtered
   console.log("Filtering network sites by location:", selectedLocation.value);
-
-  // Log the original network sites before filtering
   console.log("Original network sites:", networkSites.value);
 
   // Get the full location name from the location mapping

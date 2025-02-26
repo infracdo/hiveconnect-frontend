@@ -15,9 +15,6 @@
             icon
           "
         />
-        <!-- <q-icon class="text-black" size="sm"> -->
-        <!--   <img svg-inline :src="'../assets/' + icon + '.svg'" /> -->
-        <!-- </q-icon> -->
         <p class="text-sm text-gray-iron-700 group-hover/tile:text-black">
           {{ title }}
         </p>
@@ -26,36 +23,27 @@
   </button>
 </template>
 
-<!-- TODO: convert this to setup script with typescript language -->
-<script>
-export default {
-  name: "DrawerTile",
-  props: {
-    title: {
-      type: String,
-      required: true,
-    },
-    icon: {
-      type: String,
-    },
-    to: {
-      type: String,
-    },
-  },
-  data() {
-    return {
-      isActive: false,
-    };
-  },
-  methods: {
-    navigate() {
-      this.$router.push({ name: this.to });
-    },
-  },
+<script setup lang="ts">
+import { ref } from "vue";
+import { useRouter } from "vue-router";
+
+const props = defineProps<{
+  title: string;
+  icon?: string;
+  to?: string;
+}>();
+
+const isActive = ref(false);
+const router = useRouter();
+
+const navigate = () => {
+  if (props.to) {
+    router.push({ name: props.to });
+  }
 };
 </script>
 
-<style scoped lang="css">
+<style scoped>
 .drawer-bit {
   width: 3px;
   height: 16px;

@@ -173,9 +173,16 @@ const filter = ref("");
 const modalOpen = ref(false);
 const loading = ref(false);
 
+// When user checks/unchecks an option in the 'Select visible columns' dropdown, it will then save the current state at that point in the local storage
+// --- the moment that state is stored in the local storage, it will always display that column/s even if the page reloads or you navigate to another page
+// --- unless you change the current state (select/deselect an option)
+const savedVisibleColumns = localStorage.getItem("visibleColumns");
+
 // Define shown columns by default
-const visibleColumns = ref(
-  store.$state.migrationSubscriberColumns?.map((col) => col.name) || []
+const visibleColumns = ref<string[]>(
+  savedVisibleColumns
+    ? JSON.parse(savedVisibleColumns)
+    : store.$state.migrationSubscriberColumns?.map((col) => col.name) || []
 );
 
 // Options for selecting visible columns
@@ -195,23 +202,11 @@ const statusOptions = ref([
 ]);
 
 // Count total number of rows (clients) to display it in the description
-const clientCount = computed(() => rows.value.length);
+const clientCount = computed(() => rows.value.length || 0);
 
 // Filter rows based on search term by using search utility
 const filteredRows = computed(() => {
-  let filtered = rows.value;
-
-  if (filter.value) {
-    filtered = searchRows(rows.value, filter.value);
-  }
-
-  if (selectedStatus.value) {
-    filtered = filtered.filter((row) =>
-      row.status.startsWith(selectedStatus.value)
-    );
-  }
-
-  return filtered;
+  return searchRows([...rows.value], filter.value);
 });
 
 const openModal = async (id: number) => {
@@ -249,8 +244,12 @@ const handleStatusSelect = (status: { label: string; value: string }) => {
 };
 
 const handleColumnSelect = (selectedOptions: string[]) => {
-  visibleColumns.value = selectedOptions;
-  localStorage.setItem("visibleColumns", JSON.stringify(selectedOptions));
+  if (
+    JSON.stringify(visibleColumns.value) !== JSON.stringify(selectedOptions)
+  ) {
+    visibleColumns.value = selectedOptions;
+    localStorage.setItem("visibleColumns", JSON.stringify(selectedOptions));
+  }
 };
 
 // Function to update the filter value when the user types in the SearchBar

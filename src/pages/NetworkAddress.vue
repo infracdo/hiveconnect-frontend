@@ -102,7 +102,7 @@ const networkAddressCount = computed(() => rows.value.length);
 
 // Display row/s based on search term
 const filteredRows = computed(() => {
-  return searchRows(rows.value, filter.value);
+  return searchRows([...rows.value], filter.value);
 });
 
 // Method triggered when entering in SearchBar

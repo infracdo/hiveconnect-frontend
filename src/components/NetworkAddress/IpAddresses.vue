@@ -161,20 +161,18 @@
 <script setup lang="ts">
 import { useIpAddressStore } from "../../stores/network-address/ip-address";
 import { ref, watchEffect, computed } from "vue";
-
 import { useRoute, useRouter } from "vue-router";
 import { getIpAddresses } from "src/api/HiveConnectApis/hiveConnect";
 import { IipAddressesOfCidrBlock } from "src/api/HiveConnectApis/types";
-
-//* RECENTLY ADDED *//
+import { toInitialCapital } from "src/util/string";
+import { searchRows } from "src/util/search";
 import Buttons from "../inputs/Buttons.vue";
 import Table from "../Table.vue";
 import SearchBar from "../SearchBar.vue";
-import { toInitialCapital } from "src/util/string";
 
 const route = useRoute();
 const storeIp = useIpAddressStore();
-
+const router = useRouter();
 const columns = storeIp.$state.ipAddressColumn?.length
   ? storeIp.$state.ipAddressColumn
   : [];
@@ -186,9 +184,6 @@ watchEffect(async () => {
   rows.value = await getIpAddresses(ipAddress);
 });
 
-//* RECENTLY ADDED *//
-const router = useRouter();
-
 const networkAddressData = ref(
   (router.options.history.state as { networkAddressData?: any })
     ?.networkAddressData || {}
@@ -199,20 +194,10 @@ const handleSearch = (event: KeyboardEvent) => {
 };
 
 const filteredRows = computed(() => {
-  if (!filter.value) return rows.value;
-
-  return rows.value.filter((row) =>
-    Object.values(row).some(
-      (value) =>
-        value &&
-        value.toString().toLowerCase().includes(filter.value.toLowerCase())
-    )
-  );
+  return searchRows([...rows.value], filter.value);
 });
 
 const goBack = () => {
   router.push({ name: "network-address" });
 };
 </script>
-
-<style scoped></style>

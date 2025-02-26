@@ -31,7 +31,7 @@
       </div>
     </button>
 
-    <!-- Accordion content with transition -->
+    <!-- Accordion content -->
     <div
       ref="accordionContent"
       :style="{ maxHeight: isOpen ? contentHeight + 'px' : '0px' }"
@@ -42,43 +42,33 @@
   </div>
 </template>
 
-<script>
-export default {
-  name: "DrawerExpansionTile",
-  props: {
-    title: {
-      type: String,
-      required: true,
-    },
-    icon: {
-      type: String,
-    },
-    to: {
-      type: String,
-    },
-  },
-  data() {
-    return {
-      isOpen: false, // Track the open/closed state of the accordion
-      contentHeight: 0, // Height of the content for smooth transition
-    };
-  },
-  methods: {
-    toggleAccordion() {
-      this.isOpen = !this.isOpen;
-      this.updateContentHeight();
-    },
-    updateContentHeight() {
-      // Use the ref to get the content height
-      this.$nextTick(() => {
-        this.contentHeight = this.$refs.accordionContent.scrollHeight;
-      });
-    },
-  },
-  mounted() {
-    this.updateContentHeight(); // Set initial height for transition
-  },
+<script setup lang="ts">
+import { ref, nextTick, onMounted } from "vue";
+
+defineProps<{
+  title: string;
+  icon?: string;
+  to?: string;
+}>();
+
+const isOpen = ref(false);
+const contentHeight = ref(0);
+const accordionContent = ref<HTMLElement | null>(null);
+
+const toggleAccordion = () => {
+  isOpen.value = !isOpen.value;
+  updateContentHeight();
 };
+
+const updateContentHeight = () => {
+  nextTick(() => {
+    if (accordionContent.value) {
+      contentHeight.value = accordionContent.value.scrollHeight;
+    }
+  });
+};
+
+onMounted(updateContentHeight);
 </script>
 
 <style scoped>

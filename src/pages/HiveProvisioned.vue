@@ -124,10 +124,13 @@ const loading = ref(false);
 //   "actions",
 // ]);
 
-const openTroubleshootModal = (onuDeviceName: string, id: number) => {
+const openTroubleshootModal = (
+  onuDeviceName: string,
+  newSubscriberId: number
+) => {
   deviceName.value = onuDeviceName;
-  console.log(typeof id, " id value is ", id);
-  clientId.value = id;
+  console.log(typeof newSubscriberId, " id value is ", newSubscriberId);
+  clientId.value = newSubscriberId;
   openTroubleShootModal.value = !openTroubleShootModal.value;
 };
 
@@ -151,7 +154,7 @@ const getProvisioned = async (): Promise<void> => {
 
 // Filter rows based on search term
 const filteredRows = computed(() => {
-  return searchRows(rowsHive.value, filter.value);
+  return searchRows([...rowsHive.value], filter.value);
 });
 
 // Function to update the filter value when the user enters something in the SearchBar
@@ -257,10 +260,14 @@ const visibleColumns = ref<string[]>(
 
 // Method to display columns when selected in 'Select visible columns'
 const handleColumnSelect = (selectedOptions: string[]) => {
-  visibleColumns.value = selectedOptions;
-  localStorage.setItem("visibleColumns", JSON.stringify(selectedOptions));
+  if (
+    JSON.stringify(visibleColumns.value) !== JSON.stringify(selectedOptions)
+  ) {
+    visibleColumns.value = selectedOptions;
+    localStorage.setItem("visibleColumns", JSON.stringify(selectedOptions));
+  }
 };
 
 // Count total rows (clients) to display in the description
-const clientCount = computed(() => rowsHive.value.length);
+const clientCount = computed(() => rowsHive.value.length || 0);
 </script>

@@ -20,28 +20,22 @@
   </button>
 </template>
 
-<!-- TODO: convert this to setup script with typescript language-->
-<script>
-export default {
-  name: "DrawerTileChild",
-  props: {
-    title: {
-      type: String,
-      required: true,
-    },
-    to: {
-      type: String,
-    },
-  },
-  methods: {
-    navigate() {
-      this.$router.push({ name: this.to });
-    },
-  },
+<script setup lang="ts">
+import { useRouter } from "vue-router";
+
+const props = defineProps<{
+  title: string;
+  to?: string;
+}>();
+
+const router = useRouter();
+
+const navigate = () => {
+  router.push({ name: props.to });
 };
 </script>
 
-<style scoped lang="css">
+<style scoped>
 .drawer-bit {
   width: 3px;
   height: 16px;

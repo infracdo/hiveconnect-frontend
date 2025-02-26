@@ -42,28 +42,23 @@ import { ref, onMounted, computed } from "vue";
 import { useDevicesStore } from "src/stores/rogue-device/rogue-devices";
 import { IRogueDevices } from "src/api/HiveConnectApis/types";
 import { getDevices } from "src/api/HiveConnectApis/hiveConnect";
-
-// Recently added
 import Table from "src/components/Table.vue";
 
 const store = useDevicesStore();
 const tableRow = ref<IRogueDevices[]>([]);
-// Recently updated: returns null if data is undefined
-// TODO: re-check this part
 const columns: QTableProps["columns"] = store.$state.devicesColumn || [];
 const loading = ref<boolean>(false);
+
+// Count total number of rows (devices) to display in the page description
+const rogueDeviceCount = computed(() => tableRow.value.length || 0);
 
 onMounted(async () => {
   loading.value = true;
   try {
     tableRow.value = await getDevices();
-  } catch (error) {}
+  } catch (error) {
+    console.log("Error fetching devices for Rogue Devices page: ", error);
+  }
   loading.value = false;
 });
-
-// Recently added
-// Count total number of rows (devices) to display in the page description
-const rogueDeviceCount = computed(() => tableRow.value.length);
 </script>
-
-<style scoped></style>
