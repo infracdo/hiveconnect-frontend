@@ -15,7 +15,7 @@
           : {
               width: '650px',
               maxWidth: '100%',
-              height: '200px',
+              height: '300px',
               maxHeight: '100',
               display: 'flex',
               flexDirection: 'column',
@@ -54,8 +54,8 @@
                   <span
                     :class="
                       props.responseStatus.provisionCheck
-                        ? 'text-positive'
-                        : 'text-warning'
+                        ? 'text-success-500'
+                        : 'text-error-500'
                     "
                   >
                     {{ props.responses.provisionCheck }}
@@ -84,8 +84,8 @@
                   <span
                     :class="
                       props.responseStatus.autoConfig
-                        ? 'text-positive'
-                        : 'text-warning'
+                        ? 'text-success-500'
+                        : 'text-error-500'
                     "
                   >
                     {{ props.responses.autoConfig }}
@@ -101,22 +101,22 @@
             <p
               class="uppercase font-semibold q-mb-lg"
               :class="
-                props.responseStatus.autoConfig &&
-                props.responseStatus.monitoring
+                props.responseStatus.provisionCheck &&
+                props.responseStatus.autoConfig
                   ? 'text-success-700'
                   : 'text-error-700'
               "
             >
               {{
-                props.responseStatus.autoConfig &&
-                props.responseStatus.monitoring
+                props.responseStatus.provisionCheck &&
+                props.responseStatus.autoConfig
                   ? " Successful Provision!"
                   : "Unsuccessful Provision!"
               }}
             </p>
 
             <div
-              v-if="props.ssid.name || props.ssid.pw"
+              v-if="props.responseStatus.autoConfig"
               style="display: flex; justify-content: space-evenly"
             >
               <div class="flex flex-col gap-1">
@@ -157,16 +157,7 @@
 
 <script setup lang="ts">
 import { reactive, ref, watch } from "vue";
-// import { useQuasar } from "quasar";
-// import {
-//   executeAutoConfig,
-//   executeMonitoring,
-//   preProvisionCheck,
-// } from "src/api/HiveConnectApis/hiveConnect";
-// import { IsubsriberType, IserialAndMac } from "../models";
 import Buttons from "../inputs/Buttons.vue";
-
-// const $q = useQuasar();
 
 const props = defineProps<{
   isVisible: boolean;
@@ -188,6 +179,8 @@ const props = defineProps<{
 }>();
 
 const localIsVisible = ref(props.isVisible);
+console.log("SSID in ProvisionClient.vue: ", props.ssid.name);
+console.log("Password in ProvisionClient.vue: ", props.ssid.pw);
 
 const emit = defineEmits<{
   (event: "update:isVisible", value: boolean): void;

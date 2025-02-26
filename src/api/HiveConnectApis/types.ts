@@ -34,6 +34,7 @@ export interface IClient {
   oltReportedUpstream: number;
   oltReportedDownstream: number;
   ssidName: string;
+  status: string;
 }
 
 export interface IMigrationSubscriber {

@@ -126,32 +126,19 @@ import DropdownButton from "src/components/DropdownButton.vue";
 import Card from "src/components/Card.vue";
 import logUserAction from "src/util/logservice";
 
-const selectSubscriber = ref("");
 const selectOptions = ref<{ label: string; value: string }[]>([]);
-const doneApiCalls = ref(false);
+const selectSubscriber = ref("");
 const selectTime = ref("2d");
+const onuStatus = ref<string | null>(null);
+const oltStatus = ref<string | null>(null);
+const doneApiCalls = ref(false);
+const prometheusApi = process.env.PROVISION_API_PROMETHEUS;
+const grafanaApi = process.env.PROVISION_API_GRAFANA;
 
 const onuInfo = ref({
   instance: "",
   site_name: "",
 });
-const onuStatus = ref<string | null>(null);
-const oltStatus = ref<string | null>(null);
-const prometheusApi = process.env.PROVISION_API_PROMETHEUS;
-const grafanaApi = process.env.PROVISION_API_GRAFANA;
-const timeOptions = [
-  { label: "No Evaluation Time", value: "" },
-  { label: "Last 5 minutes", value: "5m" },
-  { label: "Last 15 minutes", value: "15m" },
-  { label: "Last 30 minutes", value: "30m" },
-  { label: "Last 1 hour", value: "1h" },
-  { label: "Last 3 hours", value: "3h" },
-  { label: "Last 6 hours", value: "6h" },
-  { label: "Last 12 hours", value: "12h" },
-  { label: "Last 24 hours", value: "24h" },
-  { label: "Last 2 days", value: "2d" },
-  { label: "Last 90 days", value: "90d" },
-];
 
 const clientInfo = reactive({
   accountNumber: "",
@@ -168,6 +155,35 @@ const bandwidth = reactive({
   upStream: "",
   downStream: "",
 });
+
+const timeOptions = [
+  { label: "No Evaluation Time", value: "" },
+  { label: "Last 5 minutes", value: "5m" },
+  { label: "Last 15 minutes", value: "15m" },
+  { label: "Last 30 minutes", value: "30m" },
+  { label: "Last 1 hour", value: "1h" },
+  { label: "Last 3 hours", value: "3h" },
+  { label: "Last 6 hours", value: "6h" },
+  { label: "Last 12 hours", value: "12h" },
+  { label: "Last 24 hours", value: "24h" },
+  { label: "Last 2 days", value: "2d" },
+  { label: "Last 90 days", value: "90d" },
+];
+
+const handleSelectTime = (selectedTime: string) => {
+  selectTime.value = selectedTime;
+};
+
+const handleSelectSubscriber = (selectedSubscriber: string) => {
+  selectSubscriber.value = selectedSubscriber;
+  fetchClientInfo(selectedSubscriber);
+  console.log("Selected Subscriber: ", selectSubscriber);
+  console.log(
+    `user ${
+      keycloak.tokenParsed.given_name
+    } has accessed the subscriber details of ${selectedSubscriber.toString()}`
+  );
+};
 
 // Fetch subscribers to populate the dropdown
 const fetchSubscribers = async () => {
@@ -261,59 +277,6 @@ const getInfoApiPrometheus = async (deviceName: string) => {
 onMounted(() => {
   fetchSubscribers();
 });
-
-const handleSelectTime = (selectedTime: string) => {
-  selectTime.value = selectedTime;
-};
-
-const handleSelectSubscriber = (selectedSubscriber: string) => {
-  selectSubscriber.value = selectedSubscriber;
-  fetchClientInfo(selectedSubscriber);
-  console.log("Selected Subscriber: ", selectSubscriber);
-  console.log(
-    `user ${
-      keycloak.tokenParsed.given_name
-    } has accessed the subscriber details of ${selectedSubscriber.toString()}`
-  );
-};
-
-const troubleshootHeaders = [
-  {
-    name: "clientName",
-    label: "Client Name",
-  },
-  {
-    name: "accountNumber",
-    label: "Account Number",
-  },
-  {
-    name: "packageType",
-    label: "Package Type",
-  },
-  {
-    name: "onuStatus",
-    label: "ONU Status",
-  },
-];
-
-const troubleshootItems = [
-  {
-    externalKey: 2,
-    clientName: "Test",
-    accountNumber: "123456789",
-    packageType: "PLAN999",
-    onuStatus: "Online",
-  },
-  {
-    externalKey: 2,
-    clientName: "Test",
-    accountNumber: "123456789",
-    packageType: "PLAN999",
-    onuStatus: "Online",
-  },
-];
-
-// ------------------------------- >
 </script>
 
 <style scoped>

@@ -38,6 +38,13 @@
               @click="getProvisioned"
             />
 
+            <DropdownButton
+              @select="handleStatusSelect"
+              :columnOptions="statusOptions"
+              :selectedOptions="selectedStatus"
+              label="Select Status"
+            />
+
             <!-- Dropdown button to select which columns should be displayed in the table -->
             <DropdownButton
               @select="handleColumnSelect"
@@ -89,7 +96,7 @@
 
 <script setup lang="ts">
 import { onMounted, ref, computed } from "vue";
-import Swal from "sweetalert2";
+import { useRoute } from "vue-router";
 import { getHiveClients } from "src/api/HiveConnectApis/hiveConnect";
 import { useSubscriberStore } from "src/stores/subscriber/subscriber-store";
 import { useClientStore } from "src/stores/subscriber/client-store";
@@ -99,70 +106,17 @@ import TroubleshootClient from "src/components/InetConfig/TroubleshootClient.vue
 import SearchBar from "src/components/SearchBar.vue";
 import DropdownButton from "src/components/DropdownButton.vue";
 import Table from "src/components/Table.vue";
-import Modal from "src/components/Modal.vue";
-import Buttons from "src/components/inputs/Buttons.vue";
-import Selects from "src/components/inputs/Selects.vue";
-import Inputs from "src/components/inputs/Inputs.vue";
 
+const route = useRoute();
 const store = useClientStore();
 const columns = store.$state.subscribercolumns || [];
 const rowsHive = ref<IClient[]>([]);
 const deviceName = ref("");
+const filter = ref("");
+const selectedStatus = ref("");
 const clientId = ref(0);
 const openTroubleShootModal = ref(false);
-const filter = ref("");
 const loading = ref(false);
-// const visibleColumns = ref([
-//   "subscriberAccountNumber",
-//   "subscriberName",
-//   "ipAssigned",
-//   "onuSerialNumber",
-//   "onuMacAddress",
-//   "oltIp",
-//   "packageType",
-//   "ssidName",
-//   "actions",
-// ]);
-
-const openTroubleshootModal = (
-  onuDeviceName: string,
-  newSubscriberId: number
-) => {
-  deviceName.value = onuDeviceName;
-  console.log(typeof newSubscriberId, " id value is ", newSubscriberId);
-  clientId.value = newSubscriberId;
-  openTroubleShootModal.value = !openTroubleShootModal.value;
-};
-
-const closeTroubleShootModal = () => {
-  openTroubleShootModal.value = !openTroubleShootModal.value;
-};
-
-onMounted(async () => {
-  await getProvisioned();
-});
-
-const getProvisioned = async (): Promise<void> => {
-  filter.value = "";
-  loading.value = true;
-  rowsHive.value = [];
-  try {
-    rowsHive.value = await getHiveClients();
-  } catch (error) {}
-  loading.value = false;
-};
-
-// Filter rows based on search term
-const filteredRows = computed(() => {
-  return searchRows([...rowsHive.value], filter.value);
-});
-
-// Function to update the filter value when the user enters something in the SearchBar
-const handleSearch = (event: KeyboardEvent) => {
-  filter.value = (event.target as HTMLInputElement).value;
-};
-
-// Initialize modal display to false
 const modalIsVisible = ref(false);
 
 // NOTE: for testing purposes only remove this!!!
@@ -199,6 +153,96 @@ const client = ref(<Client>{
   oltInterface: "",
 });
 
+// Store visible columns' state differently for each pagey using storageKey
+const storageKey = `visibleColumns-${route.path}`;
+
+// When user checks/unchecks an option in the 'Select visible columns' dropdown, it will then save the current state at that point in the local storage
+// --- the moment that state is stored in the local storage, it will always display that column/s even if the page reloads or you navigate to another page
+// --- unless you change the current state (select/deselect an option)
+const savedVisibleColumns = localStorage.getItem(storageKey);
+
+// Count total rows (clients) to display in the description
+const clientCount = computed(() => rowsHive.value.length || 0);
+
+// Options for select status dropdown button
+const statusOptions = ref([
+  { label: "All", value: "" },
+  { label: "Active", value: "ACTIVE" },
+  { label: "Onhold", value: "ONHOLD" },
+]);
+
+// Initial displayed columns
+const visibleColumns = ref<string[]>(
+  savedVisibleColumns
+    ? JSON.parse(savedVisibleColumns)
+    : [
+        "id",
+        "subscriberAccountNumber",
+        "clientName",
+        "packageType",
+        "onuDeviceName",
+        "ipAssigned",
+        "onuSerialNumber",
+        "onuMacAddress",
+        "oltIp",
+        "status",
+        "ssidName",
+        "actions",
+      ]
+);
+
+// Select visible columns options
+const columnOptions = ref([
+  { value: "id", label: "ID" },
+  { value: "subscriberAccountNumber", label: "Acount No." },
+  { value: "clientName", label: "Subscriber Name" },
+  { value: "packageType", label: "Package Type" },
+  { value: "onuDeviceName", label: "Device Name" },
+  { value: "ipAssigned", label: "IP Assigned" },
+  { value: "onuSerialNumber", label: "ONU Serial Number" },
+  { value: "onuMacAddress", label: "ONU Mac Address" },
+  { value: "oltIp", label: "OLT IP" },
+  { value: "status", label: "STATUS" },
+  { value: "ssidName", label: "SSID" },
+  { value: "actions", label: "Actions" },
+]);
+
+// Filter rows based on search term or selected status in the dropdown
+const filteredRows = computed(() => {
+  let filtered = rowsHive.value;
+
+  if (filter.value) {
+    searchRows([...rowsHive.value], filter.value);
+  }
+
+  if (selectedStatus.value) {
+    filtered = filtered.filter((row) =>
+      row.status.startsWith(selectedStatus.value)
+    );
+  }
+
+  return filtered;
+});
+
+// Function to update the filter value when the user enters something in the SearchBar
+const handleSearch = (event: KeyboardEvent) => {
+  filter.value = (event.target as HTMLInputElement).value;
+};
+
+const handleStatusSelect = (status: { label: string; value: string }) => {
+  selectedStatus.value = status.value;
+};
+
+// Method to display columns when selected in 'Select visible columns'
+const handleColumnSelect = (selectedOptions: string[]) => {
+  if (
+    JSON.stringify(visibleColumns.value) !== JSON.stringify(selectedOptions)
+  ) {
+    visibleColumns.value = selectedOptions;
+    localStorage.setItem(storageKey, JSON.stringify(selectedOptions));
+  }
+};
+
 // Method to display modal when the action button in row is clicked
 const openModal = (row: any) => {
   client.value = {
@@ -220,54 +264,36 @@ const openModal = (row: any) => {
   modalIsVisible.value = true;
 };
 
-//* RECENTLY ADDED *//
-
-// Select visible columns options
-const columnOptions = ref([
-  { value: "id", label: "ID" },
-  { value: "subscriberAccountNumber", label: "Acount No." },
-  { value: "subscriberName", label: "Subscriber Name" },
-  { value: "packageType", label: "Package Type" },
-  { value: "onuDeviceName", label: "Device Name" },
-  { value: "ipAssigned", label: "IP Assigned" },
-  { value: "onuSerialNumber", label: "ONU Serial Number" },
-  { value: "onuMacAddress", label: "ONU Mac Address" },
-  { value: "oltIp", label: "OLT IP" },
-  { value: "status", label: "STATUS" },
-  { value: "ssidName", label: "SSID" },
-]);
-
-// Load saved data from localStorage on component mount
-const savedVisibleColumns = localStorage.getItem("visibleColumns");
-
-// Initial displayed columns
-const visibleColumns = ref<string[]>(
-  savedVisibleColumns
-    ? JSON.parse(savedVisibleColumns)
-    : [
-        "subscriberAccountNumber",
-        "subscriberName",
-        "packageType",
-        "ipAssigned",
-        "onuSerialNumber",
-        "onuMacAddress",
-        "oltIp",
-        "site",
-        "ssidName",
-        "actions",
-      ]
-);
-
-// Method to display columns when selected in 'Select visible columns'
-const handleColumnSelect = (selectedOptions: string[]) => {
-  if (
-    JSON.stringify(visibleColumns.value) !== JSON.stringify(selectedOptions)
-  ) {
-    visibleColumns.value = selectedOptions;
-    localStorage.setItem("visibleColumns", JSON.stringify(selectedOptions));
-  }
+// Method to open the troubleshoot modal
+// NOTE: i still haven't seen this modal in action since there are issues while opening this modal
+const openTroubleshootModal = (
+  onuDeviceName: string,
+  newSubscriberId: number
+) => {
+  deviceName.value = onuDeviceName;
+  console.log(typeof newSubscriberId, " id value is ", newSubscriberId);
+  clientId.value = newSubscriberId;
+  openTroubleShootModal.value = !openTroubleShootModal.value;
 };
 
-// Count total rows (clients) to display in the description
-const clientCount = computed(() => rowsHive.value.length || 0);
+// Method to close the troubleshoot modal
+// NOTE: i still haven't seen this modal in action since there are issues while opening this modal
+const closeTroubleShootModal = () => {
+  openTroubleShootModal.value = !openTroubleShootModal.value;
+};
+
+// Method to fetch the provisioned subscribers data through API
+const getProvisioned = async (): Promise<void> => {
+  filter.value = "";
+  loading.value = true;
+  rowsHive.value = [];
+  try {
+    rowsHive.value = await getHiveClients();
+  } catch (error) {}
+  loading.value = false;
+};
+
+onMounted(async () => {
+  await getProvisioned();
+});
 </script>

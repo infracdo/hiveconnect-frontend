@@ -211,6 +211,7 @@
 <script setup lang="ts">
 import { QTableProps, useQuasar } from "quasar";
 import { ref, watchEffect, watch, onMounted, computed, reactive } from "vue";
+import { useRoute } from "vue-router";
 import Swal from "sweetalert2";
 import { useSubscriberStore } from "src/stores/subscriber/subscriber-store";
 import {
@@ -239,33 +240,34 @@ import Inputs from "src/components/inputs/Inputs.vue";
 import Selects from "src/components/inputs/Selects.vue";
 import ProvisionClient from "src/components/InetConfig/ProvisionClient.vue";
 
+const route = useRoute();
 const $q = useQuasar();
 const store = useSubscriberStore();
 const columns: QTableProps["columns"] = store.$state.subscribercolumns?.length
   ? store.$state.subscribercolumns
   : [];
 const rows = ref<IClient[]>([]);
-const dataId = ref<string>();
-const filter = ref("");
-const result = ref("");
-const modalOpen = ref(false);
-const inputValue = ref("");
-const deviceName = ref("");
-const clientId = ref(0);
-const loading = ref(false);
-const modalProvisionChecking = ref(false);
 let serialAndMac: IserialAndMac[] = [];
-const selectedOnuSerialNumber = ref("");
-const onuMacAddress = ref("");
 const optionsOltIp = ref<IOlt[]>([]);
 const filteredOptions = ref<IOlt[]>([]);
-const selectedNetworkSiteValue = ref<number>(0);
 const networkSites = ref<IOltSite[]>([]);
 const selectedNetworkSite = ref<IOltSite | null>(null);
 const filteredNetworkSites = ref<IOltSite[]>([]); // List of sites filtered by selected location
-const selectedOltIp = ref(null);
 const networkSiteOltIp = ref<IOltSiteByIp[]>([]);
+const dataId = ref<string>();
+const selectedNetworkSiteValue = ref<number>(0);
+const clientId = ref(0);
+const filter = ref("");
+const result = ref("");
+const inputValue = ref("");
+const deviceName = ref("");
+const selectedOnuSerialNumber = ref("");
+const onuMacAddress = ref("");
 const selectedLocation = ref("");
+const selectedOltIp = ref(null);
+const modalOpen = ref(false);
+const loading = ref(false);
+const modalProvisionChecking = ref(false);
 const showProvisionResult = ref(false);
 const showSkeletonDancing = ref(false);
 
@@ -312,27 +314,30 @@ const NewClient = reactive({
   clientName: "",
 });
 
+const responses = reactive({
+  provisionCheck: "",
+  autoConfig: "",
+  monitoring: "",
+});
+
+const responseStatus = reactive({
+  provisionCheck: false,
+  autoConfig: false,
+  monitoring: false,
+});
+
 const ssid = reactive({
   name: "",
   pw: "",
 });
 
-const responses = reactive({
-  autoConfig: "",
-  monitoring: "",
-  provisionCheck: "",
-});
-
-const responseStatus = reactive({
-  autoConfig: false,
-  monitoring: false,
-  provisionCheck: false,
-});
+// Store visible columns' state differently for each pagey using storageKey
+const storageKey = `visibleColumns-${route.path}`;
 
 // When user checks/unchecks an option in the 'Select visible columns' dropdown, it will then save the current state at that point in the local storage
 // --- the moment that state is stored in the local storage, it will always display that column/s even if the page reloads or you navigate to another page
 // --- unless you change the current state (select/deselect an option)
-const savedVisibleColumns = localStorage.getItem("visibleColumns");
+const savedVisibleColumns = localStorage.getItem(storageKey);
 
 // Initial displayed columns
 const visibleColumns = ref<string[]>(
@@ -353,6 +358,7 @@ const columnOptions = ref([
   { value: "subscriberAccountNumber", label: "Account Number" },
   { value: "subscriberName", label: "Subscriber Name" },
   { value: "packageType", label: "Package Type" },
+  { value: "actions", label: "Actions" },
 ]);
 
 // Define values that is equivalent to the database data for mapping
@@ -417,7 +423,7 @@ const handleColumnSelect = (selectedOptions: string[]) => {
     JSON.stringify(visibleColumns.value) !== JSON.stringify(selectedOptions)
   ) {
     visibleColumns.value = selectedOptions;
-    localStorage.setItem("visibleColumns", JSON.stringify(selectedOptions));
+    localStorage.setItem(storageKey, JSON.stringify(selectedOptions));
   }
 };
 
@@ -571,8 +577,9 @@ const provisionClient = async (clientData: typeof NewClient): Promise<void> => {
   responses.monitoring = "";
 
   try {
+    // Execute Preprovision Check
     responses.provisionCheck = "Preprovision checking ...";
-    const response = await preProvisionCheck(
+    const responsePreProvisionCheck = await preProvisionCheck(
       //send values to /preprovisionCheck API
       clientData.accountNumber,
       clientData.clientName,
@@ -582,16 +589,18 @@ const provisionClient = async (clientData: typeof NewClient): Promise<void> => {
       clientData.packageType,
       clientData.newOltId
     );
-    responses.provisionCheck = response.message;
+    responses.provisionCheck = responsePreProvisionCheck.message;
     responseStatus.provisionCheck = true;
   } catch (error: any) {
-    responses.provisionCheck = error.response.data.message;
+    responses.provisionCheck =
+      error.response?.data?.message || "Preprovision check failed!";
     return stopProvisionFunction();
   }
 
   try {
+    // Exececute Auto Config
     responses.autoConfig = "Executing Auto Config...";
-    const response = await executeAutoConfig(
+    const responseAutoConfig = await executeAutoConfig(
       clientData.accountNumber,
       clientData.clientName,
       clientData.serialAndMac.serialNum,
@@ -602,49 +611,49 @@ const provisionClient = async (clientData: typeof NewClient): Promise<void> => {
       // clientData.oltReportedDownstream,
       // clientData.oltReportedUpstream
     );
-    if (response) {
-      responses.autoConfig = response.message;
-      ssid.name = response.ssid_name;
-      ssid.pw = response.ssid_pw;
+    if (responseAutoConfig.status === 200) {
+      responses.autoConfig = responseAutoConfig.message;
+      ssid.name = responseAutoConfig.ssid_name;
+      ssid.pw = responseAutoConfig.ssid_pw;
       responseStatus.autoConfig = true;
+      showProvisionResult.value = true;
+
+      console.log("SSID: ", ssid.name, "Password: ", ssid.pw);
     }
   } catch (error: any) {
-    if (error.response.data.message !== "") {
-      responses.autoConfig = error.response.data.message;
-    } else {
-      responses.autoConfig = "Something went wrong!";
-    }
+    responses.autoConfig =
+      error.response?.data?.message || "Auto Config failed!";
     return stopProvisionFunction();
   }
 
-  try {
-    responses.monitoring = "Executing Monitoring...";
-    const response = await executeMonitoring(
-      clientData.accountNumber,
-      clientData.clientName,
-      clientData.serialAndMac.serialNum,
-      clientData.serialAndMac.macAddress,
-      clientData.oltIp,
-      clientData.packageType,
-      clientData.newOltId
-      // clientData.oltReportedDownstream,
-      // clientData.oltReportedUpstream
-    );
-    if (response) {
-      responses.monitoring = response.message;
-      responseStatus.monitoring = true;
+  // Run monitoring in the background
+  Promise.resolve().then(async () => {
+    try {
+      // Execute Monitoring
+      responses.monitoring = "Executing Monitoring...";
+      const responseMonitoring = await executeMonitoring(
+        clientData.accountNumber,
+        clientData.clientName,
+        clientData.serialAndMac.serialNum,
+        clientData.serialAndMac.macAddress,
+        clientData.oltIp,
+        clientData.packageType,
+        clientData.newOltId
+        // clientData.oltReportedDownstream,
+        // clientData.oltReportedUpstream
+      );
+      if (responseMonitoring) {
+        responses.monitoring = responseMonitoring.message;
+        responseStatus.monitoring = true;
+      }
+    } catch (error: any) {
+      responses.monitoring =
+        error.response?.data?.message || "Monitoring failed!";
+      return stopProvisionFunction();
     }
-  } catch (error: any) {
-    if (error.response.data.message !== "") {
-      responses.monitoring = error.response.data.message;
-    } else {
-      responses.monitoring = "Something went wrong!";
-    }
-    return stopProvisionFunction();
-  }
+  });
 
   stopProvisionFunction();
-  showProvisionResult.value = true;
 };
 
 // Stop client provision
@@ -729,8 +738,6 @@ watch(selectedNetworkSiteValue, (newValue) => {
   selectedNetworkSite.value = selectedSite || null;
 });
 
-onMounted(getAllClients);
-
 onMounted(async () => {
   console.log("onMounted triggered, starting data transformation...");
 
@@ -741,4 +748,6 @@ onMounted(async () => {
     console.error("Error during data transformation:", error);
   }
 });
+
+onMounted(getAllClients);
 </script>

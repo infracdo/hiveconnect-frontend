@@ -52,7 +52,8 @@ const loading = ref<boolean>(false);
 // Count total number of rows (devices) to display in the page description
 const rogueDeviceCount = computed(() => tableRow.value.length || 0);
 
-onMounted(async () => {
+// Asynchronous function to retriece devices data from API
+async function fetchDevices() {
   loading.value = true;
   try {
     tableRow.value = await getDevices();
@@ -60,5 +61,7 @@ onMounted(async () => {
     console.log("Error fetching devices for Rogue Devices page: ", error);
   }
   loading.value = false;
-});
+}
+
+onMounted(fetchDevices);
 </script>

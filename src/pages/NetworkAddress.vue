@@ -67,7 +67,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watchEffect, computed } from "vue";
+import { ref, watchEffect, computed, onMounted } from "vue";
 import { event, QTableProps } from "quasar";
 import { useRouter } from "vue-router";
 import { useNetworkStore } from "src/stores/network-address/network-address";
@@ -79,23 +79,14 @@ import AddNewNetworkModal from "src/components/NetworkAddress/AddNewNetworkModal
 import SearchBar from "src/components/SearchBar.vue";
 import Table from "src/components/Table.vue";
 
-// Store search term/s from SearchBar
-const filter = ref("");
 const store = useNetworkStore();
+const router = useRouter();
 const rows = ref<INetworkAddresses[]>([]);
 const columns: QTableProps["columns"] = store.$state.networkColumn || [];
-const router = useRouter();
+const filter = ref("");
 const modalAddNewNetwork = ref(false);
 const modalOpen = ref(false);
 const loading = ref<boolean>(false);
-
-const openModal = () => {
-  modalOpen.value = !modalOpen.value;
-};
-
-watchEffect(async () => {
-  rows.value = await getNetworkAddresses();
-});
 
 // Count total number of rows (network addresses) in the table to display in the page description
 const networkAddressCount = computed(() => rows.value.length);
@@ -104,6 +95,14 @@ const networkAddressCount = computed(() => rows.value.length);
 const filteredRows = computed(() => {
   return searchRows([...rows.value], filter.value);
 });
+
+const openModal = () => {
+  modalOpen.value = !modalOpen.value;
+};
+
+const openAddNewNetworkModal = async (networkAddress: string) => {
+  modalAddNewNetwork.value = true;
+};
 
 // Method triggered when entering in SearchBar
 const handleSearch = (event: KeyboardEvent) => {
@@ -126,7 +125,16 @@ const getNetworkAddressData = (
   });
 };
 
-const openAddNewNetworkModal = async (networkAddress: string) => {
-  modalAddNewNetwork.value = true;
-};
+// Asynchronous function to retrieve network addresses from API
+async function fetchNetworkAddresses() {
+  try {
+    rows.value = await getNetworkAddresses();
+    console.log("Network addresses data fetched successfully");
+  } catch (error) {
+    console.error("Error fetching network addresses: ", error);
+  }
+}
+
+// Retrieve migration subscribers data as soon as the component is mounted
+onMounted(fetchNetworkAddresses);
 </script>

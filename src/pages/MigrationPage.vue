@@ -146,6 +146,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, computed } from "vue";
+import { useRoute } from "vue-router";
 import Swal from "sweetalert2";
 import { useMigrationSubscriberStore } from "src/stores/subscriber/migration-subscriber-store";
 import {
@@ -153,13 +154,14 @@ import {
   updateForMigrationSubscribers,
 } from "src/api/HiveConnectApis/hiveConnect";
 import { IMigrationSubscriber } from "src/api/HiveConnectApis/types";
+import { searchRows } from "src/util/search";
 import SearchBar from "src/components/SearchBar.vue";
 import DropdownButton from "src/components/DropdownButton.vue";
 import Table from "src/components/Table.vue";
 import Modal from "src/components/Modal.vue";
 import Inputs from "src/components/inputs/Inputs.vue";
-import { searchRows } from "src/util/search";
 
+const route = useRoute();
 const store = useMigrationSubscriberStore();
 const rows = ref<IMigrationSubscriber[]>([]);
 const columns = computed(() => store.$state.migrationSubscriberColumns || []);
@@ -173,10 +175,16 @@ const filter = ref("");
 const modalOpen = ref(false);
 const loading = ref(false);
 
+// Store visible columns' state differently for each pagey using storageKey
+const storageKey = `visibleColumns-${route.path}`;
+
 // When user checks/unchecks an option in the 'Select visible columns' dropdown, it will then save the current state at that point in the local storage
 // --- the moment that state is stored in the local storage, it will always display that column/s even if the page reloads or you navigate to another page
 // --- unless you change the current state (select/deselect an option)
-const savedVisibleColumns = localStorage.getItem("visibleColumns");
+const savedVisibleColumns = localStorage.getItem(storageKey);
+
+// Count total number of rows (clients) to display it in the description
+const clientCount = computed(() => rows.value.length || 0);
 
 // Define shown columns by default
 const visibleColumns = ref<string[]>(
@@ -197,16 +205,25 @@ const columnOptions = computed(
 // Options for select status filter
 const statusOptions = ref([
   { label: "All", value: "" },
-  { label: "Onhold", value: "ONHOLD" },
   { label: "Active", value: "ACTIVE" },
+  { label: "Onhold", value: "ONHOLD" },
 ]);
-
-// Count total number of rows (clients) to display it in the description
-const clientCount = computed(() => rows.value.length || 0);
 
 // Filter rows based on search term by using search utility
 const filteredRows = computed(() => {
-  return searchRows([...rows.value], filter.value);
+  let filtered = rows.value;
+
+  if (filter.value) {
+    filtered = searchRows([...rows.value], filter.value);
+  }
+
+  if (selectedStatus.value) {
+    filtered = filtered.filter((row) =>
+      row.status.startsWith(selectedStatus.value)
+    );
+  }
+
+  return filtered;
 });
 
 const openModal = async (id: number) => {
@@ -248,7 +265,7 @@ const handleColumnSelect = (selectedOptions: string[]) => {
     JSON.stringify(visibleColumns.value) !== JSON.stringify(selectedOptions)
   ) {
     visibleColumns.value = selectedOptions;
-    localStorage.setItem("visibleColumns", JSON.stringify(selectedOptions));
+    localStorage.setItem(storageKey, JSON.stringify(selectedOptions));
   }
 };
 
@@ -316,18 +333,19 @@ const handleUpdateForMigrationSubscriber = async () => {
   }
 };
 
-// Retrieve for migration subscribers data as soon as the component/app is mounted
-onMounted(async () => {
-  console.log("onMounted triggered, retrieve for migration subscribers...");
-
+// Asynchronous function to retrieve migration subscribers from API
+async function fetchMigrationSubscribers() {
   try {
     rows.value = await getForMigrationSubscribers();
-    console.log("Data for For Migration subscribers fetched successfully.");
+    console.log("Migration subscribers data fetched successfully.");
   } catch (error) {
     console.error(
       "Error during fetching For Migration subscriber data:",
       error
     );
   }
-});
+}
+
+// Retrieve migration subscribers data as soon as the component is mounted
+onMounted(fetchMigrationSubscribers);
 </script>
