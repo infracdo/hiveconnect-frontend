@@ -140,7 +140,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, computed, nextTick } from "vue";
-import { useRoute } from "vue-router";
+// import { useRoute } from "vue-router";
 import Swal from "sweetalert2";
 import { useMigrationSubscriberStore } from "src/stores/subscriber/migration-subscriber-store";
 import {
@@ -156,7 +156,7 @@ import Table from "src/components/Table.vue";
 import Modal from "src/components/Modal.vue";
 import Inputs from "src/components/inputs/Inputs.vue";
 
-const route = useRoute();
+// const route = useRoute();
 const store = useMigrationSubscriberStore();
 const rows = ref<IMigrationSubscriber[]>([]);
 const columns = computed(
@@ -184,20 +184,31 @@ const modalOpen = ref(false);
 const loading = ref(false);
 
 // Store visible columns' state differently for each pagey using storageKey
-const storageKey = `visibleColumns-${route.path}`;
+// const storageKey = `visibleColumns-${route.path}`;
 
 // When user checks/unchecks an option in the 'Select visible columns' dropdown, it will then save the current state at that point in the local storage
 // --- the moment that state is stored in the local storage, it will always display that column/s even if the page reloads or you navigate to another page
 // --- unless you change the current state (select/deselect an option)
-const savedVisibleColumns = localStorage.getItem(storageKey);
+// const savedVisibleColumns = localStorage.getItem(storageKey);
 
 // Count total number of rows (clients) to display it in the description
 const clientCount = computed(() => rows.value.length || 0);
 
 // Define shown columns by default
-const visibleColumns = ref<string[]>(
-  savedVisibleColumns ? JSON.parse(savedVisibleColumns) : columns || []
-);
+// const visibleColumns = ref<string[]>(
+//   savedVisibleColumns ? JSON.parse(savedVisibleColumns) : columns || []
+// );
+const visibleColumns = ref([
+  "subscriberAccountNumber",
+  "clientName",
+  "onuDeviceName",
+  "packageType",
+  "oltReportedUpstream",
+  "oltReportedDownstream",
+  "provision",
+  "status",
+  "actions",
+]);
 
 // Options for selecting visible columns
 const columnOptions = computed(
@@ -272,7 +283,7 @@ const handleColumnSelect = (selectedOptions: string[]) => {
     JSON.stringify(visibleColumns.value) !== JSON.stringify(selectedOptions)
   ) {
     visibleColumns.value = selectedOptions;
-    localStorage.setItem(storageKey, JSON.stringify(selectedOptions));
+    // localStorage.setItem("visibleColumns", JSON.stringify(selectedOptions));
   }
 };
 

@@ -90,7 +90,7 @@
 
 <script setup lang="ts">
 import { onMounted, ref, computed } from "vue";
-import { useRoute } from "vue-router";
+// import { useRoute } from "vue-router";
 import { getHiveClients } from "src/api/HiveConnectApis/hiveConnect";
 import { useSubscriberStore } from "src/stores/subscriber/subscriber-store";
 import { useClientStore } from "src/stores/subscriber/client-store";
@@ -101,7 +101,7 @@ import SearchBar from "src/components/SearchBar.vue";
 import DropdownButton from "src/components/DropdownButton.vue";
 import Table from "src/components/Table.vue";
 
-const route = useRoute();
+// const route = useRoute();
 const store = useClientStore();
 const columns = computed(
   () => store.$state.subscribercolumns?.filter((col) => col.name !== "id") || [] // Note: subscriber id is not included since we were told that if the id is local (within hive only), it should not be included in the table so i based everything to their account number instead
@@ -150,12 +150,12 @@ const client = ref(<Client>{
 });
 
 // Store visible columns' state differently for each pagey using storageKey
-const storageKey = `visibleColumns-${route.path}`;
+// const storageKey = `visibleColumns-${route.path}`;
 
 // When user checks/unchecks an option in the 'Select visible columns' dropdown, it will then save the current state at that point in the local storage
 // --- the moment that state is stored in the local storage, it will always display that column/s even if the page reloads or you navigate to another page
 // --- unless you change the current state (select/deselect an option)
-const savedVisibleColumns = localStorage.getItem(storageKey);
+// const savedVisibleColumns = localStorage.getItem(storageKey);
 
 // Count total rows (clients) to display in the description
 const clientCount = computed(() => rowsHive.value.length || 0);
@@ -168,22 +168,18 @@ const statusOptions = ref([
 ]);
 
 // Initial displayed columns
-const visibleColumns = ref<string[]>(
-  savedVisibleColumns
-    ? JSON.parse(savedVisibleColumns)
-    : [
-        "subscriberAccountNumber",
-        "clientName",
-        "packageType",
-        "onuDeviceName",
-        "ipAssigned",
-        "onuSerialNumber",
-        "onuMacAddress",
-        "oltIp",
-        "status",
-        "ssidName",
-      ]
-);
+const visibleColumns = ref([
+  "subscriberAccountNumber",
+  "clientName",
+  "packageType",
+  "onuDeviceName",
+  "ipAssigned",
+  "onuSerialNumber",
+  "onuMacAddress",
+  "oltIp",
+  "status",
+  "ssidName",
+]);
 
 // Select visible columns options
 const columnOptions = ref([
@@ -231,7 +227,7 @@ const handleColumnSelect = (selectedOptions: string[]) => {
     JSON.stringify(visibleColumns.value) !== JSON.stringify(selectedOptions)
   ) {
     visibleColumns.value = selectedOptions;
-    localStorage.setItem(storageKey, JSON.stringify(selectedOptions));
+    // localStorage.setItem("visibleColumns", JSON.stringify(selectedOptions));
   }
 };
 
