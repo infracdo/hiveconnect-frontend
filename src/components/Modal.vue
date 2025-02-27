@@ -59,7 +59,7 @@
             class="ml-2"
             color="bg-primary-600"
             textColor="text-white"
-            label="Migrate from bucket to hive"
+            label="Migrate from Bucket to Hive"
             button="modal"
             @click="props.migrateHandler"
             v-close-popup

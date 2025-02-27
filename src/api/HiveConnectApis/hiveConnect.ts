@@ -225,8 +225,19 @@ export const updateForMigrationSubscribers = async (accountNo: string) => {
   }
 };
 
-// // POST:
-// export const migrateSubscriberFromBucketToHive = async
+// POST: /executeMigration
+export const migrateSubscriberFromBucketToHive = async (accountNo: string) => {
+  try {
+    const { data } = await api.post("/executeMigration", {
+      accountNo: accountNo,
+    });
+    console.log("Triggered '/executeMigration' API: ", data);
+    return data;
+  } catch (error) {
+    console.log("Could not migrate subscriber for migration", error);
+    throw error;
+  }
+};
 
 //==============================================================================================
 

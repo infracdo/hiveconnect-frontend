@@ -146,6 +146,7 @@ import { useMigrationSubscriberStore } from "src/stores/subscriber/migration-sub
 import {
   getForMigrationSubscribers,
   updateForMigrationSubscribers,
+  migrateSubscriberFromBucketToHive,
 } from "src/api/HiveConnectApis/hiveConnect";
 import { IMigrationSubscriber } from "src/api/HiveConnectApis/types";
 import { searchRows } from "src/util/search";
@@ -340,15 +341,37 @@ const handleMigrateSubscriber = async () => {
     confirmButtonText: "Yes, proceed",
     reverseButtons: true,
     allowOutsideClick: false,
-  }).then((migrateConfirmResult) => {
-    if (migrateConfirmResult.isConfirmed) {
+    showLoaderOnConfirm: true,
+    preConfirm: async () => {
+      try {
+        const migrateResponse = await migrateSubscriberFromBucketToHive(
+          subscriberAccountNumber.value
+        );
+
+        if (migrateResponse.status !== 200) {
+          throw new Error("Failed to migrate subscriber from bucket to hive");
+        }
+      } catch (error) {
+        const errorMessage =
+          error instanceof Error ? error.message : "An unknown error occurred.";
+        Swal.fire({
+          title: "Error",
+          text: errorMessage,
+          icon: "error",
+          confirmButtonColor: "#fd0808",
+        });
+        return false;
+      }
+    },
+  }).then((result) => {
+    if (result.isConfirmed) {
       Swal.fire({
         title: "Success",
         text: "Subscriber migrated from bucket to hive successfully.",
         icon: "success",
         confirmButtonColor: "#1d6499",
-        allowOutsideClick: false,
       });
+      refreshTable();
     }
   });
 };

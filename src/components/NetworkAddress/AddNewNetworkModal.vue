@@ -76,7 +76,6 @@
                 :input-style="{ 'text-transform': 'uppercase' }"
                 v-model="addNewNetwork.location"
                 label="Notes"
-                required
                 class="w-full"
               />
             </div>
