@@ -6,12 +6,12 @@
         <div>
           <!-- Page title -->
           <div class="text-xl font-semibold text-gray-iron-90 mb-2">
-            Network Address
+            Addresses
           </div>
 
           <!-- Page description -->
           <p class="text-sm font-regular text-gray-iron-500">
-            There are {{ networkAddressCount }} network
+            There are {{ networkAddressCount }}
             {{ networkAddressCount < 2 ? "address" : "addresses" }}
           </p>
         </div>

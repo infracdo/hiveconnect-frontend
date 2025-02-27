@@ -7,13 +7,14 @@
         <div>
           <!-- Page title -->
           <div class="text-xl font-semibold text-gray-iron-90 mb-2">
-            New Subscriber Provision
+            Subscribers for Provisioning
           </div>
 
           <!-- Page description -->
           <p class="text-sm font-regular text-gray-iron-500">
-            There are {{ clientCount }} for provision
+            There are {{ clientCount }}
             {{ clientCount < 2 ? "subscriber" : "subscribers" }}
+            for provisioning
           </p>
         </div>
 
@@ -674,7 +675,7 @@ const handleActivateClient = async () => {
     showCancelButton: true,
     confirmButtonColor: "#1d6499",
     cancelButtonColor: "#d33",
-    confirmButtonText: "Yes, activate it",
+    confirmButtonText: "Yes, procced",
     reverseButtons: true,
     allowOutsideClick: false,
   });

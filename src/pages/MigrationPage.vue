@@ -7,13 +7,14 @@
         <div>
           <!-- Page title -->
           <div class="text-xl font-semibold text-gray-iron-90 mb-2">
-            Migration Subscribers
+            Subscribers for Migration
           </div>
 
           <!-- Page description -->
           <p class="text-sm font-regular text-gray-iron-500">
-            There are {{ clientCount }} for migration
+            There are {{ clientCount }}
             {{ clientCount < 2 ? "subscriber" : "subscribers" }}
+            for migration
           </p>
         </div>
 
@@ -79,7 +80,7 @@
                   name="assignment"
                   size="sm"
                   class="cursor-pointer text-gray-iron-900 font-normal hover:text-primary-1000"
-                  @click="openModal(row.id)"
+                  @click="openModal(row.subscriberAccountNumber)"
                 />
               </template>
             </Table>
@@ -91,21 +92,14 @@
     <!-- Display modal when a row (client data) is clicked -->
     <Modal
       :isVisible="modalOpen"
-      :title="'Migrate Subscriber'"
-      :submitButton="'Migrate'"
+      :title="'Manage Subscriber Actions'"
+      :submitButton="'Change Status'"
+      migrateButton
       @update:isVisible="modalOpen = $event"
-      :actionHandler="handleUpdateForMigrationSubscriber"
-      showSaveButton
+      :actionHandler="handleUpdateForMigrationSubscriberStatus"
+      :migrateHandler="handleMigrateSubscriber"
     >
       <div class="mb-4" style="display: flex; gap: 16px">
-        <!-- Subscriber ID input field -->
-        <Inputs
-          :input-style="{ 'text-transform': 'uppercase' }"
-          v-model="subscriberId"
-          label="Subscriber ID"
-          readonly
-        />
-
         <!-- Account no input field -->
         <Inputs
           :input-style="{ 'text-transform': 'uppercase' }"
@@ -145,7 +139,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed } from "vue";
+import { ref, onMounted, computed, nextTick } from "vue";
 import { useRoute } from "vue-router";
 import Swal from "sweetalert2";
 import { useMigrationSubscriberStore } from "src/stores/subscriber/migration-subscriber-store";
@@ -164,7 +158,20 @@ import Inputs from "src/components/inputs/Inputs.vue";
 const route = useRoute();
 const store = useMigrationSubscriberStore();
 const rows = ref<IMigrationSubscriber[]>([]);
-const columns = computed(() => store.$state.migrationSubscriberColumns || []);
+const columns = computed(
+  () =>
+    store.$state.migrationSubscriberColumns?.filter(
+      (col) =>
+        col.name !== "id" &&
+        col.name !== "ipAssigned" &&
+        col.name !== "onuSerialNumber" &&
+        col.name !== "site" &&
+        col.name !== "oltIp" &&
+        col.name !== "oltInterface" &&
+        col.name !== "onuMacAddress" &&
+        col.name !== "ssidName"
+    ) || []
+);
 const subscriberId = ref(0);
 const subscriberAccountNumber = ref("");
 const subscriberName = ref("");
@@ -188,15 +195,13 @@ const clientCount = computed(() => rows.value.length || 0);
 
 // Define shown columns by default
 const visibleColumns = ref<string[]>(
-  savedVisibleColumns
-    ? JSON.parse(savedVisibleColumns)
-    : store.$state.migrationSubscriberColumns?.map((col) => col.name) || []
+  savedVisibleColumns ? JSON.parse(savedVisibleColumns) : columns || []
 );
 
 // Options for selecting visible columns
 const columnOptions = computed(
   () =>
-    store.$state.migrationSubscriberColumns?.map((col) => ({
+    columns.value.map((col) => ({
       value: col.name,
       label: col.label || col.name,
     })) || []
@@ -226,10 +231,11 @@ const filteredRows = computed(() => {
   return filtered;
 });
 
-const openModal = async (id: number) => {
-  const migrationSubscriber = rows.value.find((row) => row.id === id);
+const openModal = async (accountNo: string) => {
+  const migrationSubscriber = rows.value.find(
+    (row) => row.subscriberAccountNumber === accountNo
+  );
   if (migrationSubscriber) {
-    subscriberId.value = migrationSubscriber.id;
     subscriberAccountNumber.value = migrationSubscriber.subscriberAccountNumber;
     subscriberName.value = migrationSubscriber.clientName;
     subscriberPackageType.value = migrationSubscriber.packageType;
@@ -275,62 +281,76 @@ const handleSearch = (event: KeyboardEvent) => {
 };
 
 // Method to trigger form save button in modal
-const handleUpdateForMigrationSubscriber = async () => {
+const handleUpdateForMigrationSubscriberStatus = async () => {
   // Show confirmation alert
   const confirmResult = await Swal.fire({
     title: "Confirm",
-    text: "Are you sure you want to migrate this subscriber?",
+    text: "Are you sure you want to change the status of this subscriber?",
     icon: "warning",
     showCancelButton: true,
     confirmButtonColor: "#1d6499",
     cancelButtonColor: "#d33",
-    confirmButtonText: "Yes, migrate it",
+    confirmButtonText: "Yes, proceed",
     reverseButtons: true,
     allowOutsideClick: false,
-  });
+    showLoaderOnConfirm: true,
+    preConfirm: async () => {
+      try {
+        const response = await updateForMigrationSubscribers(
+          subscriberAccountNumber.value
+        );
 
-  // Display success alert when migrate button is clicked
-  if (confirmResult.isConfirmed) {
-    try {
-      const response = await updateForMigrationSubscribers(
-        subscriberAccountNumber.value
-      );
-
-      if (response.status == 200) {
+        if (response.status !== 200) {
+          throw new Error("Failed to changed the subscriber status.");
+        }
+      } catch (error) {
+        const errorMessage =
+          error instanceof Error ? error.message : "An unknown error occurred.";
         Swal.fire({
-          title: "Success",
-          text: "Subscriber migrated successfully.",
-          icon: "success",
-          confirmButtonColor: "#1d6499",
-          allowOutsideClick: false,
-        }).then(() => {
-          refreshTable();
-          closeModal();
-        });
-      } else {
-        Swal.fire({
-          title: "Failed",
-          text: "Failed migrating subscriber.",
+          title: "Error",
+          text: errorMessage,
           icon: "error",
           confirmButtonColor: "#fd0808",
-          allowOutsideClick: false,
-        }).then(() => {
-          closeModal();
         });
+        return false;
       }
-    } catch (error) {
-      console.error("API Error: ", error);
+    },
+  }).then((result) => {
+    // Display success alert when migrate button is clicked
+    if (result.isConfirmed) {
       Swal.fire({
-        title: "Error",
-        text: "An error occured while migrating the subscriber.",
-        icon: "error",
-        confirmButtonColor: "#fd0808",
+        title: "Success",
+        text: "Subscriber status changed successfully.",
+        icon: "success",
+        confirmButtonColor: "#1d6499",
+      });
+      refreshTable();
+    }
+  });
+};
+
+const handleMigrateSubscriber = async () => {
+  Swal.fire({
+    title: "Confirm",
+    text: "Are you sure you want to migrate this subscriber from bucket to hive?",
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonColor: "#1d6499",
+    cancelButtonColor: "#d33",
+    confirmButtonText: "Yes, proceed",
+    reverseButtons: true,
+    allowOutsideClick: false,
+  }).then((migrateConfirmResult) => {
+    if (migrateConfirmResult.isConfirmed) {
+      Swal.fire({
+        title: "Success",
+        text: "Subscriber migrated from bucket to hive successfully.",
+        icon: "success",
+        confirmButtonColor: "#1d6499",
         allowOutsideClick: false,
-      }).then(() => {
-        closeModal();
       });
     }
-  }
+  });
 };
 
 // Asynchronous function to retrieve migration subscribers from API

@@ -225,6 +225,9 @@ export const updateForMigrationSubscribers = async (accountNo: string) => {
   }
 };
 
+// // POST:
+// export const migrateSubscriberFromBucketToHive = async
+
 //==============================================================================================
 
 //* OLT APIs *//

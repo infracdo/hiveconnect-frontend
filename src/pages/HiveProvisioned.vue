@@ -6,12 +6,12 @@
         <div>
           <!-- Page title -->
           <div class="text-xl font-semibold text-gray-iron-90 mb-2">
-            Provisioned Subscribers
+            Active/Onhold Subscribers
           </div>
 
           <!-- Page description -->
           <p class="text-sm font-regular text-gray-iron-500">
-            There are {{ clientCount }} active
+            There are {{ clientCount }} active/onhold
             {{ clientCount < 2 ? "subscriber" : "subscribers" }}
           </p>
         </div>
@@ -63,20 +63,14 @@
           <!-- Table for provisioned clients (active) -->
           <div class="full-width">
             <Table
-              :tableColumns="columns"
+              :tableColumns="
+                columns.filter((col) => visibleColumns.includes(col.name))
+              "
               :tableRows="filteredRows"
               :visibleColumns="visibleColumns"
               :rowsPerPage="10"
               @rowClick="openModal"
             >
-              <template #actions="{ row }">
-                <q-icon
-                  name="assignment"
-                  size="sm"
-                  class="cursor-pointer text-gray-iron-900 font-normal hover:text-primary-1000"
-                  @click="openTroubleshootModal(row.onuDeviceName, row.id)"
-                />
-              </template>
             </Table>
           </div>
         </div>
@@ -109,7 +103,9 @@ import Table from "src/components/Table.vue";
 
 const route = useRoute();
 const store = useClientStore();
-const columns = store.$state.subscribercolumns || [];
+const columns = computed(
+  () => store.$state.subscribercolumns?.filter((col) => col.name !== "id") || [] // Note: subscriber id is not included since we were told that if the id is local (within hive only), it should not be included in the table so i based everything to their account number instead
+);
 const rowsHive = ref<IClient[]>([]);
 const deviceName = ref("");
 const filter = ref("");
@@ -176,7 +172,6 @@ const visibleColumns = ref<string[]>(
   savedVisibleColumns
     ? JSON.parse(savedVisibleColumns)
     : [
-        "id",
         "subscriberAccountNumber",
         "clientName",
         "packageType",
@@ -187,13 +182,11 @@ const visibleColumns = ref<string[]>(
         "oltIp",
         "status",
         "ssidName",
-        "actions",
       ]
 );
 
 // Select visible columns options
 const columnOptions = ref([
-  { value: "id", label: "ID" },
   { value: "subscriberAccountNumber", label: "Acount No." },
   { value: "clientName", label: "Subscriber Name" },
   { value: "packageType", label: "Package Type" },
@@ -204,7 +197,6 @@ const columnOptions = ref([
   { value: "oltIp", label: "OLT IP" },
   { value: "status", label: "STATUS" },
   { value: "ssidName", label: "SSID" },
-  { value: "actions", label: "Actions" },
 ]);
 
 // Filter rows based on search term or selected status in the dropdown

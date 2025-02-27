@@ -38,10 +38,10 @@
         >
           <Buttons
             label="Cancel"
-            v-close-popup
             color="bg-transparent"
             textColor="text-primary-600"
             button="modal"
+            v-close-popup
           />
 
           <Buttons
@@ -51,6 +51,18 @@
             :label="submitButton"
             type="submit"
             button="modal"
+            v-close-popup
+          />
+
+          <Buttons
+            v-if="migrateButton"
+            class="ml-2"
+            color="bg-primary-600"
+            textColor="text-white"
+            label="Migrate from bucket to hive"
+            button="modal"
+            @click="props.migrateHandler"
+            v-close-popup
           />
         </div>
       </q-form>
@@ -69,9 +81,11 @@ const props = withDefaults(
     title: string;
     subAction?: string;
     actionHandler: () => void;
+    migrateHandler?: () => void;
     width?: string;
     height?: string;
     submitButton: string;
+    migrateButton?: boolean;
   }>(),
   {
     subAction: "add",
@@ -101,6 +115,7 @@ watch(
 
 watch(localIsVisible, (newVal) => {
   emit("update:isVisible", newVal);
+  console.log("From modal.vue: ", localIsVisible);
 });
 
 // Method for form submission

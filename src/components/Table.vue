@@ -15,8 +15,8 @@
                   :key="header.name"
                   :class="
                     header.name === 'actions'
-                      ? 'whitespace-nowrap px-4 pt-6 pb-2 font-light text-xs uppercase text-primary-gray-500 text-center'
-                      : 'whitespace-nowrap px-4 pt-6 pb-2 font-light text-xs uppercase text-primary-gray-500'
+                      ? 'whitespace-nowrap px-3 pt-6 pb-2 font-light text-xs uppercase text-primary-gray-500 text-center'
+                      : 'whitespace-nowrap px-3 pt-6 pb-2 font-light text-xs uppercase text-primary-gray-500'
                   "
                 >
                   {{ header.label }}
@@ -40,8 +40,8 @@
                   :key="column.name"
                   :class="
                     column.name === 'actions'
-                      ? 'px-4 py-2 text-gray-iron-900 font-normal text-center'
-                      : 'px-4 py-2 text-gray-iron-900 font-normal'
+                      ? 'px-3 py-2 text-gray-iron-900 font-normal text-center'
+                      : 'px-3 py-2 text-gray-iron-900 font-normal'
                   "
                 >
                   <slot

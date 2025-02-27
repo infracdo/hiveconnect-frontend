@@ -5,7 +5,7 @@
       v-model="drawer"
       :mini="!drawer || miniState"
       @click.capture="drawerClick"
-      :width="289"
+      :width="300"
       :breakpoint="500"
       class="bg-hiveconnect-slate"
     >
@@ -17,14 +17,17 @@
         <q-separator inset />
         <q-list padding dense>
           <DrawerTile
-            title="Provision"
+            title="Subscribers for Provisioning"
             icon="bi-person-fill-gear"
             to="inetconfig"
           />
 
           <DrawerExpansionTile title="Subscribers" icon="bi-people-fill">
-            <DrawerTileChild title="Provisioned Subscribers" to="provisioned" />
-            <DrawerTileChild title="Migration Subscribers" to="migration" />
+            <DrawerTileChild
+              title="Active/Onhold Subscribers"
+              to="provisioned"
+            />
+            <DrawerTileChild title="Subscribers for Migration" to="migration" />
           </DrawerExpansionTile>
 
           <DrawerTile
@@ -34,7 +37,7 @@
           />
 
           <DrawerTile
-            title="Network Address"
+            title="Addresses"
             icon="bi-hdd-network-fill"
             to="network-address"
           />
