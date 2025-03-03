@@ -3,8 +3,8 @@ name: Build and Push Docker Image
 on:
   push:
     branches:
-      - hivekube-test # Trigger on pushes to the main branch
-  pull_request:  # Trigger on pull requests
+      - infra-test # Trigger on pushes to the main branch
+  #pull_request:  # Trigger on pull requests
 
 jobs:
   build-and-push:
@@ -28,11 +28,11 @@ jobs:
         run: 
           # docker build --target build -t my-image:build .
 
-          docker build -t hiveconnect-frontend:test .
+          docker build -t hiveconnect-frontend:test-0.7 .
 
       # Step 4: Push the Docker image
       - name: Push Docker Image
         run: |
-          docker tag hiveconnect-frontend:test infracdo/hiveconnect-frontend:test
-          docker push infracdo/hiveconnect-frontend:test
+          docker tag hiveconnect-frontend:test-0.7 infracdo/hiveconnect-frontend:test-0.7
+          docker push infracdo/hiveconnect-frontend:test-0.7
 
