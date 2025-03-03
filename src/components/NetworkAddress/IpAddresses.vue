@@ -17,10 +17,10 @@
           />
 
           <p class="text-sm text-semibold leading-5">
-            <span class="text-primary-600">Network Address / </span>
+            <span class="text-primary-600">Addresses / </span>
             <span>{{
               networkAddressData.networkAddress
-                ? toInitialCapital(networkAddressData.networkAddress)
+                ? networkAddressData.networkAddress
                 : "N/A"
             }}</span>
           </p>
@@ -31,7 +31,7 @@
         <div class="flex flex-col">
           <div class="flex flex-row justify-between mb-6">
             <div class="flex flex-col">
-              <p class="text-xs text-gray-iron-500">NETWORK ADDRESS</p>
+              <p class="text-xs text-gray-iron-500">ADDRESS</p>
               <p class="text-xl font-medium text-gray-iron-900">
                 {{
                   networkAddressData.networkAddress
@@ -164,7 +164,6 @@ import { ref, watchEffect, computed } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { getIpAddresses } from "src/api/HiveConnectApis/hiveConnect";
 import { IipAddressesOfCidrBlock } from "src/api/HiveConnectApis/types";
-import { toInitialCapital } from "src/util/string";
 import { searchRows } from "src/util/search";
 import Buttons from "../inputs/Buttons.vue";
 import Table from "../Table.vue";

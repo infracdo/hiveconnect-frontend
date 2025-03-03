@@ -1,220 +1,271 @@
 <template>
-  <q-ajax-bar
-    ref="bar"
-    color="info"
-    position="bottom"
-    size="10px"
-    skip-hijack
-  />
-  <q-dialog
-    v-model="localIsVisible"
-    persistent
-    class="rounded-lg"
-    position="right"
-  >
-    <q-card
-      v-if="doneApiCalls"
-      class="px-6 pb-6 dialog-content"
-      style="
-        width: 600px;
-        max-width: 100%;
-        height: 500px;
-        max-height: 100%;
-        display: flex;
-        flex-direction: column;
-      "
-    >
-      <div style="flex: 1; display: flex; flex-direction: column">
-        <!-- Modal title -->
-        <div
-          style="z-index: 2"
-          class="text-lg font-semibold row items-center justify-center no-wrap bg-white h-[52px] pt-4 sticky"
-        >
-          <span> Troubleshoot Client </span>
+  <q-page>
+    <div class="row q-pa-lg">
+      <div class="flex flex-row full-width q-mb-md item-center justify-between">
+        <div class="flex flex-row items-center">
+          <Buttons
+            icon="eva-arrow-back-outline"
+            label="Back"
+            color="bg-gray-iron-100"
+            class="mr-4"
+            textColor="text-gray-iron-900 font-normal"
+            @click="goBack"
+            small
+            normal
+          />
+
+          <p class="text-sm text-semibold leading-5">
+            <span class="text-primary-600 font-medium"
+              >Active/Onhold Subscribers /
+            </span>
+            <span>{{
+              provisionedSubscriberData.subscriberAccountNumber
+                ? provisionedSubscriberData.subscriberAccountNumber
+                : "N/A"
+            }}</span>
+          </p>
         </div>
 
-        <q-card-section class="mt-4 p-0" style="z-index: 1">
-          <!-- Client details section-->
-          <div class="mb-4">
-            <p class="mb-2 text-gray-iron-900 font-semibold">Client Details</p>
-            <div class="mb-4" style="display: flex; gap: 16px">
-              <!-- Client Name input field -->
-              <Inputs
-                :input-style="{ 'text-transform': 'uppercase' }"
-                v-model="clientInfo.clientName"
-                label="Client Name"
-                readonly
-              />
-
-              <!-- Account Number input field -->
-              <Inputs
-                :input-style="{ 'text-transform': 'uppercase' }"
-                v-model="clientInfo.accountNumber"
-                label="Account Number"
-                readonly
-              />
-
-              <!-- Payment Status input field -->
-              <Inputs
-                :input-style="{ 'text-transform': 'uppercase' }"
-                v-model="clientInfo.otcStatus"
-                label="Payment Status"
-                readonly
-              />
-
-              <!-- Package Type input field -->
-              <Inputs
-                :input-style="{ 'text-transform': 'uppercase' }"
-                v-model="bandwidth.name"
-                label="Package Type"
-                readonly
-              />
-            </div>
-          </div>
-
-          <!-- ONU Details Section -->
-          <div class="mb-4">
-            <div class="mb-2 text-gray-iron-900 font-semibold">ONU Details</div>
-            <div class="mb-2" style="display: flex; gap: 16px">
-              <!-- ONU Status input field-->
-              <Inputs
-                :input-style="{ 'text-transform': 'uppercase' }"
-                :v-model="onuStatus === '1' ? 'Online' : 'Offline'"
-                label="ONU Status"
-                readonly
-              />
-
-              <!-- ONU IP input field-->
-              <Inputs
-                :input-style="{ 'text-transform': 'uppercase' }"
-                v-model="clientInfo.ipAssigned"
-                label="ONU IP"
-                readonly
-              />
-
-              <!-- SSID Name input field-->
-              <Inputs
-                :input-style="{ 'text-transform': 'uppercase' }"
-                v-model="clientInfo.SSID"
-                label="SSID Name"
-                readonly
-              />
-
-              <!-- ONU Serial Number select field -->
-              <Inputs
-                :input-style="{ 'text-transform': 'uppercase' }"
-                v-model="clientInfo.onuSerialNumber"
-                label="ONU Serial Number"
-                readonly
-              />
-            </div>
-            <div class="mb-2" style="display: flex; gap: 16px">
-              <!-- ONU Mac Address input field -->
-              <Inputs
-                :input-style="{ 'text-transform': 'uppercase' }"
-                v-model="clientInfo.onuMacAddress"
-                label="ONU Mac Address"
-                readonly
-              />
-
-              <!-- Upstream input field -->
-              <Inputs
-                :input-style="{ 'text-transform': 'uppercase' }"
-                v-model="bandwidth.upStream"
-                label="Upstream"
-                readonly
-              />
-
-              <!-- Downstream input field -->
-              <Inputs
-                :input-style="{ 'text-transform': 'uppercase' }"
-                v-model="bandwidth.downStream"
-                label="Downstream"
-                readonly
-              />
-            </div>
-          </div>
-
-          <!-- OLT Details Section-->
-          <div class="mb-4">
-            <div class="mb-2 text-gray-iron-900 font-semibold">OLT Details</div>
-            <div class="mb-2" style="display: flex; gap: 16px">
-              <!-- OLT Status input field -->
-              <Inputs
-                :input-style="{ 'text-transform': 'uppercase' }"
-                :v-model="oltStatus === '1' ? 'Online' : 'Offline'"
-                label="OLT Status"
-                readonly
-              />
-
-              <!-- OLT IP input field -->
-              <Inputs
-                :input-style="{ 'text-transform': 'uppercase' }"
-                v-model="clientInfo.oltIp"
-                label="OLT IP"
-                readonly
-              />
-
-              <!-- OLT Site select field -->
-              <Inputs
-                :input-style="{ 'text-transform': 'uppercase' }"
-                v-model="clientInfo.oltSite"
-                label="OLT Site"
-                readonly
-              />
-
-              <!-- OLT Interface select field -->
-              <Inputs
-                :input-style="{ 'text-transform': 'uppercase' }"
-                v-model="clientInfo.oltInterface"
-                label="OLT Interface"
-                readonly
-              />
-
-              <!-- OLT Upstream select field -->
-              <Inputs
-                :input-style="{ 'text-transform': 'uppercase' }"
-                v-model="clientInfo.oltUpstream"
-                label="OLT Upstream"
-                readonly
-              />
-
-              <!-- OLT Downstream select field -->
-              <Inputs
-                :input-style="{ 'text-transform': 'uppercase' }"
-                v-model="clientInfo.oltDownstream"
-                label="OLT Downstream"
-                readonly
-              />
-            </div>
-          </div>
-        </q-card-section>
-
-        <q-select
-          v-model="selectTime"
-          :options="timeOptions"
-          label="Select Time"
-          filled
-          class="select-time q-py-md"
-          emit-value
-          map-options
-        />
-        <iframe
-          :src="`${grafanaApi}/d-solo/d94d1e0e-a6e4-45c4-847f-6603e1c31ccb/subscribers-traffic-rate-and-uptime?orgId=1&from=now-${selectTime}&to=now&var-Subscriber=${deviceName}&panelId=3`"
-          class="grafana-panel"
-          frameborder="0"
-        >
-        </iframe>
-        <q-card-actions vertical align="right">
-          <q-btn filled label="Close" color="red" @click="closeModalNow" />
-        </q-card-actions>
+        <div class="flex flex-row items-center">
+          <!-- TODO: add @click event -->
+          <Buttons
+            icon="img:/icons/pen.svg"
+            label="Auto Config"
+            color="bg-gray-iron-100"
+            textColor="text-gray-iron-900"
+            small
+          />
+        </div>
       </div>
-    </q-card>
-  </q-dialog>
+
+      <div class="flex flex-row w-full">
+        <div class="flex flex-col basis-3/4">
+          <div class="flex flex-row mb-6">
+            <div class="flex flex-col">
+              <p class="text-xs text-gray-iron-500">SUBSCRIBER NAME</p>
+              <p class="text-xl font-medium text-gray-iron-900">
+                {{
+                  provisionedSubscriberData.clientName
+                    ? toInitialCapital(provisionedSubscriberData.clientName)
+                    : "N/A"
+                }}
+              </p>
+            </div>
+
+            <q-separator vertical inset size="2px" class="mx-4" />
+
+            <div class="flex flex-col">
+              <p class="text-xs text-gray-iron-500">ACCOUNT NO.</p>
+              <p class="text-xl font-normal text-gray-iron-900">
+                {{
+                  provisionedSubscriberData.subscriberAccountNumber
+                    ? provisionedSubscriberData.subscriberAccountNumber
+                    : "N/A"
+                }}
+              </p>
+            </div>
+
+            <q-separator vertical inset size="2px" class="mx-4" />
+
+            <div class="flex flex-col">
+              <p class="text-xs text-gray-iron-500">STATUS</p>
+              <span
+                :class="[
+                  'flex items-center justify-center text-sm font-semibold bg-gray-iron-50 px-2 py-1 rounded-lg',
+                  provisionedSubscriberData.status === 'ACTIVE'
+                    ? 'text-success-500'
+                    : 'text-error-500',
+                ]"
+              >
+                <StatusBadge
+                  :status="
+                    provisionedSubscriberData.status === 'ACTIVE' ? true : false
+                  "
+                  class="inline pr-1"
+                />
+                {{ provisionedSubscriberData.status }}
+              </span>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-3 gap-4">
+            <div class="flex flex-col">
+              <p class="text-xs text-gray-iron-500">PACKAGE TYPE</p>
+              <p class="text-sm text-gray-iron-900 leading-5">
+                {{
+                  provisionedSubscriberData.packageType
+                    ? provisionedSubscriberData.packageType
+                    : "N/A"
+                }}
+              </p>
+            </div>
+
+            <!-- Device Name -->
+            <div class="flex flex-col">
+              <p class="text-xs text-gray-iron-500">DEVICE NAME</p>
+              <p class="text-sm text-gray-iron-900 leading-5">
+                {{
+                  provisionedSubscriberData.onuDeviceName
+                    ? provisionedSubscriberData.onuDeviceName
+                    : "N/A"
+                }}
+              </p>
+            </div>
+
+            <!-- IP Assigned -->
+            <div class="flex flex-col">
+              <p class="text-xs text-gray-iron-500 uppercase">IP ASSIGNED</p>
+              <p class="text-sm text-gray-iron-900 leading-5">
+                {{
+                  provisionedSubscriberData.ipAssigned
+                    ? provisionedSubscriberData.ipAssigned
+                    : "N/A"
+                }}
+              </p>
+            </div>
+
+            <!-- ONU Serial Number -->
+            <div class="flex flex-col">
+              <p class="text-xs text-gray-iron-500">ONU SERIAL NUMBER</p>
+              <p class="text-sm text-gray-iron-900 leading-5">
+                {{
+                  provisionedSubscriberData.onuSerialNumber
+                    ? provisionedSubscriberData.onuSerialNumber
+                    : "N/A"
+                }}
+              </p>
+            </div>
+
+            <!-- ONU Mac Address -->
+            <div class="flex flex-col">
+              <p class="text-xs text-gray-iron-500 uppercase">
+                ONU MAC ADDRESS
+              </p>
+              <p class="text-sm text-gray-iron-900 leading-5">
+                {{
+                  provisionedSubscriberData.onuMacAddress
+                    ? provisionedSubscriberData.onuMacAddress
+                    : "N/A"
+                }}
+              </p>
+            </div>
+
+            <!-- OLT IP -->
+            <div class="flex flex-col">
+              <p class="text-xs text-gray-iron-500 uppercase">OLT IP</p>
+              <p class="text-sm text-gray-iron-900 leading-5">
+                {{
+                  provisionedSubscriberData.oltIp
+                    ? provisionedSubscriberData.oltIp
+                    : "N/A"
+                }}
+              </p>
+            </div>
+
+            <!-- SSID -->
+            <div class="flex flex-col mb-8">
+              <p class="text-xs text-gray-iron-500">SSID</p>
+              <p class="text-sm text-gray-iron-900 leading-5">
+                {{
+                  provisionedSubscriberData.ssidName
+                    ? provisionedSubscriberData.ssidName
+                    : "N/A"
+                }}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="w-full">
+        <div class="flex flex-row justify-between items-center mb-2">
+          <p class="text-xl font-medium text-gray-iron-900">
+            Troubleshoot Subscriber
+          </p>
+
+          <!-- <q-icon flat name="autorenew" size="sm" class="cursor-pointer" /> -->
+
+          <!-- TODO: change color style of this button & add @click event -->
+          <!-- TODO: change this into dropdown button instead of buttons component -->
+          <DropdownButton
+            :modelValue="selectTime"
+            :columnOptions="timeOptions"
+            label="Select time"
+            color="bg-primary-600"
+            textColor="text-white"
+          />
+        </div>
+
+        <!-- TODO: add v-if: doneApiCalls -->
+        <Card
+          header="Subscriber Details"
+          :details="[
+            { label: 'Subscriber Name', value: clientInfo.clientName },
+            { label: 'Account Number', value: clientInfo.accountNumber },
+            { label: 'Payment Status', value: clientInfo.otcStatus },
+            { label: 'Package Type', value: bandwidth.name },
+          ]"
+        />
+
+        <!-- ONU Details Card -->
+        <!-- TODO: add v-if done api calls -->
+        <Card
+          header="ONU Details"
+          :details="[
+            {
+              label: 'ONU Status',
+              value: onuStatus === '1' ? 'Online' : 'Offline',
+            },
+            { label: 'ONU IP', value: clientInfo.ipAssigned },
+            { label: 'SSID', value: clientInfo.SSID },
+            { label: 'ONU Serial Number', value: clientInfo.onuSerialNumber },
+            {
+              label: 'ONU Mac Address',
+              value: clientInfo.onuMacAddress,
+            },
+            { label: 'Upstream', value: bandwidth.upStream },
+            {
+              label: 'Downstream',
+              value: bandwidth.downStream,
+            },
+          ]"
+        />
+
+        <!-- OLT Details Card -->
+        <!-- TODO: add v-if doneApiCalls -->
+        <Card
+          header="OLT Details"
+          :details="[
+            {
+              label: 'OLT Status',
+              value: oltStatus === '1' ? 'Online' : 'Offline',
+            },
+            { label: 'OLT IP', value: clientInfo.oltIp },
+            { label: 'OLT Site', value: clientInfo.oltSite },
+            { label: 'OLT Interface', value: clientInfo.oltInterface },
+            { label: 'OLT Upstream', value: clientInfo.oltUpstream },
+            { label: 'OLT Downstream', value: clientInfo.oltDownstream },
+          ]"
+        />
+
+        <!-- Grafana Panel -->
+        <div class="mt-6">
+          <iframe
+            :src="`${grafanaApi}/d-solo/d94d1e0e-a6e4-45c4-847f-6603e1c31ccb/subscribers-traffic-rate-and-uptime?orgId=1&from=now-${selectTime}&to=now&var-Subscriber=${deviceName}&panelId=3`"
+            class="grafana-panel"
+            frameborder="0"
+          >
+          </iframe>
+        </div>
+      </div>
+    </div>
+  </q-page>
 </template>
 
 <script setup lang="ts">
-import { toRefs, ref, reactive, watch } from "vue";
+import { useQuasar } from "quasar";
+import { toRefs, ref, reactive, watch, onMounted } from "vue";
+import { useRouter, useRoute } from "vue-router";
 import axios from "axios";
 import {
   getHiveClientById,
@@ -222,12 +273,15 @@ import {
   checkPackageDetails,
   getOtcStatus,
 } from "src/api/HiveConnectApis/hiveConnect";
-import { useQuasar } from "quasar";
+import { toInitialCapital } from "src/util/string";
 import Inputs from "../inputs/Inputs.vue";
+import Card from "../Card.vue";
+import DropdownButton from "../DropdownButton.vue";
+import StatusBadge from "../StatusBadge.vue";
+import Buttons from "../inputs/Buttons.vue";
 
-/////////////////
-// Variables ///
-//////////////////
+const router = useRouter();
+const route = useRoute();
 const testmodal = ref(true);
 const $q = useQuasar();
 const props = defineProps<{
@@ -238,12 +292,18 @@ const props = defineProps<{
 }>();
 const doneApiCalls = ref(false);
 const { isVisible } = toRefs(props);
-// Tracks state of modal if visible or not
 const localIsVisible = ref(props.isVisible);
+const selectTime = ref("2d");
+const onuStatus = ref("");
+const oltStatus = ref("");
+const subscriberAccountNo = route.params.accountNo;
+const provisionedSubscriberData = ref(
+  (router.options.history.state as { provisionedSubscriberData?: any })
+    ?.provisionedSubscriberData || {}
+);
+const prometheusApi = process.env.PROVISION_API_PROMETHEUS;
+const grafanaApi = process.env.PROVISION_API_GRAFANA;
 
-const closeModalNow = () => {
-  props.closeModal();
-};
 const onuInfo = ref({
   __name__: "",
   device_name: "",
@@ -257,9 +317,7 @@ const onuInfo = ref({
   vlan_690_ip: "",
   provisioned_by: "",
 });
-const selectTime = ref("2d");
-const onuStatus = ref("");
-const oltStatus = ref("");
+
 const clientInfo = reactive({
   accountNumber: "",
   clientName: "",
@@ -282,10 +340,6 @@ const bandwidth = reactive({
   name: "",
 });
 
-////////////////
-//// Methods ///
-////////////////
-
 const timeOptions = [
   { label: "Last 5 minutes", value: "5m" },
   { label: "Last 15 minutes", value: "15m" },
@@ -298,14 +352,9 @@ const timeOptions = [
   { label: "Last 2 days", value: "2d" },
   { label: "Last 90 days", value: "90d" },
 ];
-const prometheusApi = process.env.PROVISION_API_PROMETHEUS;
-const grafanaApi = process.env.PROVISION_API_GRAFANA;
-const showNotif = () => {
-  $q.notify({
-    message: "Gathering SNMP Data! Please wait for a moment.",
-    color: "warning",
-    position: "top",
-  });
+
+const goBack = () => {
+  router.push({ name: "provisioned" });
 };
 
 const getInfoApiPrometheus = async (deviceName: string, id: number) => {
@@ -314,7 +363,6 @@ const getInfoApiPrometheus = async (deviceName: string, id: number) => {
 
   try {
     if (!deviceName) {
-      closeModalAndShowNotif();
       return;
     }
 
@@ -388,36 +436,22 @@ const getInfoApiPrometheus = async (deviceName: string, id: number) => {
     doneApiCalls.value = true;
   } catch (err) {
     console.log(err);
-    closeModalAndShowNotif();
   }
   $q.loading.hide();
-};
-
-// const emit = defineEmits<{
-//   (event: "update:isVisible", value: boolean): void;
-// }>();
-
-// watch(
-//   () => props.isVisible,
-//   (newVal) => {
-//     if (props.isVisible) {
-//       localIsVisible.value = newVal;
-//     }
-//   }
-// );
-
-// watch(localIsVisible, (newVal) => {
-//   emit("update:isVisible", newVal);
-// });
-
-const closeModalAndShowNotif = () => {
-  closeModalNow();
-  showNotif();
 };
 
 watch(isVisible, () => {
   if (isVisible.value === true) {
     getInfoApiPrometheus(props.deviceName, props.clientId);
+  }
+});
+
+onMounted(() => {
+  if (provisionedSubscriberData.value) {
+    console.log(
+      "Data received from Active/Onhold Subscribers Page: ",
+      provisionedSubscriberData.value
+    );
   }
 });
 </script>
@@ -428,39 +462,17 @@ watch(isVisible, () => {
   position: sticky;
   top: 0;
 }
-.q-dialog .q-card {
-  border-radius: 8px;
-}
-.dialog-content {
-  overflow-x: hidden;
-  overflow-y: auto;
-}
-.dialog-content::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
-.dialog-content::-webkit-scrollbar-thumb {
-  background-color: rgba(0, 0, 0, 0.2);
-  border-radius: 8px;
-}
+
 .grafana-panel {
   width: 100%;
   aspect-ratio: 16 / 7;
   max-width: 1200px;
 }
-.select-time {
-  max-width: 200px;
-}
 
 @media screen and (min-width: 690px) {
-  .provision-info {
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
-    gap: 1em;
-  }
   .grafana-panel {
     aspect-ratio: 16 / 5;
-    max-width: 1200px;
+    max-width: 100%;
   }
 }
 </style>

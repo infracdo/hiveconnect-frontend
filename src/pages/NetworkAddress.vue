@@ -116,7 +116,7 @@ const getNetworkAddressData = (
   index: number,
   module: string
 ) => {
-  console.log("Network Address table for details navigation clicked.");
+  console.log("Row clicked and navigated to address details page.");
 
   router.push({
     name: "network-address-details",

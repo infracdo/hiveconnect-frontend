@@ -203,7 +203,10 @@ export const getHiveClientById = async (id: number): Promise<IClient> => {
 export const getForMigrationSubscribers = async () => {
   try {
     const { data } = await api.get("/getmigratingsubscribers");
-    console.log("Retrieved For Migration Subscribers data: ", data);
+    console.log(
+      "Returned data by triggering '/getmigratingsubscribers': ",
+      data
+    );
     return data;
   } catch (error) {
     console.log("Could not retrieve For Migration Subscribers data!", error);
@@ -212,12 +215,15 @@ export const getForMigrationSubscribers = async () => {
 };
 
 // POST: /updateMigrationSubscriberStatus
-export const updateForMigrationSubscribers = async (accountNo: string) => {
+export const updateMigrationSubscriberStatus = async (accountNo: string) => {
   try {
     const { data } = await api.post("/updateMigrationSubscriberStatus", {
       subscriberAccountNumber: accountNo,
     });
-    console.log("Triggered '/updateMigrationSubscriberStatus' API: ", data);
+    console.log(
+      "Returned data by triggering '/updateMigrationSubscriberStatus' API: ",
+      data
+    );
     return data;
   } catch (error) {
     console.log("Could not update for migration subscriber status", error);
@@ -231,7 +237,7 @@ export const migrateSubscriberFromBucketToHive = async (accountNo: string) => {
     const { data } = await api.post("/executeMigration", {
       accountNo: accountNo,
     });
-    console.log("Triggered '/executeMigration' API: ", data);
+    console.log("Returned data by triggering '/executeMigration' API: ", data);
     return data;
   } catch (error) {
     console.log("Could not migrate subscriber for migration", error);

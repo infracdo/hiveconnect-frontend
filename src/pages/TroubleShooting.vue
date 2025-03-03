@@ -54,9 +54,9 @@
         <div class="full-width">
           <!-- Client details card -->
           <Card
-            header="Client Details"
+            header="Subscriber Details"
             :details="[
-              { label: 'Client Name', value: clientInfo.clientName },
+              { label: 'Subscriber Name', value: clientInfo.clientName },
               { label: 'Account Number', value: clientInfo.accountNumber },
               { label: 'Package Type', value: clientInfo.packageType },
             ]"

@@ -47,6 +47,14 @@ const routes: RouteRecordRaw[] = [
         meta: { roles: ["HIVECONNECT_PROVISIONED_VIEW"] },
       },
       {
+        path: "provisioned/:accountNo",
+        name: "provisioned-details",
+        component: () =>
+          import("../components/InetConfig/TroubleshootClient.vue"),
+        props: true,
+        meta: { roles: ["HIVECONNECT_PROVISIONED_VIEW"] },
+      },
+      {
         path: "troubleshooting",
         name: "troubleshooting",
         component: () => import("../pages/TroubleShooting.vue"),

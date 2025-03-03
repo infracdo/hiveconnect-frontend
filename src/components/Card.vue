@@ -11,7 +11,7 @@
 
     <!-- Use v-for for dynamic display of provisioned details -->
     <q-card-section>
-      <div class="flex-row grid grid-cols-6">
+      <div class="flex-row grid grid-cols-7">
         <div v-for="(item, index) in details" :key="index">
           <p class="text-xs text-gray-iron-500 uppercase mb-2">
             {{ item.label }}
@@ -26,6 +26,6 @@
 <script setup lang="ts">
 defineProps<{
   header: string;
-  details: { label: string; value: string }[];
+  details: { label: string; value: string | number }[];
 }>();
 </script>

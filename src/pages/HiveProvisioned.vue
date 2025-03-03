@@ -69,39 +69,29 @@
               :tableRows="filteredRows"
               :visibleColumns="visibleColumns"
               :rowsPerPage="10"
-              @rowClick="openModal"
+              :callback="getProvisionedSubscriberData"
             >
             </Table>
           </div>
         </div>
       </div>
     </div>
-
-    <!-- Display troubleshoot modal when row is clicked-->
-    <TroubleshootClient
-      :isVisible="openTroubleShootModal"
-      @update:isVisible="openTroubleShootModal = $event"
-      :close-modal="closeTroubleShootModal"
-      :device-name="deviceName"
-      :clientId="clientId"
-    />
   </q-page>
 </template>
 
 <script setup lang="ts">
 import { onMounted, ref, computed } from "vue";
-// import { useRoute } from "vue-router";
+import { useRouter } from "vue-router";
 import { getHiveClients } from "src/api/HiveConnectApis/hiveConnect";
 import { useSubscriberStore } from "src/stores/subscriber/subscriber-store";
 import { useClientStore } from "src/stores/subscriber/client-store";
 import { IClient } from "src/api/HiveConnectApis/types";
 import { searchRows } from "src/util/search";
-import TroubleshootClient from "src/components/InetConfig/TroubleshootClient.vue";
 import SearchBar from "src/components/SearchBar.vue";
 import DropdownButton from "src/components/DropdownButton.vue";
 import Table from "src/components/Table.vue";
 
-// const route = useRoute();
+const router = useRouter();
 const store = useClientStore();
 const columns = computed(
   () => store.$state.subscribercolumns?.filter((col) => col.name !== "id") || [] // Note: subscriber id is not included since we were told that if the id is local (within hive only), it should not be included in the table so i based everything to their account number instead
@@ -115,25 +105,7 @@ const openTroubleShootModal = ref(false);
 const loading = ref(false);
 const modalIsVisible = ref(false);
 
-// NOTE: for testing purposes only remove this!!!
-// Define the client object
-interface Client {
-  subscriberName: string;
-  accountNo: string;
-  packageType: string;
-  onuStatus: string;
-  onuIp: string;
-  onuSerialNumber: number;
-  onuMacAddress: string;
-  upstream: string;
-  downstream: string;
-  oltStatus: string;
-  oltIp: string;
-  oltSite: string;
-  oltInterface: string;
-}
-
-const client = ref(<Client>{
+const client = ref({
   subscriberName: "",
   accountNo: "",
   packageType: "",
@@ -279,6 +251,22 @@ const getProvisioned = async (): Promise<void> => {
     rowsHive.value = await getHiveClients();
   } catch (error) {}
   loading.value = false;
+};
+
+// Retrieve provisioned subscriber's data and navigate to the subscriber's details page with auto config and troubleshooting
+const getProvisionedSubscriberData = (
+  event: Event,
+  row: any,
+  index: number,
+  module: string
+) => {
+  console.log("Row clicked and navigated to the subscribers details page.");
+
+  router.push({
+    name: "provisioned-details",
+    params: { accountNo: row.subscriberAccountNumber },
+    state: { provisionedSubscriberData: { ...row } },
+  });
 };
 
 onMounted(async () => {

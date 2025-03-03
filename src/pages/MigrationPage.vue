@@ -145,7 +145,7 @@ import Swal from "sweetalert2";
 import { useMigrationSubscriberStore } from "src/stores/subscriber/migration-subscriber-store";
 import {
   getForMigrationSubscribers,
-  updateForMigrationSubscribers,
+  updateMigrationSubscriberStatus,
   migrateSubscriberFromBucketToHive,
 } from "src/api/HiveConnectApis/hiveConnect";
 import { IMigrationSubscriber } from "src/api/HiveConnectApis/types";
@@ -293,9 +293,9 @@ const handleSearch = (event: KeyboardEvent) => {
 };
 
 // Method to trigger form save button in modal
-const handleUpdateForMigrationSubscriberStatus = async () => {
+const handleUpdateForMigrationSubscriberStatus = () => {
   // Show confirmation alert
-  const confirmResult = await Swal.fire({
+  Swal.fire({
     title: "Confirm",
     text: "Are you sure you want to change the status of this subscriber?",
     icon: "warning",
@@ -308,11 +308,20 @@ const handleUpdateForMigrationSubscriberStatus = async () => {
     showLoaderOnConfirm: true,
     preConfirm: async () => {
       try {
-        const response = await updateForMigrationSubscribers(
-          subscriberAccountNumber.value
-        );
+        const updateSubscriberStatusApiResponse =
+          await updateMigrationSubscriberStatus(subscriberAccountNumber.value);
 
-        if (response.status !== 200) {
+        console.log("API Response: ", updateSubscriberStatusApiResponse);
+
+        if (updateSubscriberStatusApiResponse.status === "200") {
+          Swal.fire({
+            title: "Success",
+            text: "Subscriber status changed successfully.",
+            icon: "success",
+            confirmButtonColor: "#1d6499",
+          });
+          refreshTable();
+        } else {
           throw new Error("Failed to changed the subscriber status.");
         }
       } catch (error) {
@@ -327,21 +336,10 @@ const handleUpdateForMigrationSubscriberStatus = async () => {
         return false;
       }
     },
-  }).then((result) => {
-    // Display success alert when migrate button is clicked
-    if (result.isConfirmed) {
-      Swal.fire({
-        title: "Success",
-        text: "Subscriber status changed successfully.",
-        icon: "success",
-        confirmButtonColor: "#1d6499",
-      });
-      refreshTable();
-    }
   });
 };
 
-const handleMigrateSubscriber = async () => {
+const handleMigrateSubscriber = () => {
   Swal.fire({
     title: "Confirm",
     text: "Are you sure you want to migrate this subscriber from bucket to hive?",
@@ -359,7 +357,17 @@ const handleMigrateSubscriber = async () => {
           subscriberAccountNumber.value
         );
 
-        if (migrateResponse.status !== 200) {
+        console.log("API Response: ", migrateResponse);
+
+        if (migrateResponse.status === "200") {
+          Swal.fire({
+            title: "Success",
+            text: "Subscriber migrated from bucket to hive successfully.",
+            icon: "success",
+            confirmButtonColor: "#1d6499",
+          });
+          refreshTable();
+        } else {
           throw new Error("Failed to migrate subscriber from bucket to hive");
         }
       } catch (error) {
@@ -376,13 +384,6 @@ const handleMigrateSubscriber = async () => {
     },
   }).then((result) => {
     if (result.isConfirmed) {
-      Swal.fire({
-        title: "Success",
-        text: "Subscriber migrated from bucket to hive successfully.",
-        icon: "success",
-        confirmButtonColor: "#1d6499",
-      });
-      refreshTable();
     }
   });
 };
