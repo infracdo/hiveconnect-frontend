@@ -195,17 +195,17 @@
           required
         />
       </div>
-
-      <!-- Provision Client -->
-      <ProvisionClient
-        :isVisible="modalProvisionChecking"
-        @update:isVisible="modalProvisionChecking = $event"
-        :responses="responses"
-        :responseStatus="responseStatus"
-        :showProvisionResult="showProvisionResult"
-        :ssid="ssid"
-      />
     </Modal>
+
+    <!-- Provision Client -->
+    <ProvisionClient
+      :isVisible="modalProvisionChecking"
+      @update:isVisible="modalProvisionChecking = $event"
+      :responses="responses"
+      :responseStatus="responseStatus"
+      :showProvisionResult="showProvisionResult"
+      :ssid="ssid"
+    />
   </q-page>
 </template>
 
@@ -565,6 +565,7 @@ const transformData = async () => {
 
 const provisionClient = async (clientData: typeof NewClient): Promise<void> => {
   // $q.loading.show();
+  modalProvisionChecking.value = true;
   showSkeletonDancing.value = true;
   showProvisionResult.value = false;
 
@@ -671,7 +672,7 @@ const handleActivateClient = async () => {
     showCancelButton: true,
     confirmButtonColor: "#1d6499",
     cancelButtonColor: "#d33",
-    confirmButtonText: "Yes, procced",
+    confirmButtonText: "Yes, proceed",
     reverseButtons: true,
     allowOutsideClick: false,
   });

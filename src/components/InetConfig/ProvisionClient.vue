@@ -52,11 +52,19 @@
                 <div>
                   Preprovision Checking:
                   <span
-                    :class="
-                      props.responseStatus.provisionCheck
-                        ? 'text-success-500'
-                        : 'text-error-500'
-                    "
+                    :class="{
+                      'text-warning':
+                        props.responses.provisionCheck ===
+                        'Preprovision checking ...',
+                      'text-success-500':
+                        props.responseStatus.provisionCheck &&
+                        props.responses.provisionCheck !==
+                          'Preprovision checking ...',
+                      'text-error-500':
+                        !props.responseStatus.provisionCheck &&
+                        props.responses.provisionCheck !==
+                          'Preprovision checking ...',
+                    }"
                   >
                     {{ props.responses.provisionCheck }}
                   </span>
@@ -82,11 +90,19 @@
                 <div>
                   Auto Config:
                   <span
-                    :class="
-                      props.responseStatus.autoConfig
-                        ? 'text-success-500'
-                        : 'text-error-500'
-                    "
+                    :class="{
+                      'text-warning':
+                        props.responses.autoConfig ===
+                        'Executing Auto Config...',
+                      'text-success-500':
+                        props.responseStatus.autoConfig &&
+                        props.responses.autoConfig !==
+                          'Executing Auto Config...',
+                      'text-error-500':
+                        !props.responseStatus.autoConfig &&
+                        props.responses.autoConfig !==
+                          'Executing Auto Config...',
+                    }"
                   >
                     {{ props.responses.autoConfig }}
                   </span>

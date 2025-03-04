@@ -27,9 +27,9 @@
         </div>
 
         <div class="flex flex-row items-center">
-          <!-- TODO: add @click event -->
+          <!-- TODO: add @click event for triggering monitoring playbook if failed -->
           <Buttons
-            icon="img:/icons/pen.svg"
+            icon="img:/icons/wrench.svg"
             label="Auto Config"
             color="bg-gray-iron-100"
             textColor="text-gray-iron-900"
@@ -196,7 +196,8 @@
           />
         </div>
 
-        <!-- TODO: add v-if: doneApiCalls -->
+        <!-- REVIEW: v-if doneApiCalls should be added by default but this would hide the cards if the APIs are not responding successfully.
+         i think mas nice if naka display na daan ang cards pero blank lng if dli ga respond/error ang API calls -->
         <Card
           header="Subscriber Details"
           :details="[
@@ -208,13 +209,18 @@
         />
 
         <!-- ONU Details Card -->
-        <!-- TODO: add v-if done api calls -->
+        <!-- REVIEW: v-if doneApiCalls should be added by default but this would hide the cards if the APIs are not responding successfully.
+         i think mas nice if naka display na daan ang cards pero blank lng if dli ga respond/error ang API calls -->
         <Card
           header="ONU Details"
           :details="[
             {
               label: 'ONU Status',
-              value: onuStatus === '1' ? 'Online' : 'Offline',
+              value: selectTime
+                ? onuStatus === '1'
+                  ? 'Online'
+                  : 'Offline'
+                : '',
             },
             { label: 'ONU IP', value: clientInfo.ipAssigned },
             { label: 'SSID', value: clientInfo.SSID },
@@ -232,26 +238,37 @@
         />
 
         <!-- OLT Details Card -->
-        <!-- TODO: add v-if doneApiCalls -->
+        <!-- REVIEW: v-if doneApiCalls should be added by default but this would hide the cards if the APIs are not responding successfully.
+         i think mas nice if naka display na daan ang cards pero blank lng if dli ga respond/error ang API calls -->
         <Card
           header="OLT Details"
           :details="[
             {
               label: 'OLT Status',
-              value: oltStatus === '1' ? 'Online' : 'Offline',
+              value: selectTime
+                ? oltStatus === '1'
+                  ? 'Online'
+                  : 'Offline'
+                : '',
             },
             { label: 'OLT IP', value: clientInfo.oltIp },
             { label: 'OLT Site', value: clientInfo.oltSite },
             { label: 'OLT Interface', value: clientInfo.oltInterface },
-            { label: 'OLT Upstream', value: clientInfo.oltUpstream },
-            { label: 'OLT Downstream', value: clientInfo.oltDownstream },
+            {
+              label: 'OLT Upstream',
+              value: selectTime ? clientInfo.oltUpstream : '',
+            },
+            {
+              label: 'OLT Downstream',
+              value: selectTime ? clientInfo.oltDownstream : '',
+            },
           ]"
         />
 
         <!-- Grafana Panel -->
         <div class="mt-6">
           <iframe
-            :src="`${grafanaApi}/d-solo/d94d1e0e-a6e4-45c4-847f-6603e1c31ccb/subscribers-traffic-rate-and-uptime?orgId=1&from=now-${selectTime}&to=now&var-Subscriber=${deviceName}&panelId=3`"
+            :src="`${grafanaApi}/d-solo/d94d1e0e-a6e4-45c4-847f-6603e1c31ccb/subscribers-traffic-rate-and-uptime?orgId=1&from=now-${selectTime}&to=now&var-Subscriber=${provisionedSubscriberData.onuDeviceName}&panelId=3`"
             class="grafana-panel"
             frameborder="0"
           >
@@ -284,16 +301,17 @@ const router = useRouter();
 const route = useRoute();
 const testmodal = ref(true);
 const $q = useQuasar();
-const props = defineProps<{
-  isVisible: boolean;
-  closeModal: Function;
-  deviceName: string;
-  clientId: number;
-}>();
+// const props = defineProps<{
+//   isVisible: boolean;
+//   closeModal: Function;
+//   deviceName: string;
+//   clientId: number;
+// }>();
 const doneApiCalls = ref(false);
-const { isVisible } = toRefs(props);
-const localIsVisible = ref(props.isVisible);
-const selectTime = ref("2d");
+// const { isVisible } = toRefs(props);
+// const localIsVisible = ref(props.isVisible);
+// const selectTime = ref("2d");
+const selectTime = ref("");
 const onuStatus = ref("");
 const oltStatus = ref("");
 const subscriberAccountNo = route.params.accountNo;
@@ -440,11 +458,11 @@ const getInfoApiPrometheus = async (deviceName: string, id: number) => {
   $q.loading.hide();
 };
 
-watch(isVisible, () => {
-  if (isVisible.value === true) {
-    getInfoApiPrometheus(props.deviceName, props.clientId);
-  }
-});
+// watch(isVisible, () => {
+//   if (isVisible.value === true) {
+//     getInfoApiPrometheus(props.deviceName, props.clientId);
+//   }
+// });
 
 onMounted(() => {
   if (provisionedSubscriberData.value) {
