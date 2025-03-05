@@ -1,4 +1,5 @@
-import axios from "axios";
+import axios, { isAxiosError } from "axios";
+import { AxiosError } from "axios";
 import { useDevicesStore } from "src/stores/rogue-device/rogue-devices";
 import { useNetworkStore } from "src/stores/network-address/network-address";
 import {
@@ -227,7 +228,12 @@ export const updateMigrationSubscriberStatus = async (accountNo: string) => {
     return data;
   } catch (error) {
     console.log("Could not update for migration subscriber status", error);
-    throw error;
+
+    if (isAxiosError(error) && error.response) {
+      throw new Error(JSON.stringify(error.response.data));
+    } else {
+      throw error;
+    }
   }
 };
 

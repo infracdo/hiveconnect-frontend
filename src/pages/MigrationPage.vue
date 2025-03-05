@@ -308,18 +308,39 @@ const handleUpdateForMigrationSubscriberStatus = () => {
     showLoaderOnConfirm: true,
     preConfirm: async () => {
       try {
-        await updateMigrationSubscriberStatus(subscriberAccountNumber.value);
+        const response = await updateMigrationSubscriberStatus(
+          subscriberAccountNumber.value
+        );
 
+        let successMessage = "Subscriber status changed successfully.";
+        if (response.message) {
+          try {
+            const parsedMessage = JSON.parse(response.message);
+            successMessage = parsedMessage.message || successMessage;
+          } catch (e) {
+            console.error("Failed to parse success message: ", e);
+          }
+        }
         Swal.fire({
           title: "Success",
-          text: "Subscriber status changed successfully.",
+          text: successMessage,
           icon: "success",
           confirmButtonColor: "#1d6499",
         });
         refreshTable();
       } catch (error) {
-        const errorMessage =
-          error instanceof Error ? error.message : "An unknown error occurred.";
+        let errorMessage = "An unknown error occurred.";
+
+        if (error instanceof Error) {
+          try {
+            const errorResponse = JSON.parse(error.message);
+            errorMessage =
+              JSON.parse(errorResponse.message).message ||
+              errorResponse.message;
+          } catch (e) {
+            errorMessage = error.message;
+          }
+        }
         Swal.fire({
           title: "Error",
           text: errorMessage,
