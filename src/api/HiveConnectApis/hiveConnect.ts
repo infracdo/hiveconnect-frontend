@@ -237,6 +237,7 @@ export const migrateSubscriberFromBucketToHive = async (accountNo: string) => {
     const { data } = await api.post("/executeMigration", {
       accountNo: accountNo,
     });
+    console.log("Subscriber Account No: ", accountNo);
     console.log("Returned data by triggering '/executeMigration' API: ", data);
     return data;
   } catch (error) {

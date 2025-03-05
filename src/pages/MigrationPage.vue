@@ -308,22 +308,15 @@ const handleUpdateForMigrationSubscriberStatus = () => {
     showLoaderOnConfirm: true,
     preConfirm: async () => {
       try {
-        const updateSubscriberStatusApiResponse =
-          await updateMigrationSubscriberStatus(subscriberAccountNumber.value);
+        await updateMigrationSubscriberStatus(subscriberAccountNumber.value);
 
-        console.log("API Response: ", updateSubscriberStatusApiResponse);
-
-        if (updateSubscriberStatusApiResponse.status === "200") {
-          Swal.fire({
-            title: "Success",
-            text: "Subscriber status changed successfully.",
-            icon: "success",
-            confirmButtonColor: "#1d6499",
-          });
-          refreshTable();
-        } else {
-          throw new Error("Failed to changed the subscriber status.");
-        }
+        Swal.fire({
+          title: "Success",
+          text: "Subscriber status changed successfully.",
+          icon: "success",
+          confirmButtonColor: "#1d6499",
+        });
+        refreshTable();
       } catch (error) {
         const errorMessage =
           error instanceof Error ? error.message : "An unknown error occurred.";
@@ -356,8 +349,6 @@ const handleMigrateSubscriber = () => {
         const migrateResponse = await migrateSubscriberFromBucketToHive(
           subscriberAccountNumber.value
         );
-
-        console.log("API Response: ", migrateResponse);
 
         if (migrateResponse.status === "200") {
           Swal.fire({
