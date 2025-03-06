@@ -69,18 +69,23 @@
 <script setup lang="ts">
 import { ref, watchEffect, computed, onMounted } from "vue";
 import { event, QTableProps } from "quasar";
-import { useRouter } from "vue-router";
+import { useRouter, useRoute } from "vue-router";
 import { useNetworkStore } from "src/stores/network-address/network-address";
-import { getNetworkAddresses } from "src/api/HiveConnectApis/hiveConnect";
+import {
+  getNetworkAddresses,
+  addFrontendLogger,
+} from "src/api/HiveConnectApis/hiveConnect";
 import { INetworkAddresses } from "src/api/HiveConnectApis/types";
 import { searchRows } from "src/util/search";
-import { ipAddress } from "@vuelidate/validators";
+import { useKeycloak } from "src/composables/useKeycloak";
 import AddNewNetworkModal from "src/components/NetworkAddress/AddNewNetworkModal.vue";
 import SearchBar from "src/components/SearchBar.vue";
 import Table from "src/components/Table.vue";
 
 const store = useNetworkStore();
 const router = useRouter();
+const route = useRoute();
+const keycloak = useKeycloak();
 const rows = ref<INetworkAddresses[]>([]);
 const columns: QTableProps["columns"] = store.$state.networkColumn || [];
 const filter = ref("");
@@ -136,5 +141,17 @@ async function fetchNetworkAddresses() {
 }
 
 // Retrieve migration subscribers data as soon as the component is mounted
-onMounted(fetchNetworkAddresses);
+onMounted(async () => {
+  await fetchNetworkAddresses();
+
+  const user = keycloak.tokenParsed.given_name;
+  const action = "page visit";
+  const details = `${user} visited the ${route.path} page`;
+  const page = route.path?.toString() || "Unknown Page";
+  const userAgent = navigator.userAgent;
+
+  addFrontendLogger(user, action, details, page, userAgent)
+    .then(() => console.log("Frontend log sent successfully."))
+    .catch((error) => console.error("Error sending frontend log: ", error));
+});
 </script>

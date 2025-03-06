@@ -160,16 +160,21 @@
 
 <script setup lang="ts">
 import { useIpAddressStore } from "../../stores/network-address/ip-address";
-import { ref, watchEffect, computed } from "vue";
+import { ref, watchEffect, computed, onMounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import { getIpAddresses } from "src/api/HiveConnectApis/hiveConnect";
+import {
+  getIpAddresses,
+  addFrontendLogger,
+} from "src/api/HiveConnectApis/hiveConnect";
 import { IipAddressesOfCidrBlock } from "src/api/HiveConnectApis/types";
 import { searchRows } from "src/util/search";
+import { useKeycloak } from "src/composables/useKeycloak";
 import Buttons from "../inputs/Buttons.vue";
 import Table from "../Table.vue";
 import SearchBar from "../SearchBar.vue";
 
 const route = useRoute();
+const keycloak = useKeycloak();
 const storeIp = useIpAddressStore();
 const router = useRouter();
 const columns = storeIp.$state.ipAddressColumn?.length
@@ -199,4 +204,16 @@ const filteredRows = computed(() => {
 const goBack = () => {
   router.push({ name: "network-address" });
 };
+
+onMounted(() => {
+  const user = keycloak.tokenParsed.given_name;
+  const action = "page visit";
+  const details = `${user} visited the ${route.path} page`;
+  const page = route.path?.toString() || "Unknown Page";
+  const userAgent = navigator.userAgent;
+
+  addFrontendLogger(user, action, details, page, userAgent)
+    .then(() => console.log("Frontend log sent successfull."))
+    .catch((error) => console.error("Error sending frontend log: ", error));
+});
 </script>

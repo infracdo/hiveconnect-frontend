@@ -212,7 +212,7 @@
 <script setup lang="ts">
 import { QTableProps, useQuasar } from "quasar";
 import { ref, watchEffect, watch, onMounted, computed, reactive } from "vue";
-// import { useRoute } from "vue-router";
+import { useRoute } from "vue-router";
 import Swal from "sweetalert2";
 import { useSubscriberStore } from "src/stores/subscriber/subscriber-store";
 import {
@@ -224,6 +224,7 @@ import {
   preProvisionCheck,
   executeAutoConfig,
   executeMonitoring,
+  addFrontendLogger,
 } from "src/api/HiveConnectApis/hiveConnect";
 import {
   IClient,
@@ -233,6 +234,7 @@ import {
 } from "src/api/HiveConnectApis/types";
 import { searchRows } from "src/util/search";
 import { IserialAndMac, IsubsriberType } from "src/components/models";
+import { useKeycloak } from "src/composables/useKeycloak";
 import SearchBar from "src/components/SearchBar.vue";
 import DropdownButton from "src/components/DropdownButton.vue";
 import Table from "src/components/Table.vue";
@@ -243,6 +245,8 @@ import ProvisionClient from "src/components/InetConfig/ProvisionClient.vue";
 
 // const route = useRoute();
 const $q = useQuasar();
+const route = useRoute();
+const keycloak = useKeycloak();
 const store = useSubscriberStore();
 const columns: QTableProps["columns"] = store.$state.subscribercolumns?.length
   ? store.$state.subscribercolumns
@@ -651,7 +655,7 @@ const provisionClient = async (clientData: typeof NewClient): Promise<void> => {
     }
   });
 
-  stopProvisionFunction();
+  return stopProvisionFunction();
 };
 
 // Stop client provision
@@ -677,7 +681,6 @@ const handleActivateClient = async () => {
     allowOutsideClick: false,
   });
 
-  // Display success alert when activate button is clicked
   if (confirmResult.isConfirmed) {
     Object.assign(NewClient, {
       bucketId: client.value.bucketId,
@@ -696,6 +699,19 @@ const handleActivateClient = async () => {
     });
 
     modalProvisionChecking.value = true;
+
+    // Log user action performing provisioning
+    const user = keycloak.tokenParsed.given_name;
+    const action = "provision subscriber";
+    const details = `${user} provisioned ${client.value.subscriberAccountNumber} subscriber`;
+    const page = route.path?.toString() || "Unknown Page";
+    const userAgent = navigator.userAgent;
+
+    addFrontendLogger(user, action, details, page, userAgent)
+      .then(() => console.log("Frontend log sent successfully."))
+      .catch((error) => console.error("Error sending frontend log: ", error));
+
+    // Execute provisioning function
     await provisionClient(NewClient);
   }
 };
@@ -737,15 +753,55 @@ watch(selectedNetworkSiteValue, (newValue) => {
 });
 
 onMounted(async () => {
-  console.log("onMounted triggered, starting data transformation...");
+  try {
+    await getAllClients();
+    console.log("For Provision subscriber data fetched successfull.");
+  } catch (error) {
+    console.error("Error fetching For Provision subscriber data: ", error);
+    return;
+  }
 
   try {
     await transformData();
     console.log("Data transformation completed.");
   } catch (error) {
-    console.error("Error during data transformation:", error);
+    console.error("Error during data transformation: ", error);
   }
+
+  // Log user action accessing the page
+  const user = keycloak.tokenParsed.given_name;
+  const action = "page visit";
+  const details = `${user} visited the ${route.path} page`;
+  const page = route.path?.toString() || "Unknown Page";
+  const userAgent = navigator.userAgent;
+
+  addFrontendLogger(user, action, details, page, userAgent)
+    .then(() => console.log("Frontend log sent successfully."))
+    .catch((error) => console.error("Error sending frontend log: ", error));
 });
 
-onMounted(getAllClients);
+// onMounted(async () => {
+//   console.log("onMounted triggered, starting data transformation...");
+
+//   try {
+//     await transformData();
+//     console.log("Data transformation completed.");
+//   } catch (error) {
+//     console.error("Error during data transformation:", error);
+//   }
+// });
+
+// onMounted(async () => {
+//   await getAllClients();
+
+//   const user = keycloak.tokenParsed.given_name;
+//   const action = "accessed page";
+//   const details = `${user} accessed the ${route.path} page`;
+//   const page = route.path?.toString() || "Unknown Page";
+//   const userAgent = navigator.userAgent;
+
+//   addFrontendLogger(user, action, details, page, userAgent)
+//     .then(() => console.log("Frontend log sent successfully."))
+//     .catch((error) => console.log("Error sending frontend log: ", error));
+// });
 </script>

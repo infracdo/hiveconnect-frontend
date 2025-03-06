@@ -81,17 +81,23 @@
 
 <script setup lang="ts">
 import { onMounted, ref, computed } from "vue";
-import { useRouter } from "vue-router";
-import { getHiveClients } from "src/api/HiveConnectApis/hiveConnect";
+import { useRouter, useRoute } from "vue-router";
+import {
+  getHiveClients,
+  addFrontendLogger,
+} from "src/api/HiveConnectApis/hiveConnect";
 import { useSubscriberStore } from "src/stores/subscriber/subscriber-store";
 import { useClientStore } from "src/stores/subscriber/client-store";
 import { IClient } from "src/api/HiveConnectApis/types";
 import { searchRows } from "src/util/search";
+import { useKeycloak } from "src/composables/useKeycloak";
 import SearchBar from "src/components/SearchBar.vue";
 import DropdownButton from "src/components/DropdownButton.vue";
 import Table from "src/components/Table.vue";
 
 const router = useRouter();
+const route = useRoute();
+const keycloak = useKeycloak();
 const store = useClientStore();
 const columns = computed(
   () => store.$state.subscribercolumns?.filter((col) => col.name !== "id") || [] // Note: subscriber id is not included since we were told that if the id is local (within hive only), it should not be included in the table so i based everything to their account number instead
@@ -271,5 +277,15 @@ const getProvisionedSubscriberData = (
 
 onMounted(async () => {
   await getProvisioned();
+
+  const user = keycloak.tokenParsed.given_name;
+  const action = "page visit";
+  const details = `${user} visited the ${route.path} page`;
+  const page = route.path?.toString() || "Unknown Page";
+  const userAgent = navigator.userAgent;
+
+  addFrontendLogger(user, action, details, page, userAgent)
+    .then(() => console.log("Frontend log sent successfully."))
+    .catch((error) => console.log("Error sending frontend log: ", error));
 });
 </script>

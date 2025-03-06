@@ -120,12 +120,19 @@
 
 <script setup lang="ts">
 import { ref, onMounted, reactive } from "vue";
+import { useRoute } from "vue-router";
 import axios from "axios";
-import { getHiveclients } from "src/api/HiveConnectApis/hiveConnect"; // Ensure this is correctly imported
+import {
+  getHiveclients,
+  addFrontendLogger,
+} from "src/api/HiveConnectApis/hiveConnect"; // Ensure this is correctly imported
+import { useKeycloak } from "src/composables/useKeycloak";
 import DropdownButton from "src/components/DropdownButton.vue";
 import Card from "src/components/Card.vue";
 import logUserAction from "src/util/logservice";
 
+const route = useRoute();
+const keycloak = useKeycloak();
 const selectOptions = ref<{ label: string; value: string }[]>([]);
 const selectSubscriber = ref("");
 const selectTime = ref("2d");
@@ -274,8 +281,18 @@ const getInfoApiPrometheus = async (deviceName: string) => {
 };
 
 // Fetch subscribers when the component mounts
-onMounted(() => {
-  fetchSubscribers();
+onMounted(async () => {
+  await fetchSubscribers();
+
+  const user = keycloak.tokenParsed.given_name;
+  const action = "page visit";
+  const details = `${user} visited the ${route.path} page`;
+  const page = route.path?.toString() || "Unknown Page";
+  const userAgent = navigator.userAgent;
+
+  addFrontendLogger(user, action, details, page, userAgent)
+    .then(() => console.log("Frontend log sent successfully."))
+    .catch((error) => console.error("Error sending frontend log: ", error));
 });
 </script>
 

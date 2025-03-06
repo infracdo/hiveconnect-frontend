@@ -39,11 +39,18 @@
 <script setup lang="ts">
 import { QTableProps } from "quasar";
 import { ref, onMounted, computed } from "vue";
+import { useRoute } from "vue-router";
 import { useDevicesStore } from "src/stores/rogue-device/rogue-devices";
 import { IRogueDevices } from "src/api/HiveConnectApis/types";
-import { getDevices } from "src/api/HiveConnectApis/hiveConnect";
+import {
+  getDevices,
+  addFrontendLogger,
+} from "src/api/HiveConnectApis/hiveConnect";
+import { useKeycloak } from "src/composables/useKeycloak";
 import Table from "src/components/Table.vue";
 
+const route = useRoute();
+const keycloak = useKeycloak();
 const store = useDevicesStore();
 const tableRow = ref<IRogueDevices[]>([]);
 const columns: QTableProps["columns"] = store.$state.devicesColumn || [];
@@ -63,5 +70,18 @@ async function fetchDevices() {
   loading.value = false;
 }
 
-onMounted(fetchDevices);
+onMounted(async () => {
+  await fetchDevices();
+
+  const user = keycloak.tokenParsed.given_name;
+  const action = "page visit";
+  const details = `${user} visited the ${route.path} page`;
+  const page = route.path?.toString() || "Unknown Page";
+  const userAgent = navigator.userAgent;
+
+  // Send a frontend logger to backend for writing .log files
+  addFrontendLogger(user, action, details, page, userAgent)
+    .then(() => console.log("Frontend log sent successfully."))
+    .catch((error) => console.error("Error sending frontend log: ", error));
+});
 </script>

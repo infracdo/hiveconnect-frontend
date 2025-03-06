@@ -388,6 +388,37 @@ export const updateClient = async (
   }
 };
 
+//==============================================================================================
+
+//* LOGGER APIs *//
+
+// POST: /log-frontend-action
+export const addFrontendLogger = async (
+  user: string,
+  action: string,
+  details: string,
+  page: string,
+  userAgent: string
+) => {
+  const { data } = await api.post("/log-frontend-action", {
+    user: user,
+    action: action,
+    details: details,
+    page: page,
+    userAgent: userAgent,
+  });
+
+  console.log(
+    "Sending frontend user action logs with '/log-frontend-action' api: ",
+    data
+  );
+  return data;
+};
+
+//==============================================================================================
+
+//* MISC APIs *//
+
 // REVIEW: i think ACS auto provision api ni sya
 // -- removed comment
 export const executeProvision = async (

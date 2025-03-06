@@ -289,8 +289,10 @@ import {
   checkOltSiteByIp,
   checkPackageDetails,
   getOtcStatus,
+  addFrontendLogger,
 } from "src/api/HiveConnectApis/hiveConnect";
 import { toInitialCapital } from "src/util/string";
+import { useKeycloak } from "src/composables/useKeycloak";
 import Inputs from "../inputs/Inputs.vue";
 import Card from "../Card.vue";
 import DropdownButton from "../DropdownButton.vue";
@@ -299,6 +301,7 @@ import Buttons from "../inputs/Buttons.vue";
 
 const router = useRouter();
 const route = useRoute();
+const keycloak = useKeycloak();
 const testmodal = ref(true);
 const $q = useQuasar();
 // const props = defineProps<{
@@ -470,7 +473,19 @@ onMounted(() => {
       "Data received from Active/Onhold Subscribers Page: ",
       provisionedSubscriberData.value
     );
+  } else {
+    console.log("No data received from Active/Onhold Subscribers Page.");
   }
+
+  const user = keycloak.tokenParsed.given_name;
+  const action = "page visit";
+  const details = `${user} visited the ${route.path} page`;
+  const page = route.path?.toString() || "Unknown Page";
+  const userAgent = navigator.userAgent;
+
+  addFrontendLogger(user, action, details, page, userAgent)
+    .then(() => console.log("Frontend log sent successfully."))
+    .catch((error) => console.error("Error sending frontend log: ", error));
 });
 </script>
 
