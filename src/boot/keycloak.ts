@@ -9,17 +9,20 @@ import logUserAction from "src/util/logservice";
 
 const store = auth();
 
+const JWT_TOKEN = import.meta.env.VITE_PROVISION_BEARER_TOKEN;
+const KEYCLOAK_URL = import.meta.env.VITE_KEYCLOAK_URL;
+const KEYCLOAK_REALM = import.meta.env.VITE_KEYCLOAK_REALM;
+const KEYCLOAK_CLIENTID = import.meta.env.VITE_KEYCLOAK_CLIENT_ID;
+
 const keycloak = new Keycloak({
-  url: "https://wcdssi.apolloglobal.net:8443/auth",
-  realm: "workconnect-test",
-  clientId: "test-hiveconnect-frontend",
+  url: KEYCLOAK_URL,
+  realm: KEYCLOAK_REALM,
+  clientId: KEYCLOAK_CLIENTID,
 });
 
-const JWT_TOKEN = import.meta.env.VITE_PROVISION_BEARER_TOKEN;
-
-// console.log("KeycloakURL", process.env.VUE_APP_KEYCLOAK_URL);
-// console.log("KeycloakRealm", process.env.VUE_APP_KEYCLOAK_REALM);
-// console.log("KeycloakClientId", process.env.VUE_APP_KEYCLOAK_CLIENT_ID);
+console.log("Keycloak URL: ", KEYCLOAK_URL);
+console.log("Keycloak Realm: ", KEYCLOAK_REALM);
+console.log("Keycloak Client ID: ", KEYCLOAK_CLIENTID);
 
 export default boot(({ app, router }) => {
   let isKeycloakInitialized = false;
