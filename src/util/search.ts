@@ -2,11 +2,11 @@
 export function searchRows(rows: any, searchTerm: string) {
   if (!searchTerm) return rows;
 
-  const term = searchTerm.toLowerCase();
+  const term = searchTerm.toString().toLowerCase();
 
   return rows.filter((row: any) =>
     Object.values(row).some((value) =>
-      String(value).toLowerCase().includes(term)
+      String(value).toString().toLowerCase().includes(term)
     )
   );
 }

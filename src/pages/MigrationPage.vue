@@ -140,23 +140,26 @@
 
 <script setup lang="ts">
 import { ref, onMounted, computed, nextTick } from "vue";
-// import { useRoute } from "vue-router";
+import { useRoute } from "vue-router";
 import Swal from "sweetalert2";
 import { useMigrationSubscriberStore } from "src/stores/subscriber/migration-subscriber-store";
 import {
   getForMigrationSubscribers,
   updateMigrationSubscriberStatus,
   migrateSubscriberFromBucketToHive,
+  addFrontendLogger,
 } from "src/api/HiveConnectApis/hiveConnect";
 import { IMigrationSubscriber } from "src/api/HiveConnectApis/types";
 import { searchRows } from "src/util/search";
+import { useKeycloak } from "src/composables/useKeycloak";
 import SearchBar from "src/components/SearchBar.vue";
 import DropdownButton from "src/components/DropdownButton.vue";
 import Table from "src/components/Table.vue";
 import Modal from "src/components/Modal.vue";
 import Inputs from "src/components/inputs/Inputs.vue";
 
-// const route = useRoute();
+const route = useRoute();
+const keycloak = useKeycloak();
 const store = useMigrationSubscriberStore();
 const rows = ref<IMigrationSubscriber[]>([]);
 const columns = computed(
@@ -307,26 +310,52 @@ const handleUpdateForMigrationSubscriberStatus = () => {
     allowOutsideClick: false,
     showLoaderOnConfirm: true,
     preConfirm: async () => {
+      // Log user performing an action to change the For Migration subscriber status
+      const user = keycloak.tokenParsed.given_name;
+      const action = "change For Migration subscriber status";
+      const details = `${user} attempted to change the status of ${subscriberAccountNumber.value} subscriber`;
+      const page = route.path?.toString() || "Unknown Page";
+      const userAgent = navigator.userAgent;
+
+      addFrontendLogger(user, action, details, page, userAgent)
+        .then(() => console.log("Frontend log sent successfully."))
+        .catch((error) => console.error("Error sending frontend log: ", error));
+
+      // Execute changing subscriber status through API call
       try {
-        const updateSubscriberStatusApiResponse =
-          await updateMigrationSubscriberStatus(subscriberAccountNumber.value);
+        const response = await updateMigrationSubscriberStatus(
+          subscriberAccountNumber.value
+        );
 
-        console.log("API Response: ", updateSubscriberStatusApiResponse);
-
-        if (updateSubscriberStatusApiResponse.status === "200") {
-          Swal.fire({
-            title: "Success",
-            text: "Subscriber status changed successfully.",
-            icon: "success",
-            confirmButtonColor: "#1d6499",
-          });
-          refreshTable();
-        } else {
-          throw new Error("Failed to changed the subscriber status.");
+        let successMessage = "Subscriber status changed successfully.";
+        if (response.message) {
+          try {
+            const parsedMessage = JSON.parse(response.message);
+            successMessage = parsedMessage.message || successMessage;
+          } catch (e) {
+            console.error("Failed to parse success message: ", e);
+          }
         }
+        Swal.fire({
+          title: "Success",
+          text: successMessage,
+          icon: "success",
+          confirmButtonColor: "#1d6499",
+        });
+        refreshTable();
       } catch (error) {
-        const errorMessage =
-          error instanceof Error ? error.message : "An unknown error occurred.";
+        let errorMessage = "An unknown error occurred.";
+
+        if (error instanceof Error) {
+          try {
+            const errorResponse = JSON.parse(error.message);
+            errorMessage =
+              JSON.parse(errorResponse.message).message ||
+              errorResponse.message;
+          } catch (e) {
+            errorMessage = error.message;
+          }
+        }
         Swal.fire({
           title: "Error",
           text: errorMessage,
@@ -352,12 +381,22 @@ const handleMigrateSubscriber = () => {
     allowOutsideClick: false,
     showLoaderOnConfirm: true,
     preConfirm: async () => {
+      // Log user performing an action to migrate the subscriber from bucket to hive
+      const user = keycloak.tokenParsed.given_name;
+      const action = "migrate subscriber from bucket to hive";
+      const details = `${user} attempted to migrate ${subscriberAccountNumber.value} subscriber from bucket to hive`;
+      const page = route.path?.toString() || "Unknown Page";
+      const userAgent = navigator.userAgent;
+
+      addFrontendLogger(user, action, details, page, userAgent)
+        .then(() => console.log("Frontend log sent successfully."))
+        .catch((error) => console.error("Error sending frontend log: ", error));
+
+      // Execute migrating subscriber from bucket to hive through API call
       try {
         const migrateResponse = await migrateSubscriberFromBucketToHive(
           subscriberAccountNumber.value
         );
-
-        console.log("API Response: ", migrateResponse);
 
         if (migrateResponse.status === "200") {
           Swal.fire({
@@ -402,5 +441,19 @@ async function fetchMigrationSubscribers() {
 }
 
 // Retrieve migration subscribers data as soon as the component is mounted
-onMounted(fetchMigrationSubscribers);
+onMounted(async () => {
+  // Fetch For Migration subscribers
+  await fetchMigrationSubscribers();
+
+  // Log user action accessing the page
+  const user = keycloak.tokenParsed.given_name;
+  const action = "page visit";
+  const details = `${user} visited the ${route.path} page`;
+  const page = route.path?.toString() || "Unknown Page";
+  const userAgent = navigator.userAgent;
+
+  addFrontendLogger(user, action, details, page, userAgent)
+    .then(() => console.log("Frontend log sent successfully."))
+    .catch((error) => console.error("Error sending frontend log: ", error));
+});
 </script>

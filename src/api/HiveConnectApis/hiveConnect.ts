@@ -1,4 +1,5 @@
-import axios from "axios";
+import axios, { isAxiosError } from "axios";
+import { AxiosError } from "axios";
 import { useDevicesStore } from "src/stores/rogue-device/rogue-devices";
 import { useNetworkStore } from "src/stores/network-address/network-address";
 import {
@@ -227,7 +228,12 @@ export const updateMigrationSubscriberStatus = async (accountNo: string) => {
     return data;
   } catch (error) {
     console.log("Could not update for migration subscriber status", error);
-    throw error;
+
+    if (isAxiosError(error) && error.response) {
+      throw new Error(JSON.stringify(error.response.data));
+    } else {
+      throw error;
+    }
   }
 };
 
@@ -237,6 +243,7 @@ export const migrateSubscriberFromBucketToHive = async (accountNo: string) => {
     const { data } = await api.post("/executeMigration", {
       accountNo: accountNo,
     });
+    console.log("Subscriber Account No: ", accountNo);
     console.log("Returned data by triggering '/executeMigration' API: ", data);
     return data;
   } catch (error) {
@@ -380,6 +387,37 @@ export const updateClient = async (
     throw new Error("Could not update Client/Subscriber Data!");
   }
 };
+
+//==============================================================================================
+
+//* LOGGER APIs *//
+
+// POST: /log-frontend-action
+export const addFrontendLogger = async (
+  user: string,
+  action: string,
+  details: string,
+  page: string,
+  userAgent: string
+) => {
+  const { data } = await api.post("/log-frontend-action", {
+    user: user,
+    action: action,
+    details: details,
+    page: page,
+    userAgent: userAgent,
+  });
+
+  console.log(
+    "Sending frontend user action logs with '/log-frontend-action' api: ",
+    data
+  );
+  return data;
+};
+
+//==============================================================================================
+
+//* MISC APIs *//
 
 // REVIEW: i think ACS auto provision api ni sya
 // -- removed comment
