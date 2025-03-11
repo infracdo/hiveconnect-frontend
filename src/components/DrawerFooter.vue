@@ -7,7 +7,7 @@
     </q-avatar>
 
     <p class="text-sm font-medium text-black cursor-default">
-      {{ $keycloak.tokenParsed.given_name }}
+      {{ keycloak.tokenParsed.given_name }}
       <!-- {{ $keycloak.tokenParsed.family_name }} -->
     </p>
 
@@ -36,7 +36,10 @@
 </template>
 
 <script setup lang="ts">
-import { keycloak } from "src/boot/keycloak";
+// import { keycloak } from "src/boot/keycloak";
+import { useKeycloak } from "src/composables/useKeycloak";
+
+const keycloak = useKeycloak();
 
 const logout = () => {
   console.log("Logout button is clicked.");

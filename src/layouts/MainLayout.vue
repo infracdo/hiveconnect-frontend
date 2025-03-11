@@ -54,14 +54,14 @@
             v-bind="link"
           /> -->
 
-          <div class="flex-grow"></div>
+          <!-- <div class="flex-grow"></div> -->
           <DrawerFooter />
         </q-list>
       </q-scroll-area>
-      <div class="flex flex-row"></div>
+      <!-- <div class="flex flex-row"></div> -->
     </q-drawer>
 
-    <q-page-container>
+    <q-page-container class="scrollable-page-container">
       <div class="bg-white rounded-t-lg">
         <router-view />
       </div>
@@ -72,8 +72,9 @@
 <script setup lang="ts">
 import Logout from "src/components/Logout.vue";
 import { onMounted, ref, watch } from "vue";
-import { keycloak } from "src/boot/keycloak";
+// import { keycloak } from "src/boot/keycloak";
 import { useQuasar } from "quasar";
+import { useKeycloak } from "src/composables/useKeycloak";
 import EssentialLink, {
   EssentialLinkProps,
 } from "components/EssentialLink.vue";
@@ -85,6 +86,7 @@ import DrawerExpansionTile from "src/components/DrawerExpansionTile.vue";
 import { useRouter } from "vue-router";
 
 const $q = useQuasar();
+const keycloak = useKeycloak();
 const isDarkMode = ref(true);
 const miniState = ref(false);
 const drawer = ref(false);
@@ -176,6 +178,13 @@ watch(
 //   leftDrawerOpen.value = !leftDrawerOpen.value;
 // }
 </script>
+
+<style scoped>
+.scrollable-page-container {
+  height: 100vh;
+  overflow-y: auto;
+}
+</style>
 
 <!-- <style scoped>
 :deep(.q-btn.btn--no-hover .q-focus-helper) {

@@ -57,7 +57,7 @@
         <div
           class="border border-gray-iron-100 q-mt-md row full-width bg-white rounded-lg relative"
         >
-          <!-- Table for NEW status clients (to be provision) -->
+          <!-- Table for NEW status subscribers (to be provision) -->
           <div class="full-width">
             <Table
               :tableColumns="columns"
@@ -81,18 +81,18 @@
       </div>
     </div>
 
-    <!-- Display modal when a row (client data) is clicked -->
+    <!-- Display modal when a row (subscriber data) is clicked -->
     <Modal
       :isVisible="modalOpen"
       :title="'Provision Subscriber'"
       :submitButton="'Activate'"
       @update:isVisible="modalOpen = $event"
+      @cancel="resetForm"
       :actionHandler="handleActivateClient"
     >
       <div class="mb-4" style="display: flex; gap: 16px">
         <!-- Account number input field -->
         <Inputs
-          :input-style="{ 'text-transform': 'uppercase' }"
           v-model="client.subscriberAccountNumber"
           label="Account Number"
           @input="noLeadingWhitespace"
@@ -102,9 +102,8 @@
 
         <!-- Client name input field -->
         <Inputs
-          :input-style="{ 'text-transform': 'uppercase' }"
           v-model="client.subscriberName"
-          label="Client Name"
+          label="Subscriber Name"
           @input="noLeadingWhitespace"
           readonly
           required
@@ -112,7 +111,6 @@
 
         <!-- Package type input field -->
         <Inputs
-          :input-style="{ 'text-transform': 'uppercase' }"
           v-model="client.packageType"
           label="Package Type"
           @input="noLeadingWhitespace"
@@ -139,7 +137,6 @@
 
         <!-- ONU mac address input field -->
         <Inputs
-          :input-style="{ 'text-transform': 'uppercase' }"
           v-model="onuMacAddress"
           label="ONU Mac Address"
           @input="noLeadingWhitespace"
@@ -174,6 +171,7 @@
           "
           optionLabel="label"
           optionValue="value"
+          :disabled="!selectedLocation"
           emit-value
           map-options
           required
@@ -181,17 +179,17 @@
 
         <!-- OLT ip select field -->
         <Selects
-          v-if="selectedNetworkSite && selectedNetworkSite.oltIps"
           v-model="client.oltIp"
           label="Select OLT IP"
           :options="
-            selectedNetworkSite.oltIps.map((olt) => ({
+            selectedNetworkSite?.oltIps?.map((olt) => ({
               value: olt.oltIp,
               label: olt.oltName,
-            }))
+            })) || []
           "
           optionLabel="label"
           optionValue="value"
+          :disabled="!selectedNetworkSiteValue"
           required
         />
       </div>
@@ -243,8 +241,8 @@ import Inputs from "src/components/inputs/Inputs.vue";
 import Selects from "src/components/inputs/Selects.vue";
 import ProvisionClient from "src/components/InetConfig/ProvisionClient.vue";
 
-// const route = useRoute();
-const $q = useQuasar();
+// Constants and Initialization
+// const $q = useQuasar();
 const route = useRoute();
 const keycloak = useKeycloak();
 const store = useSubscriberStore();
@@ -253,19 +251,19 @@ const columns: QTableProps["columns"] = store.$state.subscribercolumns?.length
   : [];
 const rows = ref<IClient[]>([]);
 let serialAndMac: IserialAndMac[] = [];
-const optionsOltIp = ref<IOlt[]>([]);
-const filteredOptions = ref<IOlt[]>([]);
+// const optionsOltIp = ref<IOlt[]>([]);
+// const filteredOptions = ref<IOlt[]>([]);
 const networkSites = ref<IOltSite[]>([]);
 const selectedNetworkSite = ref<IOltSite | null>(null);
 const filteredNetworkSites = ref<IOltSite[]>([]); // List of sites filtered by selected location
 const networkSiteOltIp = ref<IOltSiteByIp[]>([]);
-const dataId = ref<string>();
+// const dataId = ref<string>();
 const selectedNetworkSiteValue = ref<number>(0);
-const clientId = ref(0);
+// const clientId = ref(0);
 const filter = ref("");
-const result = ref("");
+// const result = ref("");
 const inputValue = ref("");
-const deviceName = ref("");
+// const deviceName = ref("");
 const selectedOnuSerialNumber = ref("");
 const onuMacAddress = ref("");
 const selectedLocation = ref("");
@@ -276,6 +274,7 @@ const modalProvisionChecking = ref(false);
 const showProvisionResult = ref(false);
 const showSkeletonDancing = ref(false);
 
+// Reactive State
 interface IOltSite {
   oltNetworksite: string;
   oltIps: {
@@ -288,7 +287,7 @@ interface IOltSite {
 
 const client = ref<IsubsriberType>({
   newSubscriberId: 0,
-  bucketId: 0, //added
+  bucketId: 0,
   subscriberAccountNumber: "",
   subscriberName: "",
   ipAssigned: "",
@@ -430,6 +429,7 @@ const handleColumnSelect = (selectedOptions: string[]) => {
 
 const openModal = async (newSubscriberId: number) => {
   // $q.loading.show();
+  console.log("Opening modal & accessing /getRogueDevices...");
   const rogueDevice = await getDevices();
 
   serialAndMac = rogueDevice.map(
@@ -445,12 +445,11 @@ const openModal = async (newSubscriberId: number) => {
   // $q.loading.hide();
 };
 
-const closeModal = () => {
-  modalOpen.value = !modalOpen.value;
-};
+// const closeModal = () => {
+//   modalOpen.value = !modalOpen.value;
+// };
 
 const refreshTable = async () => {
-  //getClient from clients_for_activation db, Account table
   rows.value = [];
   filter.value = "";
   loading.value = true;
@@ -461,6 +460,15 @@ const refreshTable = async () => {
   }
 };
 
+// Method to reset form fields
+const resetForm = () => {
+  selectedOnuSerialNumber.value = "";
+  onuMacAddress.value = "";
+  selectedLocation.value = "";
+  selectedNetworkSiteValue.value = 0;
+  selectedOltIp.value = null;
+};
+
 // const openProvisionModal = async (event: any) => {
 //   // $q.loading.show();
 
@@ -468,53 +476,19 @@ const refreshTable = async () => {
 //   // $q.loading.hide();
 // };
 
-const getAllClients = async () => {
-  try {
-    await refreshTable();
-  } catch (error) {
-    throw new Error("Cannot get Clients info.");
-  }
-};
-
-// Filter the network sites according to the location selected by user in the modal form
-// Returns a list of network sites in 'Select Network Site (VLAN)' select field if OLT network site matches the selected location
-const filterNetworkSites = () => {
-  console.log("Filtering network sites by location:", selectedLocation.value);
-  console.log("Original network sites:", networkSites.value);
-
-  // Get the full location name from the location mapping
-  const fullLocationName = getFullLocationName(selectedLocation.value);
-
-  // Check if the selected location is empty or the default option
-  if (fullLocationName === "" || fullLocationName === "Select Location") {
-    filteredNetworkSites.value = networkSites.value; // Return all sites if no valid selection
-  } else {
-    // Filter the network sites based on the selected location
-    filteredNetworkSites.value = networkSites.value.filter((site) => {
-      // Determine if the site matches the selected location
-      const matches = site.oltNetworksite
-        .toLowerCase()
-        .includes(selectedLocation.value.toLowerCase());
-
-      // Log the site being checked and whether it matches
-      console.log(`Checking site: ${site.oltNetworksite}, matches: ${matches}`);
-
-      // Return true if there's a match
-      return matches;
-    });
-  }
-
-  // Log the filtered network sites after processing
-  console.log("Filtered network sites:", filteredNetworkSites.value);
-};
+// const getAllClients = async () => {
+//   try {
+//     await refreshTable();
+//   } catch (error) {
+//     throw new Error("Cannot get Clients info.");
+//   }
+// };
 
 // Group OLT according to their OLT Network Site
-// Creates and returns an array oy OLT Networki Sites (e.g. CDO_vlan2010)
+// Creates and returns an array oy OLT Network Sites (e.g. CDO_vlan2010)
 const transformData = async () => {
   console.log("Fetching OLT IP data...");
   networkSiteOltIp.value = await getNetworkSiteOltIp();
-
-  console.log("Fetched data:", networkSiteOltIp.value);
 
   const groupedData = networkSiteOltIp.value.reduce((accumulatedOlt, data) => {
     console.log("Processing data:", data);
@@ -565,6 +539,38 @@ const transformData = async () => {
   // Initial setting of filteredNetworkSites
   filteredNetworkSites.value = networkSites.value;
   console.log("networkSites:", networkSites.value);
+};
+
+// Filter the network sites according to the location selected by user in the modal form
+// Returns a list of network sites in 'Select Network Site (VLAN)' select field if OLT network site matches the selected location
+const filterNetworkSites = () => {
+  console.log("Filtering network sites by location:", selectedLocation.value);
+  console.log("Original network sites:", networkSites.value);
+
+  // Get the full location name from the location mapping
+  const fullLocationName = getFullLocationName(selectedLocation.value);
+
+  // Check if the selected location is empty or the default option
+  if (fullLocationName === "" || fullLocationName === "Select Location") {
+    filteredNetworkSites.value = networkSites.value; // Return all sites if no valid selection
+  } else {
+    // Filter the network sites based on the selected location
+    filteredNetworkSites.value = networkSites.value.filter((site) => {
+      // Determine if the site matches the selected location
+      const matches = site.oltNetworksite
+        .toLowerCase()
+        .includes(selectedLocation.value.toLowerCase());
+
+      // Log the site being checked and whether it matches
+      console.log(`Checking site: ${site.oltNetworksite}, matches: ${matches}`);
+
+      // Return true if there's a match
+      return matches;
+    });
+  }
+
+  // Log the filtered network sites after processing
+  console.log("Filtered network sites:", filteredNetworkSites.value);
 };
 
 const provisionClient = async (clientData: typeof NewClient): Promise<void> => {
@@ -754,10 +760,10 @@ watch(selectedNetworkSiteValue, (newValue) => {
 
 onMounted(async () => {
   try {
-    await getAllClients();
-    console.log("For Provision subscriber data fetched successfull.");
+    rows.value = await getClients();
+    console.log("For Provision subscribers fetched successfully.");
   } catch (error) {
-    console.error("Error fetching For Provision subscriber data: ", error);
+    console.error("Error fetching For Provision subscribers: ", error);
     return;
   }
 

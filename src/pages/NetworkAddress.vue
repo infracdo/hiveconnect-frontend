@@ -31,7 +31,7 @@
 
         <!-- Content container here -->
         <div
-          class="border border-gray-iron-100 q-mt-md row full-width bg-white rounded-lg"
+          class="border border-gray-iron-100 q-mt-md row full-width bg-white rounded-lg relative"
         >
           <!-- Table for network addresses -->
           <div class="full-width">

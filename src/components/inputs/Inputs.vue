@@ -23,6 +23,7 @@
           'rounded-lg h-11 border block shadow-sm focus:outline-none focus:border-primary-600 focus:ring-primary-600 w-full text-base focus:ring-1 text-input-text-gray custom-date-picker',
           { 'ps-10': icon },
           { 'show-spinner': showSpinner },
+          { 'cursor-default': readonly },
           validationMessage ? 'border-error-300' : 'border-gray-300',
         ]"
         :type="type"

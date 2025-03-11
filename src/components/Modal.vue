@@ -41,7 +41,7 @@
             color="bg-transparent"
             textColor="text-primary-600"
             button="modal"
-            v-close-popup
+            @click="handleCancel"
           />
 
           <Buttons
@@ -102,6 +102,7 @@ const localIsVisible = ref(props.isVisible);
 
 const emit = defineEmits<{
   (event: "update:isVisible", value: boolean): void;
+  (event: "cancel"): void;
 }>();
 
 watch(
@@ -115,7 +116,6 @@ watch(
 
 watch(localIsVisible, (newVal) => {
   emit("update:isVisible", newVal);
-  console.log("From modal.vue: ", localIsVisible);
 });
 
 // Method for form submission
@@ -129,6 +129,12 @@ const handleSubmit = (event: Event) => {
       (input as HTMLElement).dispatchEvent(new Event("blur"))
     );
   }
+};
+
+// Method to handle cancel button click
+const handleCancel = () => {
+  emit("cancel");
+  localIsVisible.value = false;
 };
 </script>
 

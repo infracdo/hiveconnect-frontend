@@ -22,7 +22,6 @@ const JWT_TOKEN = import.meta.env.VITE_PROVISION_BEARER_TOKEN;
 
 const api = axios.create({
   baseURL: API_BASE_URL,
-  // baseURL: 'http://172.91.0.17:8888',
   timeout: 0,
 });
 

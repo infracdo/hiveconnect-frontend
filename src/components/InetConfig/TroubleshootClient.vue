@@ -88,7 +88,7 @@
             </div>
           </div>
 
-          <div class="grid grid-cols-3 gap-4">
+          <div class="grid grid-cols-3 gap-4 mb-8">
             <div class="flex flex-col">
               <p class="text-xs text-gray-iron-500">PACKAGE TYPE</p>
               <p class="text-sm text-gray-iron-900 leading-5">
@@ -163,7 +163,7 @@
             </div>
 
             <!-- SSID -->
-            <div class="flex flex-col mb-8">
+            <div class="flex flex-col">
               <p class="text-xs text-gray-iron-500">SSID</p>
               <p class="text-sm text-gray-iron-900 leading-5">
                 {{
@@ -490,11 +490,11 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.sticky {
+/* .sticky {
   position: -webkit-sticky;
   position: sticky;
   top: 0;
-}
+} */
 
 .grafana-panel {
   width: 100%;
