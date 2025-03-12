@@ -1,112 +1,104 @@
 <template>
-  <q-page>
-    <q-dialog
-      v-model="localIsVisible"
-      persistent
-      class="rounded-lg"
-      position="right"
+  <q-dialog
+    v-model="localIsVisible"
+    persistent
+    class="rounded-lg"
+    position="right"
+  >
+    <q-card
+      class="px-6 pb-6 dialog-content"
+      style="
+        max-width: 100%;
+
+        max-height: 100%;
+        display: flex;
+        flex-direction: column;
+      "
     >
-      <q-card
-        class="px-6 pb-6 dialog-content"
-        style="
-          max-width: 100%;
-
-          max-height: 100%;
-          display: flex;
-          flex-direction: column;
-        "
+      <q-form
+        @submit="handleSubmit"
+        style="flex: 1; display: flex; flex-direction: column"
+        novalidate
       >
-        <q-form
-          @submit="handleSubmit"
-          style="flex: 1; display: flex; flex-direction: column"
-          novalidate
+        <div
+          style="z-index: 2"
+          class="text-lg font-semibold row items-center no-wrap bg-white h-[52px] pt-4 sticky"
         >
-          <div
-            style="z-index: 2"
-            class="text-lg font-semibold row items-center no-wrap bg-white h-[52px] pt-4 sticky"
-          >
-            <span> Add New Network </span>
-          </div>
+          <span> Add New Network </span>
+        </div>
 
-          <q-card-section class="mt-4 p-0" style="z-index: 1">
-            <div class="mb-4" style="display: flex; gap: 16px">
-              <!-- Network address input field -->
-              <Inputs
-                :input-style="{ 'text-transform': 'uppercase' }"
-                v-model="addNewNetwork.networkAddress"
-                label="Network Addresss"
-                required
-              />
-
-              <!-- Network type radiobutton field -->
-              <RadioButton
-                v-model="addNewNetwork.networkType"
-                label="Network Type"
-                :options="networkTypeOptions"
-                required
-              />
-
-              <!-- Account number input field (only shown if 'Enterprise' is selected in radiobutton) -->
-              <Inputs
-                v-if="addNewNetwork.networkType === 'Enterprise'"
-                :input-style="{ 'text-transform': 'uppercase' }"
-                v-model="addNewNetwork.accountNumber"
-                label="Account Number"
-                required
-              />
-            </div>
-
-            <div class="mb-4" style="display: flex; gap: 16px">
-              <Inputs
-                :input-style="{ 'text-transform': 'uppercase' }"
-                v-model="addNewNetwork.vlanId"
-                label="VLAN ID"
-                required
-              />
-              <Inputs
-                :input-style="{ 'text-transform': 'uppercase' }"
-                v-model="addNewNetwork.networkName"
-                label="Site"
-                required
-              />
-            </div>
-
-            <div class="mb-4" style="display: flex; gap: 16px">
-              <Inputs
-                :input-style="{ 'text-transform': 'uppercase' }"
-                v-model="addNewNetwork.location"
-                label="Notes"
-                class="w-full"
-              />
-            </div>
-          </q-card-section>
-
-          <!-- Buttons -->
-          <div
-            class="mt-4"
-            style="display: flex; justify-content: flex-end; margin-top: auto"
-          >
-            <Buttons
-              label="Cancel"
-              v-close-popup
-              color="bg-transparent"
-              textColor="text-primary-600"
-              button="modal"
+        <q-card-section class="mt-4 p-0" style="z-index: 1">
+          <div class="mb-4" style="display: flex; gap: 16px">
+            <!-- Network address input field -->
+            <Inputs
+              v-model="addNewNetwork.networkAddress"
+              label="Network Addresss"
+              required
             />
 
-            <Buttons
-              class="ml-2"
-              color="bg-primary-600"
-              textColor="text-white"
-              label="Add Network"
-              type="submit"
-              button="modal"
+            <!-- Network type radiobutton field -->
+            <RadioButton
+              v-model="addNewNetwork.networkType"
+              label="Network Type"
+              :options="networkTypeOptions"
+              required
+            />
+
+            <!-- Account number input field (only shown if 'Enterprise' is selected in radiobutton) -->
+            <Inputs
+              v-if="addNewNetwork.networkType === 'Enterprise'"
+              v-model="addNewNetwork.accountNumber"
+              label="Account Number"
+              required
             />
           </div>
-        </q-form>
-      </q-card>
-    </q-dialog>
-  </q-page>
+
+          <div class="mb-4" style="display: flex; gap: 16px">
+            <!-- Vlan ID input field -->
+            <Inputs v-model="addNewNetwork.vlanId" label="VLAN ID" required />
+
+            <!-- Site input field -->
+            <Inputs v-model="addNewNetwork.networkName" label="Site" required />
+          </div>
+
+          <div class="mb-4" style="display: flex; gap: 16px">
+            <!-- Notes input field -->
+            <Inputs
+              v-model="addNewNetwork.location"
+              label="Notes"
+              class="w-full"
+            />
+          </div>
+        </q-card-section>
+
+        <!-- Buttons -->
+        <div
+          class="mt-4"
+          style="display: flex; justify-content: flex-end; margin-top: auto"
+        >
+          <!-- Cancel button -->
+          <Buttons
+            label="Cancel"
+            v-close-popup
+            color="bg-transparent"
+            textColor="text-primary-600"
+            button="modal"
+            @click="handleCancel"
+          />
+
+          <!-- Add Network submit button -->
+          <Buttons
+            class="ml-2"
+            color="bg-primary-600"
+            textColor="text-white"
+            label="Add Network"
+            type="submit"
+            button="modal"
+          />
+        </div>
+      </q-form>
+    </q-card>
+  </q-dialog>
 </template>
 
 <script setup lang="ts">
@@ -150,6 +142,18 @@ const emit = defineEmits<{
 
 const handleSubmit = (event: Event) => {
   console.log("Handle submit for add new network");
+};
+
+// Method to reset form when cancel button is clicked
+const handleCancel = () => {
+  addNewNetwork.networkAddress = "";
+  addNewNetwork.networkType = "";
+  addNewNetwork.accountNumber = "";
+  addNewNetwork.vlanId = "";
+  addNewNetwork.networkName = "";
+  addNewNetwork.location = "";
+
+  localIsVisible.value = false;
 };
 
 watch(

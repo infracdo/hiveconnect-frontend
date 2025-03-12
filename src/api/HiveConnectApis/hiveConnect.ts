@@ -11,6 +11,7 @@ import {
   IPackageDetails,
   INetworkAddresses,
 } from "./types";
+import { keycloak } from "src/boot/keycloak";
 import { auth } from "src/stores/auth";
 const deviceStore = useDevicesStore();
 const networkStore = useNetworkStore();
@@ -21,7 +22,6 @@ const JWT_TOKEN = import.meta.env.VITE_PROVISION_BEARER_TOKEN;
 
 const api = axios.create({
   baseURL: API_BASE_URL,
-  // baseURL: 'http://172.91.0.17:8888',
   timeout: 0,
 });
 
@@ -142,7 +142,12 @@ export const executeMonitoring = async (
 export const getClients = async (): Promise<IClient[]> => {
   try {
     console.log("front end accessing backend hive api /getsubscribers");
-    const { data } = await api.get("/getsubscribers"); //get new client from billing
+    const { data } = await api.get("/getsubscribers", {
+      params: {
+        action: "api call - Subscribers for Provisioning page",
+        user: keycloak.tokenParsed?.preferred_username,
+      },
+    }); //get new client from billing
     return data;
   } catch (error) {
     console.log("Could not retrieve Client/Subscriber Data!", error);
@@ -150,13 +155,15 @@ export const getClients = async (): Promise<IClient[]> => {
   }
 };
 
-// GET: /getprovisionedsubscribers
+// GET: /getprovisionedsubscribers - UNUSED FUNCTION
 export const getProvisionedHiveClients = async (): Promise<IClient[]> => {
   try {
-    console.log(
-      "front end accessing backend hive api /getprovisionedsubscribers"
-    );
-    const { data } = await api.get("/getprovisionedsubscribers"); //"/getHiveClients"
+    const { data } = await api.get("/getprovisionedsubscribers", {
+      params: {
+        action: "api call from frontend",
+        user: keycloak.tokenParsed?.preferred_username,
+      },
+    }); //"/getHiveClients"
     return data;
   } catch (error) {
     console.log("Could not retrieve Client/Subscriber Data!", error);
@@ -167,7 +174,12 @@ export const getProvisionedHiveClients = async (): Promise<IClient[]> => {
 // GET: /getHiveClients
 export const getHiveclients = async (): Promise<IClient[]> => {
   try {
-    const { data } = await api.get("/getHiveClients"); //"/getHiveClients"
+    const { data } = await api.get("/getHiveClients", {
+      params: {
+        action: "api call - Troubleshoot page",
+        user: keycloak.tokenParsed?.preferred_username,
+      },
+    }); //"/getHiveClients"
     return data;
   } catch (error) {
     console.log("Could not retrieve Client/Subscriber Data!", error);
@@ -180,7 +192,12 @@ export const getClientById = async (
   newsubscriberId: number
 ): Promise<IClient> => {
   try {
-    const { data } = await api.get("/getsubscriberbyid/" + newsubscriberId);
+    const { data } = await api.get("/getsubscriberbyid/" + newsubscriberId, {
+      params: {
+        action: "api call - Provision Subscriber modal",
+        user: keycloak.tokenParsed?.preferred_username,
+      },
+    });
     return data;
   } catch (error) {
     console.log("Could not retrieve Client/Subscriber Data!", error);
@@ -188,10 +205,15 @@ export const getClientById = async (
   }
 };
 
-// GET: /getHiveClientById/{id}
+// GET: /getHiveClientById/{id} - UNUSED FUNCTION
 export const getHiveClientById = async (id: number): Promise<IClient> => {
   try {
-    const { data } = await api.get("/getHiveClientById/" + id);
+    const { data } = await api.get("/getHiveClientById/" + id, {
+      params: {
+        action: "api call from frontend",
+        user: keycloak.tokenParsed?.preferred_username,
+      },
+    });
     return data;
   } catch (error) {
     console.log("Could not retrieve Client/Subscriber Data!", error);
@@ -203,7 +225,12 @@ export const getHiveClientById = async (id: number): Promise<IClient> => {
 // GET: /getmigratingsubscribers
 export const getForMigrationSubscribers = async () => {
   try {
-    const { data } = await api.get("/getmigratingsubscribers");
+    const { data } = await api.get("/getmigratingsubscribers", {
+      params: {
+        action: "api call - Subscribers for Migration page",
+        user: keycloak.tokenParsed?.preferred_username,
+      },
+    });
     console.log(
       "Returned data by triggering '/getmigratingsubscribers': ",
       data
@@ -261,7 +288,12 @@ export const migrateSubscriberFromBucketToHive = async (accountNo: string) => {
 export const getNetworkSiteOltIp = async (): Promise<IOltSiteByIp[]> => {
   try {
     console.log("front end accessing backend hive api /getallolt");
-    const { data } = await api.get("/getallolt");
+    const { data } = await api.get("/getallolt", {
+      params: {
+        action: "api call - Subscribers for Provisioning page",
+        user: keycloak.tokenParsed?.preferred_username,
+      },
+    });
     return data;
   } catch (error) {
     console.log("Could not retrieve OLT SiteBy Ip Data!", error);
@@ -269,12 +301,17 @@ export const getNetworkSiteOltIp = async (): Promise<IOltSiteByIp[]> => {
   }
 };
 
-// GET: /getOltByIp/{oltIp}
+// GET: /getOltByIp/{oltIp} - UNUSED FUNCTION
 export const checkOltSiteByIp = async (
   oltIp: string
 ): Promise<IOltSiteByIp> => {
   try {
-    const { data } = await api.get("/checkOltSiteByIp/" + oltIp);
+    const { data } = await api.get("/checkOltSiteByIp/" + oltIp, {
+      params: {
+        action: "api call from frontend",
+        user: keycloak.tokenParsed?.preferred_username,
+      },
+    });
     return data;
   } catch (error) {
     console.log("Could not retrieve OLT SiteBy Ip Data!", error);
@@ -287,10 +324,34 @@ export const checkOltSiteByIp = async (
 //* ACS APIs *//
 
 // GET: /getRogueDevices
-export const getDevices = async (): Promise<IRogueDevices[]> => {
+export const getRogueDevices = async (): Promise<IRogueDevices[]> => {
   try {
     console.log("front end accessing backend hive api /getRogueDevices");
-    const { data } = await api.get("/getRogueDevices");
+    const { data } = await api.get("/getRogueDevices", {
+      params: {
+        action: "api call - Rogue Devices page",
+        user: keycloak.tokenParsed?.preferred_username,
+      },
+    });
+    deviceStore.$patch({
+      rogueDevice: data,
+    });
+    return data;
+  } catch (error) {
+    console.log(error);
+    throw new Error("Could not retrieve rogue devices data!");
+  }
+};
+
+// GET: /getdevices
+export const getDevices = async (): Promise<IRogueDevices[]> => {
+  try {
+    const { data } = await api.get("/getRogueDevices", {
+      params: {
+        action: "api call - Provision Subscriber modal",
+        user: keycloak.tokenParsed?.preferred_username,
+      },
+    });
     deviceStore.$patch({
       rogueDevice: data,
     });
@@ -314,7 +375,12 @@ export const getIpAddresses = async (
       "front end accessing backend hive api /getIpAddressesOfCidrBlock/" +
         ipAddress
     );
-    const { data } = await api.get("/getIpAddressesOfCidrBlock/" + ipAddress);
+    const { data } = await api.get("/getIpAddressesOfCidrBlock/" + ipAddress, {
+      params: {
+        action: "api call - Network IP Addresses page",
+        user: keycloak.tokenParsed?.preferred_username,
+      },
+    });
 
     console.log("Fetched getIpAddresses data:", data);
     return data;
@@ -328,7 +394,12 @@ export const getIpAddresses = async (
 export const getNetworkAddresses = async (): Promise<INetworkAddresses[]> => {
   try {
     console.log("front end accessing backend hive api /getallnetworks");
-    const { data } = await api.get("/getallnetworks"); ///getCidrBlocks
+    const { data } = await api.get("/getallnetworks", {
+      params: {
+        action: "api call - Addresses page",
+        user: keycloak.tokenParsed?.preferred_username,
+      },
+    }); ///getCidrBlocks
     networkStore.$patch({
       networkAddressDetail: data,
     });
@@ -343,12 +414,17 @@ export const getNetworkAddresses = async (): Promise<INetworkAddresses[]> => {
 
 //* PACKAGE TYPE APIs *//
 
-// GET: /checkPackageDetails/{packageType}
+// GET: /checkPackageDetails/{packageType} - UNUSED FUNCTION
 export const checkPackageDetails = async (
   packageTypeId: string
 ): Promise<IPackageDetails> => {
   try {
-    const { data } = await api.get("/checkPackageDetails/" + packageTypeId);
+    const { data } = await api.get("/checkPackageDetails/" + packageTypeId, {
+      params: {
+        action: "api call from frontend",
+        user: keycloak.tokenParsed?.preferred_username,
+      },
+    });
     return data;
   } catch (error) {
     console.log("Could not retrieve Bandwidth Data!", error);
@@ -361,7 +437,12 @@ export const getHiveClients = async (): Promise<IClient[]> => {
     console.log(
       "front end accessing backend hive api /getprovisionedsubscribers"
     );
-    const { data } = await api.get("/getprovisionedsubscribers"); //"/getHiveClients"
+    const { data } = await api.get("/getprovisionedsubscribers", {
+      params: {
+        action: "api call - Active/Onhold Subscribers page",
+        user: keycloak.tokenParsed?.preferred_username,
+      },
+    }); //"/getHiveClients"
     return data;
   } catch (error) {
     console.log("Could not retrieve Client/Subscriber Data!", error);
@@ -456,22 +537,37 @@ export const executeProvision = async (
 //   }
 // };
 
-// REVIEW: redundant
+// REVIEW: redundant - UNUSED FUNCTION
 export const getAllOlts = async (): Promise<IOlt[]> => {
-  const { data } = await api.get("/getAllOlts");
+  const { data } = await api.get("/getAllOlts", {
+    params: {
+      action: "api call from frontend",
+      user: keycloak.tokenParsed?.preferred_username,
+    },
+  });
   return data;
 };
 
-// REVIEW: api currently not in hive backend
+// REVIEW: api currently not in hive backend - UNUSED FUNCTION
 export const getOtcStatus = async (clientId: number) => {
-  const { data } = await api.get("/getOtcStatus/" + clientId);
+  const { data } = await api.get("/getOtcStatus/" + clientId, {
+    params: {
+      action: "api call from frontend",
+      user: keycloak.tokenParsed?.preferred_username,
+    },
+  });
   return data;
 };
 
-// REVIEW: api currently commented out in hive backend
+// REVIEW: api currently commented out in hive backend - UNUSED FUNCTION
 export const getOneAvailableIpAddress = async () => {
   try {
-    const { data } = await api.get("/getOneAvailableIpAddress");
+    const { data } = await api.get("/getOneAvailableIpAddress", {
+      params: {
+        action: "api call from frontend",
+        user: keycloak.tokenParsed?.preferred_username,
+      },
+    });
     return data;
   } catch (error) {
     console.log("Could not get One Available IpAddress Data!", error);

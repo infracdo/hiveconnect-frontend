@@ -27,6 +27,7 @@
           validationMessage ? 'border-error-300' : 'border-gray-300',
         ]"
         :required="required"
+        :disabled="disabled"
       >
         <option v-if="clearable" value="">None</option>
         <option
@@ -60,12 +61,14 @@ const props = withDefaults(
     clearable?: boolean;
     icon?: string;
     textColor?: string;
+    disabled?: boolean;
   }>(),
   {
     modelValue: "",
     required: false,
     clearable: false,
     textColor: "text-black",
+    disabled: false,
   }
 );
 

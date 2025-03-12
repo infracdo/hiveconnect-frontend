@@ -27,11 +27,21 @@
               hint="Search by network address"
             />
           </div>
+
+          <div class="flex flex-row">
+            <!-- Button to add a new network-->
+            <Buttons
+              label="Add New Network"
+              color="bg-primary-600"
+              textColor="text-white"
+              @click="openAddNewNetworkModal"
+            />
+          </div>
         </div>
 
         <!-- Content container here -->
         <div
-          class="border border-gray-iron-100 q-mt-md row full-width bg-white rounded-lg"
+          class="border border-gray-iron-100 q-mt-md row full-width bg-white rounded-lg relative"
         >
           <!-- Table for network addresses -->
           <div class="full-width">
@@ -41,17 +51,7 @@
               :rowsPerPage="10"
               :loading="rows.length > 0 ? false : true"
               :callback="getNetworkAddressData"
-              @rowClick="openAddNewNetworkModal"
             >
-              <!-- Actions column provision action button -->
-              <template #actions="{ row }">
-                <q-icon
-                  name="edit"
-                  size="sm"
-                  class="cursor-pointer text-gray-iron-900 font-normal hover:text-primary-1000"
-                  @click.stop="openAddNewNetworkModal(row.networkAddress)"
-                />
-              </template>
             </Table>
           </div>
         </div>
@@ -81,7 +81,9 @@ import { useKeycloak } from "src/composables/useKeycloak";
 import AddNewNetworkModal from "src/components/NetworkAddress/AddNewNetworkModal.vue";
 import SearchBar from "src/components/SearchBar.vue";
 import Table from "src/components/Table.vue";
+import Buttons from "src/components/inputs/Buttons.vue";
 
+// Constants and Initialization
 const store = useNetworkStore();
 const router = useRouter();
 const route = useRoute();
@@ -90,7 +92,6 @@ const rows = ref<INetworkAddresses[]>([]);
 const columns: QTableProps["columns"] = store.$state.networkColumn || [];
 const filter = ref("");
 const modalAddNewNetwork = ref(false);
-const modalOpen = ref(false);
 const loading = ref<boolean>(false);
 
 // Count total number of rows (network addresses) in the table to display in the page description
@@ -101,11 +102,7 @@ const filteredRows = computed(() => {
   return searchRows([...rows.value], filter.value);
 });
 
-const openModal = () => {
-  modalOpen.value = !modalOpen.value;
-};
-
-const openAddNewNetworkModal = async (networkAddress: string) => {
+const openAddNewNetworkModal = () => {
   modalAddNewNetwork.value = true;
 };
 
@@ -131,18 +128,23 @@ const getNetworkAddressData = (
 };
 
 // Asynchronous function to retrieve network addresses from API
-async function fetchNetworkAddresses() {
-  try {
-    rows.value = await getNetworkAddresses();
-    console.log("Network addresses data fetched successfully");
-  } catch (error) {
-    console.error("Error fetching network addresses: ", error);
-  }
-}
+// async function fetchNetworkAddresses() {
+//   try {
+//     rows.value = await getNetworkAddresses();
+//     console.log("Network addresses data fetched successfully");
+//   } catch (error) {
+//     console.error("Error fetching network addresses: ", error);
+//   }
+// }
 
 // Retrieve migration subscribers data as soon as the component is mounted
 onMounted(async () => {
-  await fetchNetworkAddresses();
+  try {
+    rows.value = await getNetworkAddresses();
+    console.log("Network addresses data fetched successfully!");
+  } catch (error) {
+    console.error("Error fetching network addresses: ", error);
+  }
 
   const user = keycloak.tokenParsed.given_name;
   const action = "page visit";

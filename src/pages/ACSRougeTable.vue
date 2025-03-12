@@ -43,7 +43,7 @@ import { useRoute } from "vue-router";
 import { useDevicesStore } from "src/stores/rogue-device/rogue-devices";
 import { IRogueDevices } from "src/api/HiveConnectApis/types";
 import {
-  getDevices,
+  getRogueDevices,
   addFrontendLogger,
 } from "src/api/HiveConnectApis/hiveConnect";
 import { useKeycloak } from "src/composables/useKeycloak";
@@ -63,7 +63,7 @@ const rogueDeviceCount = computed(() => tableRow.value.length || 0);
 async function fetchDevices() {
   loading.value = true;
   try {
-    tableRow.value = await getDevices();
+    tableRow.value = await getRogueDevices();
   } catch (error) {
     console.log("Error fetching devices for Rogue Devices page: ", error);
   }

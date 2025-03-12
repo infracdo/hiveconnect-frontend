@@ -2,7 +2,7 @@
   "name": "quasar-project",
   "version": "0.0.1",
   "description": "A Quasar Project Inet Quasar",
-  "productName": "Hive App",
+  "productName": "Hive",
   "author": "Apollotech Software",
   "private": true,
   "scripts": {

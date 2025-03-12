@@ -27,9 +27,9 @@
         </div>
       </div>
 
-      <div class="flex flex-row justify-between w-full">
+      <div class="flex flex-row w-full">
         <div class="flex flex-col">
-          <div class="flex flex-row justify-between mb-6">
+          <div class="flex flex-row mb-6">
             <div class="flex flex-col">
               <p class="text-xs text-gray-iron-500">ADDRESS</p>
               <p class="text-xl font-medium text-gray-iron-900">
@@ -55,7 +55,7 @@
             </div>
           </div>
 
-          <div class="flex flex-row justify-between mb-6">
+          <div class="grid grid-cols-2 gap-4 mb-8">
             <div class="flex flex-col">
               <p class="text-xs text-gray-iron-500">DEFAULT GATEWAY</p>
               <p class="text-sm text-gray-iron-900 leading-5">
@@ -77,9 +77,7 @@
                 }}
               </p>
             </div>
-          </div>
 
-          <div class="flex flex-row justify-between mb-6">
             <div class="flex flex-col">
               <p class="text-xs text-gray-iron-500">SITE</p>
               <p class="text-sm text-gray-iron-900 leading-5">
@@ -101,9 +99,7 @@
                 }}
               </p>
             </div>
-          </div>
 
-          <div class="flex flex-row mb-8">
             <div class="flex flex-col">
               <p class="text-xs text-gray-iron-500">VLAN ID</p>
               <p class="text-sm text-gray-iron-900 leading-5">
