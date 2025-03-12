@@ -28,11 +28,11 @@ jobs:
         run: 
           # docker build --target build -t my-image:build .
 
-          docker build -t hiveconnect-frontend:talos-test .
+          docker build -t hiveconnect-frontend:talos-test1 .
 
       # Step 4: Push the Docker image
       - name: Push Docker Image
         run: |
-          docker tag hiveconnect-frontend:talos-test infracdo/hiveconnect-frontend:talos-test
-          docker push infracdo/hiveconnect-frontend:talos-test
+          docker tag hiveconnect-frontend:talos-test1 infracdo/hiveconnect-frontend:talos-test1
+          docker push infracdo/hiveconnect-frontend:talos-test1
 
