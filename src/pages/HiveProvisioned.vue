@@ -24,7 +24,7 @@
               :modelValue="filter"
               @update:searchValue="filter = $event"
               :searchFunction="handleSearch"
-              hint="Search by account number"
+              hint="Search by account number or subscriber name"
             />
           </div>
 
@@ -35,7 +35,7 @@
               name="autorenew"
               size="sm"
               class="cursor-pointer"
-              @click="getProvisioned"
+              @click="handleRefreshTable"
             />
 
             <DropdownButton
@@ -86,7 +86,7 @@ import {
   getHiveClients,
   addFrontendLogger,
 } from "src/api/HiveConnectApis/hiveConnect";
-import { useSubscriberStore } from "src/stores/subscriber/subscriber-store";
+// import { useSubscriberStore } from "src/stores/subscriber/subscriber-store";
 import { useClientStore } from "src/stores/subscriber/client-store";
 import { IClient } from "src/api/HiveConnectApis/types";
 import { searchRows } from "src/util/search";
@@ -103,29 +103,29 @@ const columns = computed(
   () => store.$state.subscribercolumns?.filter((col) => col.name !== "id") || [] // Note: subscriber id is not included since we were told that if the id is local (within hive only), it should not be included in the table so i based everything to their account number instead
 );
 const rowsHive = ref<IClient[]>([]);
-const deviceName = ref("");
+// const deviceName = ref("");
 const filter = ref("");
 const selectedStatus = ref("");
-const clientId = ref(0);
-const openTroubleShootModal = ref(false);
+// const clientId = ref(0);
+// const openTroubleShootModal = ref(false);
 const loading = ref(false);
-const modalIsVisible = ref(false);
+// const modalIsVisible = ref(false);
 
-const client = ref({
-  subscriberName: "",
-  accountNo: "",
-  packageType: "",
-  onuStatus: "",
-  onuIp: "",
-  onuSerialNumber: 0,
-  onuMacAddress: "",
-  upstream: "",
-  downstream: "",
-  oltStatus: "",
-  oltIp: "",
-  oltSite: "",
-  oltInterface: "",
-});
+// const client = ref({
+//   subscriberName: "",
+//   accountNo: "",
+//   packageType: "",
+//   onuStatus: "",
+//   onuIp: "",
+//   onuSerialNumber: 0,
+//   onuMacAddress: "",
+//   upstream: "",
+//   downstream: "",
+//   oltStatus: "",
+//   oltIp: "",
+//   oltSite: "",
+//   oltInterface: "",
+// });
 
 // Store visible columns' state differently for each pagey using storageKey
 // const storageKey = `visibleColumns-${route.path}`;
@@ -145,7 +145,7 @@ const statusOptions = ref([
   { label: "Onhold", value: "ONHOLD" },
 ]);
 
-// Initial displayed columns
+// Displayed columns by default
 const visibleColumns = ref([
   "subscriberAccountNumber",
   "clientName",
@@ -161,7 +161,7 @@ const visibleColumns = ref([
 
 // Select visible columns options
 const columnOptions = ref([
-  { value: "subscriberAccountNumber", label: "Acount No." },
+  { value: "subscriberAccountNumber", label: "Account No." },
   { value: "clientName", label: "Subscriber Name" },
   { value: "packageType", label: "Package Type" },
   { value: "onuDeviceName", label: "Device Name" },
@@ -173,14 +173,26 @@ const columnOptions = ref([
   { value: "ssidName", label: "SSID" },
 ]);
 
+// Method to update the filter value when the user enters something in the SearchBar
+const handleSearch = (event: KeyboardEvent) => {
+  filter.value = (event.target as HTMLInputElement).value;
+};
+
+//Method to filter the table based on the selected status in dropdown button
+const handleStatusSelect = (status: { label: string; value: string }) => {
+  selectedStatus.value = status.value;
+};
+
 // Filter rows based on search term or selected status in the dropdown
 const filteredRows = computed(() => {
   let filtered = rowsHive.value;
 
+  // If search filter is used
   if (filter.value) {
-    searchRows([...rowsHive.value], filter.value);
+    filtered = searchRows([...rowsHive.value], filter.value);
   }
 
+  // If select status dropdown button is used
   if (selectedStatus.value) {
     filtered = filtered.filter((row) =>
       row.status.startsWith(selectedStatus.value)
@@ -189,15 +201,6 @@ const filteredRows = computed(() => {
 
   return filtered;
 });
-
-// Function to update the filter value when the user enters something in the SearchBar
-const handleSearch = (event: KeyboardEvent) => {
-  filter.value = (event.target as HTMLInputElement).value;
-};
-
-const handleStatusSelect = (status: { label: string; value: string }) => {
-  selectedStatus.value = status.value;
-};
 
 // Method to display columns when selected in 'Select visible columns'
 const handleColumnSelect = (selectedOptions: string[]) => {
@@ -210,52 +213,56 @@ const handleColumnSelect = (selectedOptions: string[]) => {
 };
 
 // Method to display modal when the action button in row is clicked
-const openModal = (row: any) => {
-  client.value = {
-    subscriberName: row.clientName,
-    accountNo: row.subscriberAccountNumber,
-    packageType: row.packageType,
-    onuStatus: row.onuStatus,
-    onuIp: row.onuIp,
-    onuSerialNumber: row.onuSerialNumber,
-    onuMacAddress: row.onuMacAddress,
-    upstream: row.upstream,
-    downstream: row.downstream,
-    oltStatus: row.oltStatus,
-    oltIp: row.oltIp,
-    oltSite: row.site,
-    oltInterface: row.oltInterface,
-  };
+// const openModal = (row: any) => {
+//   client.value = {
+//     subscriberName: row.clientName,
+//     accountNo: row.subscriberAccountNumber,
+//     packageType: row.packageType,
+//     onuStatus: row.onuStatus,
+//     onuIp: row.onuIp,
+//     onuSerialNumber: row.onuSerialNumber,
+//     onuMacAddress: row.onuMacAddress,
+//     upstream: row.upstream,
+//     downstream: row.downstream,
+//     oltStatus: row.oltStatus,
+//     oltIp: row.oltIp,
+//     oltSite: row.site,
+//     oltInterface: row.oltInterface,
+//   };
 
-  modalIsVisible.value = true;
-};
+//   modalIsVisible.value = true;
+// };
 
 // Method to open the troubleshoot modal
 // NOTE: i still haven't seen this modal in action since there are issues while opening this modal
-const openTroubleshootModal = (
-  onuDeviceName: string,
-  newSubscriberId: number
-) => {
-  deviceName.value = onuDeviceName;
-  console.log(typeof newSubscriberId, " id value is ", newSubscriberId);
-  clientId.value = newSubscriberId;
-  openTroubleShootModal.value = !openTroubleShootModal.value;
-};
+// const openTroubleshootModal = (
+//   onuDeviceName: string,
+//   newSubscriberId: number
+// ) => {
+//   deviceName.value = onuDeviceName;
+//   console.log(typeof newSubscriberId, " id value is ", newSubscriberId);
+//   clientId.value = newSubscriberId;
+//   openTroubleShootModal.value = !openTroubleShootModal.value;
+// };
 
 // Method to close the troubleshoot modal
 // NOTE: i still haven't seen this modal in action since there are issues while opening this modal
-const closeTroubleShootModal = () => {
-  openTroubleShootModal.value = !openTroubleShootModal.value;
-};
+// const closeTroubleShootModal = () => {
+//   openTroubleShootModal.value = !openTroubleShootModal.value;
+// };
 
-// Method to fetch the provisioned subscribers data through API
-const getProvisioned = async (): Promise<void> => {
+// Method for refreshing table data
+const handleRefreshTable = async (): Promise<void> => {
   filter.value = "";
   loading.value = true;
   rowsHive.value = [];
+
   try {
     rowsHive.value = await getHiveClients();
-  } catch (error) {}
+  } catch (error) {
+    console.log("Error fetching provisioned subscribers: ", error);
+  }
+
   loading.value = false;
 };
 
@@ -275,9 +282,17 @@ const getProvisionedSubscriberData = (
   });
 };
 
+// Lifecycle Hooks
+// Fetch active/onhold subscribers when component mounts and send a frontend logger for visiting the page
 onMounted(async () => {
-  await getProvisioned();
+  // Fetch active/onhold subscribers
+  try {
+    rowsHive.value = await getHiveClients();
+  } catch (error) {
+    console.log("Error fetching provisioned subscribers: ", error);
+  }
 
+  // Send a user action to backend for visiting the Active/Onhold Subscribers page
   const user = keycloak.tokenParsed.given_name;
   const action = "page visit";
   const details = `${user} visited the ${route.path} page`;

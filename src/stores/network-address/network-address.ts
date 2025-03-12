@@ -54,13 +54,13 @@ export const useNetworkStore = defineStore("network-address", {
         align: "left",
         sortable: true,
       },
-      {
-        name: "actions",
-        label: "Actions",
-        field: "actions",
-        align: "left",
-        sortable: true,
-      },
+      // {
+      //   name: "actions",
+      //   label: "Actions",
+      //   field: "actions",
+      //   align: "left",
+      //   sortable: true,
+      // },
     ] as QTableProps["columns"],
   }),
 });

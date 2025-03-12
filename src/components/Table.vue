@@ -15,7 +15,7 @@
                   :key="header.name"
                   :class="
                     header.name === 'actions'
-                      ? 'whitespace-nowrap px-3 pt-6 pb-2 font-light text-xs uppercase text-primary-gray-500 text-center'
+                      ? 'whitespace-nowrap px-3 pt-6 pb-2 font-light text-xs uppercase text-primary-gray-500 text-center' // TODO: redundant, think of a way to handle this
                       : 'whitespace-nowrap px-3 pt-6 pb-2 font-light text-xs uppercase text-primary-gray-500'
                   "
                 >
@@ -91,7 +91,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from "vue";
+import { ref, computed, watch } from "vue";
 
 interface TableRow {
   [key: string]: any;
@@ -103,7 +103,24 @@ interface TableColumn {
 }
 
 // Define props structure
-interface Props {
+// interface Props {
+//   tableColumns: TableColumn[];
+//   tableRows: TableRow[];
+//   visibleColumns?: string[];
+//   rowsPerPage?: number;
+//   moduleName?: string;
+//   callback?: (
+//     event: Event,
+//     row: TableRow,
+//     index: number,
+//     module: string
+//   ) => void;
+// }
+
+// Define props
+// const props = defineProps<Props>();
+
+const props = defineProps<{
   tableColumns: TableColumn[];
   tableRows: TableRow[];
   visibleColumns?: string[];
@@ -115,10 +132,7 @@ interface Props {
     index: number,
     module: string
   ) => void;
-}
-
-// Define props
-const props = defineProps<Props>();
+}>();
 
 // Display table columns based on passed visibleColumns prop
 const visibleColumns = computed(
@@ -133,7 +147,6 @@ const totalPages = computed(() =>
   Math.ceil(props.tableRows.length / (props.rowsPerPage ?? 10))
 );
 
-// TODO: recheck this as this only filters the current page (pagination)
 const paginatedRows = computed(() => {
   const start = (currentPage.value - 1) * (props.rowsPerPage ?? 10);
   const end = start + (props.rowsPerPage ?? 10);
@@ -163,11 +176,20 @@ const prevPage = () => {
   }
 };
 
+// Method when a table row is clicked
 const handleCallback = (event: Event, row: TableRow, index: number) => {
   if (props.callback) {
     props.callback(event, row, index, props.moduleName || "defaultModule");
   }
 };
+
+// Watch for table data changes, especially when filtering is applied
+watch(
+  () => props.tableRows,
+  () => {
+    currentPage.value = 1;
+  }
+);
 </script>
 
 <style scoped>
