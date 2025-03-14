@@ -174,12 +174,12 @@ const props = defineProps<{
   isVisible: boolean;
   responses: {
     autoConfig: string;
-    monitoring: string;
+    // monitoring: string;
     // provisionCheck: string;
   };
   responseStatus: {
     autoConfig: boolean;
-    monitoring: boolean;
+    // monitoring: boolean;
     // provisionCheck: boolean;
   };
   showProvisionResult: boolean;

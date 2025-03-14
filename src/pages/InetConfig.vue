@@ -321,13 +321,13 @@ const NewClient = reactive({
 const responses = reactive({
   // provisionCheck: "",
   autoConfig: "",
-  monitoring: "",
+  // monitoring: "",
 });
 
 const responseStatus = reactive({
   // provisionCheck: false,
   autoConfig: false,
-  monitoring: false,
+  // monitoring: false,
 });
 
 const ssid = reactive({
@@ -582,7 +582,7 @@ const provisionClient = async (clientData: typeof NewClient): Promise<void> => {
   console.log("NewClient Data in provisionClient:", NewClient);
 
   responses.autoConfig = "";
-  responses.monitoring = "";
+  // responses.monitoring = "";
 
   // try {
   //   // Execute Preprovision Check
@@ -636,36 +636,36 @@ const provisionClient = async (clientData: typeof NewClient): Promise<void> => {
   }
 
   // Run monitoring in the background
-  Promise.resolve().then(async () => {
-    try {
-      // Execute Monitoring
-      console.log("Executing Monitoring...");
-      responses.monitoring = "Executing Monitoring...";
-      const responseMonitoring = await executeMonitoring(
-        clientData.accountNumber,
-        clientData.clientName,
-        clientData.serialAndMac.serialNum,
-        clientData.serialAndMac.macAddress,
-        clientData.oltIp,
-        clientData.packageType,
-        clientData.newOltId
-        // clientData.oltReportedDownstream,
-        // clientData.oltReportedUpstream
-      );
-      if (responseMonitoring) {
-        responses.monitoring = responseMonitoring.message;
-        responseStatus.monitoring = true;
-        console.log("Successful monitoring execution: ", responseMonitoring);
-      }
-    } catch (error: any) {
-      responses.monitoring =
-        error.response?.data?.message || "Monitoring failed!";
-      console.log("Error executing monitoring: ", error);
-      return stopProvisionFunction();
-    }
-  });
+  // Promise.resolve().then(async () => {
+  //   try {
+  //     // Execute Monitoring
+  //     console.log("Executing Monitoring...");
+  //     responses.monitoring = "Executing Monitoring...";
+  //     const responseMonitoring = await executeMonitoring(
+  //       clientData.accountNumber,
+  //       clientData.clientName,
+  //       clientData.serialAndMac.serialNum,
+  //       clientData.serialAndMac.macAddress,
+  //       clientData.oltIp,
+  //       clientData.packageType,
+  //       clientData.newOltId
+  //       // clientData.oltReportedDownstream,
+  //       // clientData.oltReportedUpstream
+  //     );
+  //     if (responseMonitoring) {
+  //       responses.monitoring = responseMonitoring.message;
+  //       responseStatus.monitoring = true;
+  //       console.log("Successful monitoring execution: ", responseMonitoring);
+  //     }
+  //   } catch (error: any) {
+  //     responses.monitoring =
+  //       error.response?.data?.message || "Monitoring failed!";
+  //     console.log("Error executing monitoring: ", error);
+  //     return stopProvisionFunction();
+  //   }
+  // });
 
-  return stopProvisionFunction();
+  // return stopProvisionFunction();
 };
 
 // Stop client provision
