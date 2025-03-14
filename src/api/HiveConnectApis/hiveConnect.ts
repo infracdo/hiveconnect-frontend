@@ -101,7 +101,10 @@ export const executeAutoConfig = async (
     // upstream: upstream, //added
   });
 
-  console.log("Accessing '/executeAutoConfig' api:", data);
+  console.log(
+    "Returned data response by accessing '/executeAutoConfig':",
+    data
+  );
   return data;
 };
 
