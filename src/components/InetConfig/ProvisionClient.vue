@@ -37,7 +37,7 @@
             style="display: flex; flex-direction: column; gap: 10px"
           >
             <!-- Preprovision Checking -->
-            <div class="text-gray-iron-900">
+            <!-- <div class="text-gray-iron-900">
               <div class="flex flex-row items-center">
                 <div class="mr-2">
                   <q-spinner-tail
@@ -70,13 +70,10 @@
                   </span>
                 </div>
               </div>
-            </div>
+            </div> -->
 
             <!-- Auto Config Checking -->
-            <div
-              v-if="props.responseStatus.provisionCheck"
-              class="text-gray-iron-900"
-            >
+            <div class="text-gray-iron-900">
               <div class="flex flex-row items-center">
                 <div class="mr-2">
                   <q-spinner-tail
@@ -111,26 +108,25 @@
             </div>
           </div>
 
-          <!-- Display SSID and password if all checkings passed -->
+          <!-- Show provision result if successful or not -->
           <div v-if="props.showProvisionResult" class="text-center">
             <q-separator class="q-mb-lg" />
             <p
               class="uppercase font-semibold q-mb-lg"
               :class="
-                props.responseStatus.provisionCheck &&
                 props.responseStatus.autoConfig
                   ? 'text-success-700'
                   : 'text-error-700'
               "
             >
               {{
-                props.responseStatus.provisionCheck &&
                 props.responseStatus.autoConfig
                   ? " Successful Provision!"
                   : "Unsuccessful Provision!"
               }}
             </p>
 
+            <!-- Display SSID and password if all checkings passed -->
             <div
               v-if="props.responseStatus.autoConfig"
               style="display: flex; justify-content: space-evenly"
@@ -152,8 +148,7 @@
         <div
           v-if="
             props.responseStatus.autoConfig ||
-            (props.responses.provisionCheck !== 'Preprovision checking ...' &&
-              props.responses.autoConfig !== 'Executing Auto Config...')
+            props.responses.autoConfig !== 'Executing Auto Config...'
           "
           class="mt-4"
           style="display: flex; justify-content: center; margin-top: auto"
@@ -179,13 +174,13 @@ const props = defineProps<{
   isVisible: boolean;
   responses: {
     autoConfig: string;
-    monitoring: string;
-    provisionCheck: string;
+    // monitoring: string;
+    // provisionCheck: string;
   };
   responseStatus: {
     autoConfig: boolean;
-    monitoring: boolean;
-    provisionCheck: boolean;
+    // monitoring: boolean;
+    // provisionCheck: boolean;
   };
   showProvisionResult: boolean;
   ssid: {

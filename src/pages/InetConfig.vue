@@ -197,8 +197,8 @@
 
     <!-- Provision Client -->
     <ProvisionClient
-      :isVisible="modalProvisionChecking"
-      @update:isVisible="modalProvisionChecking = $event"
+      :isVisible="modalProvisionClientResponse"
+      @update:isVisible="modalProvisionClientResponse = $event"
       :responses="responses"
       :responseStatus="responseStatus"
       :showProvisionResult="showProvisionResult"
@@ -270,7 +270,7 @@ const selectedLocation = ref("");
 const selectedOltIp = ref(null);
 const modalOpen = ref(false);
 const loading = ref(false);
-const modalProvisionChecking = ref(false);
+const modalProvisionClientResponse = ref(false);
 const showProvisionResult = ref(false);
 const showSkeletonDancing = ref(false);
 
@@ -319,15 +319,15 @@ const NewClient = reactive({
 });
 
 const responses = reactive({
-  provisionCheck: "",
+  // provisionCheck: "",
   autoConfig: "",
-  monitoring: "",
+  // monitoring: "",
 });
 
 const responseStatus = reactive({
-  provisionCheck: false,
+  // provisionCheck: false,
   autoConfig: false,
-  monitoring: false,
+  // monitoring: false,
 });
 
 const ssid = reactive({
@@ -472,7 +472,7 @@ const resetForm = () => {
 // const openProvisionModal = async (event: any) => {
 //   // $q.loading.show();
 
-//   modalProvisionChecking.value = true;
+//   modalProvisionClientResponse.value = true;
 //   // $q.loading.hide();
 // };
 
@@ -575,38 +575,39 @@ const filterNetworkSites = () => {
 
 const provisionClient = async (clientData: typeof NewClient): Promise<void> => {
   // $q.loading.show();
-  modalProvisionChecking.value = true;
+  modalProvisionClientResponse.value = true;
   showSkeletonDancing.value = true;
   showProvisionResult.value = false;
 
   console.log("NewClient Data in provisionClient:", NewClient);
 
   responses.autoConfig = "";
-  responses.monitoring = "";
+  // responses.monitoring = "";
 
-  try {
-    // Execute Preprovision Check
-    responses.provisionCheck = "Preprovision checking ...";
-    const responsePreProvisionCheck = await preProvisionCheck(
-      //send values to /preprovisionCheck API
-      clientData.accountNumber,
-      clientData.clientName,
-      clientData.serialAndMac.serialNum,
-      clientData.serialAndMac.macAddress,
-      clientData.oltIp,
-      clientData.packageType,
-      clientData.newOltId
-    );
-    responses.provisionCheck = responsePreProvisionCheck.message;
-    responseStatus.provisionCheck = true;
-  } catch (error: any) {
-    responses.provisionCheck =
-      error.response?.data?.message || "Preprovision check failed!";
-    return stopProvisionFunction();
-  }
+  // try {
+  //   // Execute Preprovision Check
+  //   responses.provisionCheck = "Preprovision checking ...";
+  //   const responsePreProvisionCheck = await preProvisionCheck(
+  //     //send values to /preprovisionCheck API
+  //     clientData.accountNumber,
+  //     clientData.clientName,
+  //     clientData.serialAndMac.serialNum,
+  //     clientData.serialAndMac.macAddress,
+  //     clientData.oltIp,
+  //     clientData.packageType,
+  //     clientData.newOltId
+  //   );
+  //   responses.provisionCheck = responsePreProvisionCheck.message;
+  //   responseStatus.provisionCheck = true;
+  // } catch (error: any) {
+  //   responses.provisionCheck =
+  //     error.response?.data?.message || "Preprovision check failed!";
+  //   return stopProvisionFunction();
+  // }
 
   try {
     // Exececute Auto Config
+    console.log("Executing Auto Config...");
     responses.autoConfig = "Executing Auto Config...";
     const responseAutoConfig = await executeAutoConfig(
       clientData.accountNumber,
@@ -619,7 +620,7 @@ const provisionClient = async (clientData: typeof NewClient): Promise<void> => {
       // clientData.oltReportedDownstream,
       // clientData.oltReportedUpstream
     );
-    if (responseAutoConfig.status === 200) {
+    if (responseAutoConfig.status === "200") {
       responses.autoConfig = responseAutoConfig.message;
       ssid.name = responseAutoConfig.ssid_name;
       ssid.pw = responseAutoConfig.ssid_pw;
@@ -635,33 +636,36 @@ const provisionClient = async (clientData: typeof NewClient): Promise<void> => {
   }
 
   // Run monitoring in the background
-  Promise.resolve().then(async () => {
-    try {
-      // Execute Monitoring
-      responses.monitoring = "Executing Monitoring...";
-      const responseMonitoring = await executeMonitoring(
-        clientData.accountNumber,
-        clientData.clientName,
-        clientData.serialAndMac.serialNum,
-        clientData.serialAndMac.macAddress,
-        clientData.oltIp,
-        clientData.packageType,
-        clientData.newOltId
-        // clientData.oltReportedDownstream,
-        // clientData.oltReportedUpstream
-      );
-      if (responseMonitoring) {
-        responses.monitoring = responseMonitoring.message;
-        responseStatus.monitoring = true;
-      }
-    } catch (error: any) {
-      responses.monitoring =
-        error.response?.data?.message || "Monitoring failed!";
-      return stopProvisionFunction();
-    }
-  });
+  // Promise.resolve().then(async () => {
+  //   try {
+  //     // Execute Monitoring
+  //     console.log("Executing Monitoring...");
+  //     responses.monitoring = "Executing Monitoring...";
+  //     const responseMonitoring = await executeMonitoring(
+  //       clientData.accountNumber,
+  //       clientData.clientName,
+  //       clientData.serialAndMac.serialNum,
+  //       clientData.serialAndMac.macAddress,
+  //       clientData.oltIp,
+  //       clientData.packageType,
+  //       clientData.newOltId
+  //       // clientData.oltReportedDownstream,
+  //       // clientData.oltReportedUpstream
+  //     );
+  //     if (responseMonitoring) {
+  //       responses.monitoring = responseMonitoring.message;
+  //       responseStatus.monitoring = true;
+  //       console.log("Successful monitoring execution: ", responseMonitoring);
+  //     }
+  //   } catch (error: any) {
+  //     responses.monitoring =
+  //       error.response?.data?.message || "Monitoring failed!";
+  //     console.log("Error executing monitoring: ", error);
+  //     return stopProvisionFunction();
+  //   }
+  // });
 
-  return stopProvisionFunction();
+  // return stopProvisionFunction();
 };
 
 // Stop client provision
@@ -704,7 +708,7 @@ const handleActivateClient = async () => {
       clientName: client.value.subscriberName,
     });
 
-    modalProvisionChecking.value = true;
+    modalProvisionClientResponse.value = true;
 
     // Log user action performing provisioning
     const user = keycloak.tokenParsed.given_name;
