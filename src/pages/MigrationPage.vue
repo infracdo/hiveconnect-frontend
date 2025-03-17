@@ -409,9 +409,24 @@ const handleMigrateSubscriber = () => {
         } else {
           throw new Error("Failed to migrate subscriber from bucket to hive");
         }
-      } catch (error) {
-        const errorMessage =
-          error instanceof Error ? error.message : "An unknown error occurred.";
+      } catch (error: any) {
+        let errorMessage = "";
+
+        console.error("Error response: ", error.response);
+
+        // Display playbook job failed if the error response is 500 and contains AWX job id and an empty message
+        if (
+          error.response?.data?.status === "500" &&
+          error.response?.data?.["awx_job_id: "] &&
+          error.response?.data?.message === ""
+        ) {
+          errorMessage = `Playbook failed with Job ID: ${error.response.data["awx_job_id: "]}`;
+        } else {
+          errorMessage =
+            error.response?.data?.message ||
+            "Migrating subscriber from bucket to hive failed!"; // Default error message if there's no message in API call response
+        }
+
         Swal.fire({
           title: "Error",
           text: errorMessage,
