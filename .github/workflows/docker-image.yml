@@ -28,11 +28,11 @@ jobs:
         run: 
           # docker build --target build -t my-image:build .
 
-          docker build -t hiveconnect-frontend:test-0.14 .
+          docker build -t hiveconnect-frontend:sbx-0.14 .
 
       # Step 4: Push the Docker image
       - name: Push Docker Image
         run: |
-          docker tag hiveconnect-frontend:test-0.14 infracdo/hiveconnect-frontend:test-0.14
-          docker push infracdo/hiveconnect-frontend:test-0.14
+          docker tag hiveconnect-frontend:sbx-0.14 infracdo/hiveconnect-frontend:sbx-0.14
+          docker push infracdo/hiveconnect-frontend:sbx-0.14
 
