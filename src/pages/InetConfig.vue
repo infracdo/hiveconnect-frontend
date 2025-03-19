@@ -316,6 +316,7 @@ const NewClient = reactive({
   oltIp: "",
   newOltId: 0,
   clientName: "",
+  location: "",
 });
 
 const responses = reactive({
@@ -616,7 +617,8 @@ const provisionClient = async (clientData: typeof NewClient): Promise<void> => {
       clientData.serialAndMac.macAddress,
       clientData.oltIp,
       clientData.packageType,
-      clientData.newOltId
+      clientData.newOltId,
+      clientData.location
       // clientData.oltReportedDownstream,
       // clientData.oltReportedUpstream
     );
@@ -692,6 +694,24 @@ const handleActivateClient = async () => {
   });
 
   if (confirmResult.isConfirmed) {
+    // Find the selected OLT IP and its corresponding newOltId
+    const selectedOlt = selectedNetworkSite.value?.oltIps.find(
+      (olt) => olt.oltIp === client.value.oltIp
+    );
+
+    if (!selectedOlt) {
+      console.error("Selected OLT IP not found.");
+      return;
+    }
+
+    // Map
+    const locationMapping: { [key: string]: string } = {
+      MBY: "MALAYBALAY",
+    };
+
+    const locationCode =
+      locationMapping[selectedLocation.value] || selectedLocation.value;
+
     Object.assign(NewClient, {
       bucketId: client.value.bucketId,
       clientId: client.value.newSubscriberId,
@@ -704,8 +724,9 @@ const handleActivateClient = async () => {
         macAddress: onuMacAddress.value,
       },
       oltIp: client.value.oltIp,
-      newOltId: selectedNetworkSiteValue.value,
+      newOltId: selectedOlt.newOltId,
       clientName: client.value.subscriberName,
+      location: locationCode,
     });
 
     modalProvisionClientResponse.value = true;
@@ -756,12 +777,21 @@ watch(selectedLocation, (newValue) => {
 });
 
 watch(selectedNetworkSiteValue, (newValue) => {
-  const selectedSite = filteredNetworkSites.value.find(
-    (site) => site.oltIps?.[0]?.newOltId === newValue
+  const selectedSite = filteredNetworkSites.value.find((site) =>
+    site.oltIps.some((olt) => olt.newOltId === newValue)
   );
   selectedNetworkSite.value = selectedSite || null;
-});
 
+  // Update the newOltId in the client object
+  if (selectedSite) {
+    const selectedOlt = selectedSite.oltIps.find(
+      (olt) => olt.newOltId === newValue
+    );
+    if (selectedOlt) {
+      client.value.newOltId = selectedOlt.newOltId;
+    }
+  }
+});
 onMounted(async () => {
   try {
     rows.value = await getClients();

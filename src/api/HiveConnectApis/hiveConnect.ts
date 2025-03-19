@@ -85,7 +85,8 @@ export const executeAutoConfig = async (
   macaddress: string,
   olt: string,
   packageType: string,
-  newOltId: number
+  newOltId: number,
+  location: string
   // downstream: number,
   // upstream: number
 ) => {
@@ -97,6 +98,7 @@ export const executeAutoConfig = async (
     olt: olt,
     packageType: packageType,
     oltId: newOltId,
+    location: location,
     // downstream: downstream, //added
     // upstream: upstream, //added
   });

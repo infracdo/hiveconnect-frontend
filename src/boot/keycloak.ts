@@ -5,7 +5,7 @@ import axios from "axios";
 import { auth } from "src/stores/auth";
 import { VueKeycloakOptions } from "@dsb-norge/vue-keycloak-js/dist/types";
 import routes from "src/router/routes";
-import logUserAction from "src/util/logservice";
+// import logUserAction from "src/util/logservice";
 
 const store = auth();
 
@@ -40,21 +40,19 @@ export default boot(({ app, router }) => {
     .then((authenticated) => {
       if (authenticated) {
         app.config.globalProperties.$keycloak = keycloak;
-        console.log("jwt token", JWT_TOKEN);
+        console.log("JWT Token: ", JWT_TOKEN);
 
         axios.defaults.headers.common["Authorization"] = "Bearer " + JWT_TOKEN;
         console.log(
-          "auth header",
+          "Auth Header: ",
           axios.defaults.headers.common["Authorization"]
         );
 
         const realmRoles = keycloak.tokenParsed?.realm_access?.roles || [];
         let resourceRoles: string[] = [];
-        if (
-          keycloak.tokenParsed?.resource_access?.["test-hiveconnect-frontend"]
-        ) {
+        if (keycloak.tokenParsed?.resource_access?.[KEYCLOAK_CLIENTID]) {
           resourceRoles = keycloak.tokenParsed?.resource_access[
-            "test-hiveconnect-frontend"
+            KEYCLOAK_CLIENTID
           ].roles as string[];
         } else {
           // logs out user if they dont have roles for the app client
@@ -63,7 +61,7 @@ export default boot(({ app, router }) => {
         app.config.globalProperties.$userRoles = realmRoles;
         app.config.globalProperties.$resourceRoles = resourceRoles;
 
-        console.log("User authenticated", keycloak.token);
+        // console.log("User authenticated", keycloak.token);
         store.setKeycloak(keycloak);
         store.setUserProfile();
         isKeycloakInitialized = true;
@@ -114,7 +112,7 @@ export default boot(({ app, router }) => {
 
     const userRoles = app.config.globalProperties.$userRoles as string[];
     const resourceRoles = keycloak.tokenParsed?.resource_access[
-      "test-hiveconnect-frontend"
+      KEYCLOAK_CLIENTID
     ].roles as string[];
 
     if (
@@ -126,8 +124,8 @@ export default boot(({ app, router }) => {
       next("/unauthorized");
     }
 
-    console.log("User roles", app.config.globalProperties.$userRoles);
-    console.log("Resource roles", app.config.globalProperties.$resourceRoles);
+    console.log("User Roles: ", app.config.globalProperties.$userRoles);
+    console.log("Resource Roles: ", app.config.globalProperties.$resourceRoles);
 
     // add code that checks if user is allowed to access the route
     if (
@@ -135,21 +133,21 @@ export default boot(({ app, router }) => {
       to.meta.roles.some((role) => resourceRoles.includes(role))
     ) {
       // TODO; LOG USER ACCESS TO ROUTES
-      console.log(
-        "user " +
-          keycloak.tokenParsed.preferred_username +
-          " has accessed route " +
-          to.path
-      );
-      logUserAction(`${to.path}`, `accessed route`, `200 OK`);
+      // console.log(
+      //   "user " +
+      //     keycloak.tokenParsed.preferred_username +
+      //     " has accessed route " +
+      //     to.path
+      // );
+      // logUserAction(`${to.path}`, `accessed route`, `200 OK`);
       // Redirect to the first matching route
       next(); // Exit after the first match
     } else {
       // TODO; LOG USER ACCESS TO ROUTES
-      console.log(
-        `user:${keycloak.tokenParsed.preferred_username} client ip:${navigator.userAgent} ${navigator.userAgent} ${to.path} but does not have the required roles`
-      );
-      logUserAction(`${to.path}`, `accessed route`, `403 FORBIDDEN`);
+      // console.log(
+      //   `user:${keycloak.tokenParsed.preferred_username} client ip:${navigator.userAgent} ${navigator.userAgent} ${to.path} but does not have the required roles`
+      // );
+      // logUserAction(`${to.path}`, `accessed route`, `403 FORBIDDEN`);
       next(false);
     }
   });
