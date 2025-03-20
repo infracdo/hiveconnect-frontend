@@ -99,13 +99,13 @@
 
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
-import { getHiveClients } from "src/api/HiveConnectApis/hiveConnect";
+import { getHiveSubscribers } from "src/api/HiveConnectApis/hiveConnect";
 import { useSubscriberStore } from "src/stores/subscriber/subscriber-store";
-import { IClient } from "src/api/HiveConnectApis/types";
+import { ISubscribers } from "src/api/HiveConnectApis/types";
 import TroubleshootClient from "src/components/InetConfig/TroubleshootClient.vue";
 const store = useSubscriberStore();
 const columns = store.$state.subscribercolumns;
-const rowsHive = ref<IClient[]>([]);
+const rowsHive = ref<ISubscribers[]>([]);
 const deviceName = ref("");
 const clientId = ref(0);
 const openTroubleShootModal = ref(false);
@@ -140,7 +140,7 @@ const getProvisioned = async (): Promise<void> => {
   filter.value = "";
   loading.value = true;
   rowsHive.value = [];
-  rowsHive.value = await getHiveClients();
+  rowsHive.value = await getHiveSubscribers();
   loading.value = false;
 };
 </script>

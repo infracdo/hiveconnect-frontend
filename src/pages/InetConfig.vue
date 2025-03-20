@@ -214,21 +214,19 @@ import { useRoute } from "vue-router";
 import Swal from "sweetalert2";
 import { useSubscriberStore } from "src/stores/subscriber/subscriber-store";
 import {
-  getClients,
-  getClientById,
-  getDevices,
-  checkPackageDetails,
-  getNetworkSiteOltIp,
+  getNewSubscribers,
+  getSubscriberById,
+  getOltSites,
   preProvisionCheck,
   executeAutoConfig,
   executeMonitoring,
   addFrontendLogger,
+  getRogueDevices,
 } from "src/api/HiveConnectApis/hiveConnect";
 import {
-  IClient,
-  IOltSiteByIp,
-  GroupedNetworkSite,
-  IOlt,
+  ISubscribers,
+  IOltSites,
+  IOltSitesByNetworkSites,
 } from "src/api/HiveConnectApis/types";
 import { searchRows } from "src/util/search";
 import { IserialAndMac, IsubsriberType } from "src/components/models";
@@ -249,14 +247,12 @@ const store = useSubscriberStore();
 const columns: QTableProps["columns"] = store.$state.subscribercolumns?.length
   ? store.$state.subscribercolumns
   : [];
-const rows = ref<IClient[]>([]);
+const rows = ref<ISubscribers[]>([]);
 let serialAndMac: IserialAndMac[] = [];
-// const optionsOltIp = ref<IOlt[]>([]);
-// const filteredOptions = ref<IOlt[]>([]);
-const networkSites = ref<IOltSite[]>([]);
-const selectedNetworkSite = ref<IOltSite | null>(null);
-const filteredNetworkSites = ref<IOltSite[]>([]); // List of sites filtered by selected location
-const networkSiteOltIp = ref<IOltSiteByIp[]>([]);
+const networkSites = ref<IOltSitesByNetworkSites[]>([]);
+const selectedNetworkSite = ref<IOltSitesByNetworkSites | null>(null);
+const filteredNetworkSites = ref<IOltSitesByNetworkSites[]>([]); // List of sites filtered by selected location
+const networkSiteOltIp = ref<IOltSites[]>([]);
 // const dataId = ref<string>();
 const selectedNetworkSiteValue = ref<number>(0);
 // const clientId = ref(0);
@@ -273,17 +269,6 @@ const loading = ref(false);
 const modalProvisionClientResponse = ref(false);
 const showProvisionResult = ref(false);
 const showSkeletonDancing = ref(false);
-
-// Reactive State
-interface IOltSite {
-  oltNetworksite: string;
-  oltIps: {
-    id: number;
-    oltIp: string;
-    oltName: string;
-    newOltId: number;
-  }[];
-}
 
 const client = ref<IsubsriberType>({
   newSubscriberId: 0,
@@ -431,7 +416,7 @@ const handleColumnSelect = (selectedOptions: string[]) => {
 const openModal = async (newSubscriberId: number) => {
   // $q.loading.show();
   console.log("Opening modal & accessing /getRogueDevices...");
-  const rogueDevice = await getDevices();
+  const rogueDevice = await getRogueDevices();
 
   serialAndMac = rogueDevice.map(
     (device: { serial_number: string; mac_address: string }) => ({
@@ -440,7 +425,7 @@ const openModal = async (newSubscriberId: number) => {
     })
   );
 
-  client.value = await getClientById(newSubscriberId);
+  client.value = await getSubscriberById(newSubscriberId);
   console.log(client.value);
   modalOpen.value = true;
   // $q.loading.hide();
@@ -455,7 +440,7 @@ const refreshTable = async () => {
   filter.value = "";
   loading.value = true;
   try {
-    rows.value = await getClients();
+    rows.value = await getNewSubscribers();
   } finally {
     loading.value = false;
   }
@@ -489,7 +474,7 @@ const resetForm = () => {
 // Creates and returns an array oy OLT Network Sites (e.g. CDO_vlan2010)
 const transformData = async () => {
   console.log("Fetching OLT IP data...");
-  networkSiteOltIp.value = await getNetworkSiteOltIp();
+  networkSiteOltIp.value = await getOltSites();
 
   const groupedData = networkSiteOltIp.value.reduce((accumulatedOlt, data) => {
     console.log("Processing data:", data);
@@ -532,7 +517,7 @@ const transformData = async () => {
 
     // Return new object
     return accumulatedOlt;
-  }, [] as IOltSite[]);
+  }, [] as IOltSitesByNetworkSites[]);
 
   networkSites.value = groupedData;
   console.log("Grouped data:", groupedData);
@@ -628,6 +613,8 @@ const provisionClient = async (clientData: typeof NewClient): Promise<void> => {
       ssid.pw = responseAutoConfig.ssid_pw;
       responseStatus.autoConfig = true;
       showProvisionResult.value = true;
+
+      refreshTable();
 
       console.log("SSID: ", ssid.name, "Password: ", ssid.pw);
     }
@@ -794,7 +781,7 @@ watch(selectedNetworkSiteValue, (newValue) => {
 });
 onMounted(async () => {
   try {
-    rows.value = await getClients();
+    rows.value = await getNewSubscribers();
     console.log("For Provision subscribers fetched successfully.");
   } catch (error) {
     console.error("Error fetching For Provision subscribers: ", error);

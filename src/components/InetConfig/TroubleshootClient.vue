@@ -288,7 +288,7 @@ import {
   getHiveClientById,
   checkOltSiteByIp,
   checkPackageDetails,
-  getOtcStatus,
+  // getOtcStatus,
   addFrontendLogger,
 } from "src/api/HiveConnectApis/hiveConnect";
 import { toInitialCapital } from "src/util/string";
@@ -419,10 +419,11 @@ const getInfoApiPrometheus = async (deviceName: string, id: number) => {
       oltReportedUpstream,
     } = await getHiveClientById(id);
 
-    const response = await getOtcStatus(id);
+    // NOTE: commented since getOtcStatus did not exist as API in Hive backend
+    // const response = await getOtcStatus(id);
     // console.log(response);
 
-    clientInfo.otcStatus = response;
+    // clientInfo.otcStatus = response;
 
     clientInfo.accountNumber = subscriberAccountNumber;
     clientInfo.clientName = clientName;
