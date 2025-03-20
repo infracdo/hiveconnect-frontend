@@ -15,7 +15,7 @@ export interface IdeviceType {
 }
 
 export interface IsubsriberType {
-  value: import("/home/ubuntu/frontend/init-quasar-provision/src/api/HiveConnectApis/types").IClient;
+  value: import("/home/ubuntu/frontend/init-quasar-provision/src/api/HiveConnectApis/types").ISubscribers;
   newSubscriberId: number;
   bucketId: number;
   subscriberAccountNumber: string;

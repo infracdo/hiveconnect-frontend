@@ -1,28 +1,10 @@
-export interface IupdateClient {
-  id: number;
-  ipAddress: string;
-  serialNum: string;
-  olt: string;
-  macaddress: string;
-}
-
-export interface IexecuteProvision {
-  accNum: string;
-  clientName: string;
-  serialNum: string;
-  macaddress: string;
-  ipAddress: string;
-  olt: string;
-  packageType: string;
-  oltId: number;
-}
-
-export interface IClient {
-  newSubscriberId: number;
+// Data type for subscribers (either new, active, onhold)
+export interface ISubscribers {
+  newSubscriberId: number; // REVIEW: double check these redundant ids
   id: number;
   bucketId: number;
   subscriberAccountNumber: string;
-  clientName: string; //added 10-22-24
+  clientName: string;
   subscriberName: string;
   ipAssigned: string;
   onuSerialNumber: string;
@@ -37,6 +19,7 @@ export interface IClient {
   status: string;
 }
 
+// Data type for subscribers for migration
 export interface IMigrationSubscriber {
   id: number;
   subscriberAccountNumber: string;
@@ -56,32 +39,29 @@ export interface IMigrationSubscriber {
   ssidName: string;
 }
 
-// Added for subscriber provisioning data type
+// Data type for subscriber provisioning
+// NOTE: still not used in provisioning subscriber
 export interface ISubscriberProvision {
   accountNo: string;
   clientName: string;
   serialNumber: string;
   macAddress: string;
   olt: string;
-  oltId: string;
+  oltId: number;
   packageType: string;
+  location: string;
 }
 
-// added new interface for OLT IP
-export interface IOltSiteByIp {
-  // newOltId: number;
-  newoltId: number;
+// Data type for OLT sites
+export interface IOltSites {
+  newOltId: number;
+  // newoltId: number;
   oltName: string;
   oltIp: string;
   oltNetworksite: string;
 }
 
-// added new interface for GroupedNetworkSite
-export interface GroupedNetworkSite {
-  oltNetworkSite: string;
-  oltIps: string[];
-}
-
+// Data type for rogue devices
 export interface IRogueDevices {
   activated: string;
   date_created: string;
@@ -98,6 +78,7 @@ export interface IRogueDevices {
   status: string;
 }
 
+// Data type for network addresses (addresses)
 export interface INetworkAddresses {
   id: number;
   networkAddress: string;
@@ -109,6 +90,7 @@ export interface INetworkAddresses {
   vlanId: string;
 }
 
+// Data type for IP addresses per CIDR block
 export interface IipAddressesOfCidrBlock {
   id: number;
   ipAddress: string;
@@ -120,21 +102,7 @@ export interface IipAddressesOfCidrBlock {
   notes: string;
 }
 
-export interface IOltSiteByIp {
-  newoltId: number;
-  newOltId: number;
-  oltIp: string;
-  oltName: string;
-  oltNetworksite: string;
-}
-
-export interface IOlt {
-  id: number;
-  oltName: string;
-  oltIp: string;
-  nodeId: string;
-}
-
+// Data type for package details
 export interface IPackageDetails {
   downstream: string;
   upstream: string;
@@ -143,10 +111,11 @@ export interface IPackageDetails {
   packageTypeId: string;
 }
 
-export interface IOltSite {
+// Data type for OLT sites grouped by network sites
+export interface IOltSitesByNetworkSites {
   oltNetworksite: string;
   oltIps: {
-    id: number;
+    id: number; // REVIEW: what is this for? the newOltId should already be the id of the olt sites
     oltIp: string;
     oltName: string;
     newOltId: number;

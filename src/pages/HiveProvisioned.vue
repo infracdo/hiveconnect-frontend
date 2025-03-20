@@ -83,12 +83,12 @@
 import { onMounted, ref, computed } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import {
-  getHiveClients,
+  getHiveSubscribers,
   addFrontendLogger,
 } from "src/api/HiveConnectApis/hiveConnect";
 // import { useSubscriberStore } from "src/stores/subscriber/subscriber-store";
 import { useClientStore } from "src/stores/subscriber/client-store";
-import { IClient } from "src/api/HiveConnectApis/types";
+import { ISubscribers } from "src/api/HiveConnectApis/types";
 import { searchRows } from "src/util/search";
 import { useKeycloak } from "src/composables/useKeycloak";
 import SearchBar from "src/components/SearchBar.vue";
@@ -102,7 +102,7 @@ const store = useClientStore();
 const columns = computed(
   () => store.$state.subscribercolumns?.filter((col) => col.name !== "id") || [] // Note: subscriber id is not included since we were told that if the id is local (within hive only), it should not be included in the table so i based everything to their account number instead
 );
-const rowsHive = ref<IClient[]>([]);
+const rowsHive = ref<ISubscribers[]>([]);
 // const deviceName = ref("");
 const filter = ref("");
 const selectedStatus = ref("");
@@ -258,7 +258,7 @@ const handleRefreshTable = async (): Promise<void> => {
   rowsHive.value = [];
 
   try {
-    rowsHive.value = await getHiveClients();
+    rowsHive.value = await getHiveSubscribers();
   } catch (error) {
     console.log("Error fetching provisioned subscribers: ", error);
   }
@@ -287,7 +287,7 @@ const getProvisionedSubscriberData = (
 onMounted(async () => {
   // Fetch active/onhold subscribers
   try {
-    rowsHive.value = await getHiveClients();
+    rowsHive.value = await getHiveSubscribers();
   } catch (error) {
     console.log("Error fetching provisioned subscribers: ", error);
   }

@@ -122,7 +122,7 @@ import { ref, onMounted, reactive } from "vue";
 import { useRoute } from "vue-router";
 import axios from "axios";
 import {
-  getHiveclients,
+  getHiveActiveSubscribers,
   addFrontendLogger,
 } from "src/api/HiveConnectApis/hiveConnect"; // Ensure this is correctly imported
 import { useKeycloak } from "src/composables/useKeycloak";
@@ -194,7 +194,7 @@ const handleSelectSubscriber = (selectedSubscriber: string) => {
 // Fetch subscribers to populate the dropdown
 const fetchSubscribers = async () => {
   try {
-    const clients = await getHiveclients();
+    const clients = await getHiveActiveSubscribers();
     selectOptions.value = clients.map((client) => ({
       label: `${client.onuDeviceName}-${client.ipAssigned}`,
       value: `${client.onuDeviceName}-${client.ipAssigned}`,
@@ -218,7 +218,7 @@ const fetchClientInfo = async (deviceName: string) => {
 
     // Fetch other client info based on selected device name
     try {
-      const clientData = await getHiveclients();
+      const clientData = await getHiveActiveSubscribers();
       const client = clientData.find(
         (client) =>
           client.onuDeviceName === deviceNamePart &&

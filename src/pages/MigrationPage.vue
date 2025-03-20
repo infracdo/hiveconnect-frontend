@@ -144,8 +144,8 @@ import { useRoute } from "vue-router";
 import Swal from "sweetalert2";
 import { useMigrationSubscriberStore } from "src/stores/subscriber/migration-subscriber-store";
 import {
-  getForMigrationSubscribers,
-  updateMigrationSubscriberStatus,
+  getSubscribersForMigration,
+  updateSubscriberForMigrationStatus,
   migrateSubscriberFromBucketToHive,
   addFrontendLogger,
 } from "src/api/HiveConnectApis/hiveConnect";
@@ -271,7 +271,7 @@ const refreshTable = async () => {
   filter.value = "";
   loading.value = true;
   try {
-    rows.value = await getForMigrationSubscribers();
+    rows.value = await getSubscribersForMigration();
   } finally {
     loading.value = false;
   }
@@ -323,7 +323,7 @@ const handleUpdateForMigrationSubscriberStatus = () => {
 
       // Execute changing subscriber status through API call
       try {
-        const response = await updateMigrationSubscriberStatus(
+        const response = await updateSubscriberForMigrationStatus(
           subscriberAccountNumber.value
         );
 
@@ -445,7 +445,7 @@ const handleMigrateSubscriber = () => {
 // Asynchronous function to retrieve migration subscribers from API
 async function fetchMigrationSubscribers() {
   try {
-    rows.value = await getForMigrationSubscribers();
+    rows.value = await getSubscribersForMigration();
     console.log("Migration subscribers data fetched successfully.");
   } catch (error) {
     console.error(
