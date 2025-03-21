@@ -348,14 +348,25 @@ const handleUpdateForMigrationSubscriberStatus = () => {
 
         if (error instanceof Error) {
           try {
+            // Parse the outer error message
             const errorResponse = JSON.parse(error.message);
-            errorMessage =
-              JSON.parse(errorResponse.message).message ||
-              errorResponse.message;
+            // Extract the message field which is a stringified JSON
+            const nestedMessageString =
+              errorResponse.message.match(/"({.*})"/)?.[1];
+
+            if (nestedMessageString) {
+              // Parse the extracted JSON string
+              const nestedMessage = JSON.parse(nestedMessageString);
+              errorMessage = nestedMessage.message || errorResponse.message;
+            } else {
+              errorMessage = errorResponse.message;
+            }
           } catch (e) {
+            console.log("Error parsing nested error message: ", e);
             errorMessage = error.message;
           }
         }
+
         Swal.fire({
           title: "Error",
           text: errorMessage,

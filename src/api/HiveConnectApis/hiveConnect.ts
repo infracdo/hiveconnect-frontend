@@ -242,7 +242,7 @@ export const getHiveActiveSubscribers = async (): Promise<ISubscribers[]> => {
 };
 
 // GET: /getsubscriberbyid/{id}
-// PURPOSE: Fetches subscriber by ID in new_subscriber table
+// PURPOSE: Fetches subscriber by ID from new_subscriber table
 export const getSubscriberById = async (
   newsubscriberId: number
 ): Promise<ISubscribers> => {
@@ -456,6 +456,7 @@ export const getRogueDevices = async (): Promise<IRogueDevices[]> => {
 
 // GET: /getIpAddressesOfCidrBlock/{cidrBlock}
 // PURPOSE: Fetches IP addresses per network to populate Addresses details page table
+// TODO: review this!! kay ang gina expect sa backend kay cidrBlock unya ang gi send na parameter kay ip address???
 export const getIpAddresses = async (
   ipAddress: string | string[]
 ): Promise<IipAddressesOfCidrBlock[]> => {
@@ -485,7 +486,7 @@ export const getIpAddresses = async (
 };
 
 // GET: /getallnetworks
-// PURPOSE: Fetches network addresses to populate Addresses page table
+// PURPOSE: Fetches all CIDR blocks from cidr_block table to populate Addresses page table
 export const getNetworkAddresses = async (): Promise<INetworkAddresses[]> => {
   try {
     console.log("Calling '/getallnetworks' API endpoint...");
@@ -517,7 +518,8 @@ export const getNetworkAddresses = async (): Promise<INetworkAddresses[]> => {
 //* PACKAGE TYPE APIs *//
 
 // GET: /checkPackageDetails/{packageType}
-// PURPOSE: Fetches package details for Troubleshoot page
+// PURPOSE: Fetches package details from new_packages table for Active/Onhold Subscribers details page
+// TODO: correct the parameter! nganong package type id may nakabutang ani kung ang gina expect sa backend kay package type lng mismo
 export const checkPackageDetails = async (
   packageTypeId: string
 ): Promise<IPackageDetails> => {
