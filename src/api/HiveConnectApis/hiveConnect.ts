@@ -121,6 +121,27 @@ export const executeAutoConfig = async (
   }
 };
 
+// POST: /
+// PURPOSE: Sends a callback to ABS for subscriber status change after successful provisioning (i think mas nice if isa ra ka api pang callback sa ABS, it will be flexible sad)
+// NOTE: TBF pa.. will update this if ever unsay plans either naay new na api or gamiton lng gyapon ang existing callback api
+// export const sendHiveProvisionedStatusCallback = async (accountNo: string) => {
+//   try {
+//     console.log("Calling '/' API endpoint...");
+//     const { data } = await api.post("/", {
+//       subscriberAccountNumber: accountNo,
+//     });
+//     console.log("Returned data by calling '' API endpoint: ", data);
+//     return data;
+//   } catch (error) {
+//     console.error("Error while calling '/' API endpoint: ", error);
+//     if (isAxiosError(error) && error.response) {
+//       throw new Error(JSON.stringify(error.response.data));
+//     } else {
+//       throw error;
+//     }
+//   }
+// };
+
 // POST: /executeMonitoring
 // PURPOSE: Sends required payload to the backend to execute the monitoring process
 export const executeMonitoring = async (
@@ -320,8 +341,34 @@ export const getSubscribersForMigration = async () => {
   }
 };
 
+//==============================================================================================
+
+//* MIGRATION APIs *//
+
+// POST: /executeMigration
+// PURPOSE: Migrates the subscriber from bucket to Hive
+export const migrateSubscriberFromBucketToHive = async (accountNo: string) => {
+  try {
+    console.log("Calling '/executeMigration' API endpoint...");
+    const { data } = await api.post("/executeMigration", {
+      accountNo: accountNo,
+    });
+    console.log(
+      "Returned data by calling '/executeMigration' API endpoint: ",
+      data
+    );
+    return data;
+  } catch (error) {
+    console.error(
+      "Error while calling '/executeMigration' API endpoint: ",
+      error
+    );
+    throw error;
+  }
+};
+
 // POST: /updateMigrationSubscriberStatus
-// PURPOSE: Updates subscriber for migration status by removing the '_PENDING_MIGRATION' then informs ABS of the status change and updates the hive_clients table
+// PURPOSE: Updates subscriber for migration status by removing the '_PENDING_MIGRATION' then informs ABS of the status change and updates the hive_clients table (serves as callback to ABS)
 export const updateSubscriberForMigrationStatus = async (accountNo: string) => {
   try {
     console.log("Calling '/updateMigrationSubscriberStatus' API endpoint...");
@@ -344,28 +391,6 @@ export const updateSubscriberForMigrationStatus = async (accountNo: string) => {
     } else {
       throw error;
     }
-  }
-};
-
-// POST: /executeMigration
-// PURPOSE: Migrates the subscriber from bucket to Hive
-export const migrateSubscriberFromBucketToHive = async (accountNo: string) => {
-  try {
-    console.log("Calling '/executeMigration' API endpoint...");
-    const { data } = await api.post("/executeMigration", {
-      accountNo: accountNo,
-    });
-    console.log(
-      "Returned data by calling '/executeMigration' API endpoint: ",
-      data
-    );
-    return data;
-  } catch (error) {
-    console.error(
-      "Error while calling '/executeMigration' API endpoint: ",
-      error
-    );
-    throw error;
   }
 };
 

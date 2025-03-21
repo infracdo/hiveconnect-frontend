@@ -362,7 +362,7 @@ const handleUpdateForMigrationSubscriberStatus = () => {
               errorMessage = errorResponse.message;
             }
           } catch (e) {
-            console.log("Error parsing nested error message: ", e);
+            console.error("Error parsing nested error message: ", e);
             errorMessage = error.message;
           }
         }
