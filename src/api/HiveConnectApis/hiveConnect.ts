@@ -121,26 +121,31 @@ export const executeAutoConfig = async (
   }
 };
 
-// POST: /
-// PURPOSE: Sends a callback to ABS for subscriber status change after successful provisioning (i think mas nice if isa ra ka api pang callback sa ABS, it will be flexible sad)
-// NOTE: TBF pa.. will update this if ever unsay plans either naay new na api or gamiton lng gyapon ang existing callback api
-// export const sendHiveProvisionedStatusCallback = async (accountNo: string) => {
-//   try {
-//     console.log("Calling '/' API endpoint...");
-//     const { data } = await api.post("/", {
-//       subscriberAccountNumber: accountNo,
-//     });
-//     console.log("Returned data by calling '' API endpoint: ", data);
-//     return data;
-//   } catch (error) {
-//     console.error("Error while calling '/' API endpoint: ", error);
-//     if (isAxiosError(error) && error.response) {
-//       throw new Error(JSON.stringify(error.response.data));
-//     } else {
-//       throw error;
-//     }
-//   }
-// };
+// POST: /updateProvisionedSubscriberStatus
+// PURPOSE: Sends a callback to ABS for subscriber status change after successful provisioning
+export const sendHiveProvisionedStatusCallback = async (accountNo: string) => {
+  try {
+    console.log("Calling '/updateProvisionedSubscriberStatus' API endpoint...");
+    const { data } = await api.post("/updateProvisionedSubscriberStatus", {
+      subscriberAccountNumber: accountNo,
+    });
+    console.log(
+      "Returned data by calling '/updateProvisionedSubscriberStatus' API endpoint: ",
+      data
+    );
+    return data;
+  } catch (error) {
+    console.error(
+      "Error while calling '/updateProvisionedSubscriberStatus' API endpoint: ",
+      error
+    );
+    if (isAxiosError(error) && error.response) {
+      throw new Error(JSON.stringify(error.response.data));
+    } else {
+      throw error;
+    }
+  }
+};
 
 // POST: /executeMonitoring
 // PURPOSE: Sends required payload to the backend to execute the monitoring process

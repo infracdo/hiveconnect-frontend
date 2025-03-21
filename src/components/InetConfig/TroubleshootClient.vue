@@ -44,6 +44,7 @@
             color="bg-gray-iron-100"
             textColor="text-gray-iron-900"
             small
+            @click="handleAbsStatusCallback"
           />
         </div>
       </div>
@@ -294,14 +295,14 @@ import { useQuasar } from "quasar";
 import { toRefs, ref, reactive, watch, onMounted } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import axios from "axios";
-// import Swal from "sweetalert2";
+import Swal from "sweetalert2";
 import {
   getHiveClientById,
   checkOltSiteByIp,
   checkPackageDetails,
   // getOtcStatus,
   addFrontendLogger,
-  // sendHiveProvisionedStatusCallback,
+  sendHiveProvisionedStatusCallback,
 } from "src/api/HiveConnectApis/hiveConnect";
 import { toInitialCapital } from "src/util/string";
 import { useKeycloak } from "src/composables/useKeycloak";
@@ -387,87 +388,87 @@ const timeOptions = [
 ];
 
 // Method to trigger when 'Change Status on ABS' button is clicked
-// const handleAbsCallback = () => {
-//   Swal.fire({
-//     title: "Confirm",
-//     text: "Are you sure you want to change the status of this subscriber on ABS?",
-//     icon: "warning",
-//     showCancelButton: true,
-//     confirmButtonColor: "#1d6499",
-//     cancelButtonColor: "#d33",
-//     confirmButtonText: "Yes, proceed",
-//     reverseButtons: true,
-//     allowOutsideClick: false,
-//     showLoaderOnConfirm: true,
-//     preConfirm: async () => {
-//       // Send user action to backend for attempting to change the subscriber status on ABS
-//       const user = keycloak.tokenParsed.given_name;
-//       const action = "change subscriber status on ABS";
-//       const details = `${user} attempted to change the status of ${provisionedSubscriberData.subscriberAccountNumber} subscriber on ABS`;
-//       const page = route.path?.toString() || "Unknown Page";
-//       const userAgent = navigator.userAgent;
+const handleAbsStatusCallback = () => {
+  Swal.fire({
+    title: "Confirm",
+    text: "Are you sure you want to change the status of this subscriber on ABS?",
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonColor: "#1d6499",
+    cancelButtonColor: "#d33",
+    confirmButtonText: "Yes, proceed",
+    reverseButtons: true,
+    allowOutsideClick: false,
+    showLoaderOnConfirm: true,
+    preConfirm: async () => {
+      // Send user action to backend for attempting to change the subscriber status on ABS
+      const user = keycloak.tokenParsed.given_name;
+      const action = "change subscriber status on ABS";
+      const details = `${user} attempted to change the status of ${provisionedSubscriberData.value.subscriberAccountNumber} subscriber on ABS`;
+      const page = route.path?.toString() || "Unknown Page";
+      const userAgent = navigator.userAgent;
 
-//       addFrontendLogger(user, action, details, page, userAgent)
-//         .then(() => console.log("Frontend log sent successfully."))
-//         .catch((error) => console.error("Error sending frontend log: ", error));
+      addFrontendLogger(user, action, details, page, userAgent)
+        .then(() => console.log("Frontend log sent successfully."))
+        .catch((error) => console.error("Error sending frontend log: ", error));
 
-//       // Execute changing subscriber status on ABS through API call
-//       try {
-//         const response = await sendHiveProvisionedStatusCallback(
-//           provisionedSubscriberData.subscriberAccountNumber
-//         );
+      // Execute changing subscriber status on ABS through API call
+      try {
+        const response = await sendHiveProvisionedStatusCallback(
+          provisionedSubscriberData.value.subscriberAccountNumber
+        );
 
-//         let successMessage = "Successfully changed subscriber status on ABS.";
-//         if (response.message) {
-//           try {
-//             const parsedMessage = JSON.parse(response.message);
-//             successMessage = parsedMessage.message || successMessage;
-//           } catch (e) {
-//             console.error("Failed to parse success message: ", e);
-//           }
-//         }
+        let successMessage = "Successfully changed subscriber status on ABS.";
+        if (response.message) {
+          try {
+            const parsedMessage = JSON.parse(response.message);
+            successMessage = parsedMessage.message || successMessage;
+          } catch (e) {
+            console.error("Failed to parse success message: ", e);
+          }
+        }
 
-//         Swal.fire({
-//           title: "Success",
-//           text: successMessage,
-//           icon: "success",
-//           confirmButtonColor: "#1d6499",
-//         });
-//       } catch (error) {
-//         let errorMessage = "An unknown error occurred.";
+        Swal.fire({
+          title: "Success",
+          text: successMessage,
+          icon: "success",
+          confirmButtonColor: "#1d6499",
+        });
+      } catch (error) {
+        let errorMessage = "An unknown error occurred.";
 
-//         if (error instanceof Error) {
-//           try {
-//             // Parse the outer error message
-//             const errorResponse = JSON.parse(error.message);
-//             // Extract the message field which is a stringified JSON
-//             const nestedMessageString =
-//               errorResponse.message.match(/"({.*})"/)?.[1];
+        if (error instanceof Error) {
+          try {
+            // Parse the outer error message
+            const errorResponse = JSON.parse(error.message);
+            // Extract the message field which is a stringified JSON
+            const nestedMessageString =
+              errorResponse.message.match(/"({.*})"/)?.[1];
 
-//             if (nestedMessageString) {
-//               // Parse the extracted JSON string
-//               const nestedMessage = JSON.parse(nestedMessageString);
-//               errorMessage = nestedMessage.message || errorResponse.message;
-//             } else {
-//               errorMessage = errorResponse.message;
-//             }
-//           } catch (e) {
-//             console.error("Error parsing nested error message: ", e);
-//             errorMessage = error.message;
-//           }
-//         }
+            if (nestedMessageString) {
+              // Parse the extracted JSON string
+              const nestedMessage = JSON.parse(nestedMessageString);
+              errorMessage = nestedMessage.message || errorResponse.message;
+            } else {
+              errorMessage = errorResponse.message;
+            }
+          } catch (e) {
+            console.error("Error parsing nested error message: ", e);
+            errorMessage = error.message;
+          }
+        }
 
-//         Swal.fire({
-//           title: "Error",
-//           text: errorMessage,
-//           icon: "error",
-//           confirmButtonColor: "#fd0808",
-//         });
-//         return false;
-//       }
-//     },
-//   });
-// };
+        Swal.fire({
+          title: "Error",
+          text: errorMessage,
+          icon: "error",
+          confirmButtonColor: "#fd0808",
+        });
+        return false;
+      }
+    },
+  });
+};
 
 const goBack = () => {
   router.push({ name: "provisioned" });
