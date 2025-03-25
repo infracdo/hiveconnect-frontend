@@ -44,6 +44,7 @@
                     column.name === 'actions'
                       ? 'sticky right-0 z-10 text-center'
                       : '',
+                    column.name === 'monitoringStatus' ? 'text-center' : '',
                   ]"
                 >
                   <slot
@@ -51,8 +52,49 @@
                     :row="row"
                     :value="row[column.name]"
                   >
-                    <span> {{ row[column.name] }} </span>
+                    <template
+                      v-if="
+                        column.name === 'monitoringStatus' &&
+                        row.monitoringStatus
+                      "
+                    >
+                      <!-- <span
+                        :class="[
+                          'flex items-center justify-center text-sm font-semibold bg-gray-iron-50 px-2 py-1 rounded-lg capitalize',
+                          row.monitoringStatus === 'monitored'
+                            ? 'text-success-500'
+                            : 'text-error-500',
+                        ]"
+                      >
+                        <StatusBadge
+                          :status="
+                            row.monitoringStatus === 'monitored' ? true : false
+                          "
+                          class="inline pr-1"
+                        />
+                        {{ row.monitoringStatus }}
+                      </span> -->
+
+                      <q-badge
+                        :color="
+                          row.monitoringStatus === 'monitored'
+                            ? 'positive'
+                            : 'negative'
+                        "
+                        :label="row.monitoringStatus"
+                        class="text-caption capitalize"
+                      />
+                    </template>
+                    <span v-else>{{ row[column.name] }}</span>
                   </slot>
+
+                  <!-- <slot
+                    :name="column.name"
+                    :row="row"
+                    :value="row[column.name]"
+                  >
+                    <span> {{ row[column.name] }} </span>
+                  </slot> -->
                 </td>
               </tr>
             </tbody>
@@ -94,6 +136,7 @@
 
 <script setup lang="ts">
 import { ref, computed, watch } from "vue";
+import StatusBadge from "./StatusBadge.vue";
 
 interface TableRow {
   [key: string]: any;
