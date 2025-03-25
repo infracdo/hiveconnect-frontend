@@ -70,14 +70,10 @@
               :visibleColumns="visibleColumns"
               :rowsPerPage="10"
               :callback="getProvisionedSubscriberData"
-              @click="handleExecuteMonitoring"
             >
               <template #actions="{ row }">
                 <q-icon
-                  v-if="
-                    row.monitoringStatus === 'unmonitored' ||
-                    row.monitoringStatus === null
-                  "
+                  v-if="row.monitoringStatus === 'unmonitored'"
                   name="autorenew"
                   size="sm"
                   class="cursor-pointer text-gray-iron-900 font-normal hover:text-primary-1000"
@@ -247,14 +243,16 @@ const handleExecuteMonitoring = async (subscriberAccountNumber: string) => {
     console.log("Executing Monitoring...");
     const response = await executeMonitoring(subscriberAccountNumber);
 
-    if (response) {
+    if (response.status === "200") {
       console.log(
-        "Returned response for execute monitoring by action button: ",
+        "Returned response for '/executeMonitoring' API endpoint by action button: ",
         response
       );
+
+      handleRefreshTable();
     }
   } catch (error) {
-    console.error("Error in executing monitoring: ", error);
+    console.error("Error in execute monitoring by action button: ", error);
     throw error;
   }
 };
