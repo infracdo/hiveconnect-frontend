@@ -39,7 +39,7 @@
               name="autorenew"
               size="sm"
               class="cursor-pointer"
-              @click="refreshTable"
+              @click="handleRefreshTable"
             />
 
             <!-- Dropdown button to select what columns should be displayed in the table -->
@@ -208,8 +208,8 @@
 </template>
 
 <script setup lang="ts">
-import { QTableProps, useQuasar } from "quasar";
-import { ref, watchEffect, watch, onMounted, computed, reactive } from "vue";
+import { QTableProps } from "quasar";
+import { ref, watch, onMounted, computed, reactive } from "vue";
 import { useRoute } from "vue-router";
 import Swal from "sweetalert2";
 import { useSubscriberStore } from "src/stores/subscriber/subscriber-store";
@@ -239,8 +239,6 @@ import Inputs from "src/components/inputs/Inputs.vue";
 import Selects from "src/components/inputs/Selects.vue";
 import ProvisionClient from "src/components/InetConfig/ProvisionClient.vue";
 
-// Constants and Initialization
-// const $q = useQuasar();
 const route = useRoute();
 const keycloak = useKeycloak();
 const store = useSubscriberStore();
@@ -253,13 +251,9 @@ const networkSites = ref<IOltSitesByNetworkSites[]>([]);
 const selectedNetworkSite = ref<IOltSitesByNetworkSites | null>(null);
 const filteredNetworkSites = ref<IOltSitesByNetworkSites[]>([]); // List of sites filtered by selected location
 const networkSiteOltIp = ref<IOltSites[]>([]);
-// const dataId = ref<string>();
 const selectedNetworkSiteValue = ref<number>(0);
-// const clientId = ref(0);
 const filter = ref("");
-// const result = ref("");
 const inputValue = ref("");
-// const deviceName = ref("");
 const selectedOnuSerialNumber = ref("");
 const onuMacAddress = ref("");
 const selectedLocation = ref("");
@@ -307,13 +301,13 @@ const NewClient = reactive({
 const responses = reactive({
   // provisionCheck: "",
   autoConfig: "",
-  // monitoring: "",
+  monitoring: "",
 });
 
 const responseStatus = reactive({
   // provisionCheck: false,
   autoConfig: false,
-  // monitoring: false,
+  monitoring: false,
 });
 
 const ssid = reactive({
@@ -348,14 +342,12 @@ const columnOptions = ref([
 ]);
 
 // Define values that is equivalent to the database data for mapping
-// NOTE: add objects in case there are new stored data in database for 'olt_network_site' column
+// NOTE: add in case there are new stored data in database for 'olt_network_site' column
 // NOTE: remove this if a 'location' values can now be retrieved from the database
 const getFullLocationName = (key: string): string => {
   const mapping: { [key: string]: string } = {
     MBY: "MALAYBALAY",
     CDO: "CDO",
-    DVO: "DAVAO",
-    BTN: "BUTUAN",
   };
   return mapping[key] || key;
 };
@@ -414,7 +406,6 @@ const handleColumnSelect = (selectedOptions: string[]) => {
 };
 
 const openModal = async (newSubscriberId: number) => {
-  // $q.loading.show();
   console.log("Opening modal & accessing /getRogueDevices...");
   const rogueDevice = await getRogueDevices();
 
@@ -428,14 +419,9 @@ const openModal = async (newSubscriberId: number) => {
   client.value = await getSubscriberById(newSubscriberId);
   console.log(client.value);
   modalOpen.value = true;
-  // $q.loading.hide();
 };
 
-// const closeModal = () => {
-//   modalOpen.value = !modalOpen.value;
-// };
-
-const refreshTable = async () => {
+const handleRefreshTable = async () => {
   rows.value = [];
   filter.value = "";
   loading.value = true;
@@ -454,21 +440,6 @@ const resetForm = () => {
   selectedNetworkSiteValue.value = 0;
   selectedOltIp.value = null;
 };
-
-// const openProvisionModal = async (event: any) => {
-//   // $q.loading.show();
-
-//   modalProvisionClientResponse.value = true;
-//   // $q.loading.hide();
-// };
-
-// const getAllClients = async () => {
-//   try {
-//     await refreshTable();
-//   } catch (error) {
-//     throw new Error("Cannot get Clients info.");
-//   }
-// };
 
 // Group OLT according to their OLT Network Site
 // Creates and returns an array oy OLT Network Sites (e.g. CDO_vlan2010)
@@ -560,7 +531,6 @@ const filterNetworkSites = () => {
 };
 
 const provisionClient = async (clientData: typeof NewClient): Promise<void> => {
-  // $q.loading.show();
   modalProvisionClientResponse.value = true;
   showSkeletonDancing.value = true;
   showProvisionResult.value = false;
@@ -604,8 +574,6 @@ const provisionClient = async (clientData: typeof NewClient): Promise<void> => {
       clientData.packageType,
       clientData.newOltId,
       clientData.location
-      // clientData.oltReportedDownstream,
-      // clientData.oltReportedUpstream
     );
     if (responseAutoConfig.status === "200") {
       responses.autoConfig = responseAutoConfig.message;
@@ -613,10 +581,9 @@ const provisionClient = async (clientData: typeof NewClient): Promise<void> => {
       ssid.pw = responseAutoConfig.ssid_pw;
       responseStatus.autoConfig = true;
       showProvisionResult.value = true;
-
-      refreshTable();
-
       console.log("SSID: ", ssid.name, "Password: ", ssid.pw);
+
+      handleRefreshTable();
     }
   } catch (error: any) {
     responses.autoConfig =
@@ -625,48 +592,38 @@ const provisionClient = async (clientData: typeof NewClient): Promise<void> => {
   }
 
   // Run monitoring in the background
-  // Promise.resolve().then(async () => {
-  //   try {
-  //     // Execute Monitoring
-  //     console.log("Executing Monitoring...");
-  //     responses.monitoring = "Executing Monitoring...";
-  //     const responseMonitoring = await executeMonitoring(
-  //       clientData.accountNumber,
-  //       clientData.clientName,
-  //       clientData.serialAndMac.serialNum,
-  //       clientData.serialAndMac.macAddress,
-  //       clientData.oltIp,
-  //       clientData.packageType,
-  //       clientData.newOltId
-  //       // clientData.oltReportedDownstream,
-  //       // clientData.oltReportedUpstream
-  //     );
-  //     if (responseMonitoring) {
-  //       responses.monitoring = responseMonitoring.message;
-  //       responseStatus.monitoring = true;
-  //       console.log("Successful monitoring execution: ", responseMonitoring);
-  //     }
-  //   } catch (error: any) {
-  //     responses.monitoring =
-  //       error.response?.data?.message || "Monitoring failed!";
-  //     console.log("Error executing monitoring: ", error);
-  //     return stopProvisionFunction();
-  //   }
-  // });
+  Promise.resolve().then(async () => {
+    try {
+      // Execute Monitoring
+      console.log("Executing Monitoring...");
+      responses.monitoring = "Executing Monitoring...";
+      const responseMonitoring = await executeMonitoring(
+        clientData.accountNumber
+      );
+      if (responseMonitoring) {
+        responses.monitoring = responseMonitoring.message;
+        responseStatus.monitoring = true;
+        console.log("Successful monitoring execution: ", responseMonitoring);
+      }
+    } catch (error: any) {
+      responses.monitoring =
+        error.response?.data?.message || "Monitoring failed!";
+      console.log("Error executing monitoring: ", error);
 
-  // return stopProvisionFunction();
+      return stopProvisionFunction();
+    }
+  });
+
+  return stopProvisionFunction();
 };
 
 // Stop client provision
 const stopProvisionFunction = () => {
   showSkeletonDancing.value = false;
-  // $q.loading.hide();
 };
 
 // Method to trigger form activate button in modal
 const handleActivateClient = async () => {
-  // Sweetalert2 for confirmation and sucess alerts
-
   // Show confirmation alert
   const confirmResult = await Swal.fire({
     title: "Confirm",
@@ -806,29 +763,4 @@ onMounted(async () => {
     .then(() => console.log("Frontend log sent successfully."))
     .catch((error) => console.error("Error sending frontend log: ", error));
 });
-
-// onMounted(async () => {
-//   console.log("onMounted triggered, starting data transformation...");
-
-//   try {
-//     await transformData();
-//     console.log("Data transformation completed.");
-//   } catch (error) {
-//     console.error("Error during data transformation:", error);
-//   }
-// });
-
-// onMounted(async () => {
-//   await getAllClients();
-
-//   const user = keycloak.tokenParsed.given_name;
-//   const action = "accessed page";
-//   const details = `${user} accessed the ${route.path} page`;
-//   const page = route.path?.toString() || "Unknown Page";
-//   const userAgent = navigator.userAgent;
-
-//   addFrontendLogger(user, action, details, page, userAgent)
-//     .then(() => console.log("Frontend log sent successfully."))
-//     .catch((error) => console.log("Error sending frontend log: ", error));
-// });
 </script>

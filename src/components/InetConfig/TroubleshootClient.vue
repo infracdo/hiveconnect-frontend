@@ -27,16 +27,6 @@
         </div>
 
         <div class="flex flex-row items-center gap-4">
-          <!-- Button to manual trigger the monitoring execution if the monitoring process while running on the background fails -->
-          <!-- TODO: add @click event for triggering monitoring playbook if failed -->
-          <Buttons
-            icon="img:/icons/wrench.svg"
-            label="Auto Config"
-            color="bg-gray-iron-100"
-            textColor="text-gray-iron-900"
-            small
-          />
-
           <!-- Button to send an inform to ABS after successful activation (change status to ABS)-->
           <Buttons
             icon="img:/icons/paper_plane.svg"

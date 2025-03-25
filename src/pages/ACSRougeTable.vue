@@ -59,8 +59,8 @@ const loading = ref<boolean>(false);
 // Count total number of rows (devices) to display in the page description
 const rogueDeviceCount = computed(() => tableRow.value.length || 0);
 
-// Asynchronous function to retriece devices data from API
-async function fetchDevices() {
+// Asynchronous function to retrieve devices data through API call
+async function fetchRogueDevices() {
   loading.value = true;
   try {
     tableRow.value = await getRogueDevices();
@@ -71,15 +71,15 @@ async function fetchDevices() {
 }
 
 onMounted(async () => {
-  await fetchDevices();
+  await fetchRogueDevices();
 
+  // Send a frontend logger to backend for writing .log files
   const user = keycloak.tokenParsed.given_name;
   const action = "page visit";
   const details = `${user} visited the ${route.path} page`;
   const page = route.path?.toString() || "Unknown Page";
   const userAgent = navigator.userAgent;
 
-  // Send a frontend logger to backend for writing .log files
   addFrontendLogger(user, action, details, page, userAgent)
     .then(() => console.log("Frontend log sent successfully."))
     .catch((error) => console.error("Error sending frontend log: ", error));

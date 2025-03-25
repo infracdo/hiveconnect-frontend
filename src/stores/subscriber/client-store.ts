@@ -92,12 +92,19 @@ export const useClientStore = defineStore("client", {
         align: "left",
         sortable: true,
       },
-      // {
-      //   name: "actions",
-      //   label: "Actions",
-      //   field: "",
-      //   align: "center",
-      // },
+      {
+        name: "monitoringStatus",
+        label: "Monitoring Status",
+        field: "monitoringStatus",
+        align: "left",
+        sortable: true,
+      },
+      {
+        name: "actions",
+        label: "Actions",
+        field: "",
+        align: "center",
+      },
     ] as QTableProps["columns"],
   }),
 });

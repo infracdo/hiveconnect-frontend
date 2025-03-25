@@ -70,7 +70,22 @@
               :visibleColumns="visibleColumns"
               :rowsPerPage="10"
               :callback="getProvisionedSubscriberData"
+              @click="handleExecuteMonitoring"
             >
+              <template #actions="{ row }">
+                <q-icon
+                  v-if="
+                    row.monitoringStatus === 'unmonitored' ||
+                    row.monitoringStatus === null
+                  "
+                  name="autorenew"
+                  size="sm"
+                  class="cursor-pointer text-gray-iron-900 font-normal hover:text-primary-1000"
+                  @click.stop="
+                    handleExecuteMonitoring(row.subscriberAccountNumber)
+                  "
+                />
+              </template>
             </Table>
           </div>
         </div>
@@ -85,8 +100,8 @@ import { useRouter, useRoute } from "vue-router";
 import {
   getHiveSubscribers,
   addFrontendLogger,
+  executeMonitoring,
 } from "src/api/HiveConnectApis/hiveConnect";
-// import { useSubscriberStore } from "src/stores/subscriber/subscriber-store";
 import { useClientStore } from "src/stores/subscriber/client-store";
 import { ISubscribers } from "src/api/HiveConnectApis/types";
 import { searchRows } from "src/util/search";
@@ -103,29 +118,9 @@ const columns = computed(
   () => store.$state.subscribercolumns?.filter((col) => col.name !== "id") || [] // Note: subscriber id is not included since we were told that if the id is local (within hive only), it should not be included in the table so i based everything to their account number instead
 );
 const rowsHive = ref<ISubscribers[]>([]);
-// const deviceName = ref("");
 const filter = ref("");
 const selectedStatus = ref("");
-// const clientId = ref(0);
-// const openTroubleShootModal = ref(false);
 const loading = ref(false);
-// const modalIsVisible = ref(false);
-
-// const client = ref({
-//   subscriberName: "",
-//   accountNo: "",
-//   packageType: "",
-//   onuStatus: "",
-//   onuIp: "",
-//   onuSerialNumber: 0,
-//   onuMacAddress: "",
-//   upstream: "",
-//   downstream: "",
-//   oltStatus: "",
-//   oltIp: "",
-//   oltSite: "",
-//   oltInterface: "",
-// });
 
 // Store visible columns' state differently for each pagey using storageKey
 // const storageKey = `visibleColumns-${route.path}`;
@@ -157,6 +152,8 @@ const visibleColumns = ref([
   "oltIp",
   "status",
   "ssidName",
+  "monitoringStatus",
+  "actions",
 ]);
 
 // Select visible columns options
@@ -171,6 +168,8 @@ const columnOptions = ref([
   { value: "oltIp", label: "OLT IP" },
   { value: "status", label: "STATUS" },
   { value: "ssidName", label: "SSID" },
+  { value: "monitoringStatus", label: "Monitoring Status" },
+  { value: "actions", label: "Actions" },
 ]);
 
 // Method to update the filter value when the user enters something in the SearchBar
@@ -212,45 +211,6 @@ const handleColumnSelect = (selectedOptions: string[]) => {
   }
 };
 
-// Method to display modal when the action button in row is clicked
-// const openModal = (row: any) => {
-//   client.value = {
-//     subscriberName: row.clientName,
-//     accountNo: row.subscriberAccountNumber,
-//     packageType: row.packageType,
-//     onuStatus: row.onuStatus,
-//     onuIp: row.onuIp,
-//     onuSerialNumber: row.onuSerialNumber,
-//     onuMacAddress: row.onuMacAddress,
-//     upstream: row.upstream,
-//     downstream: row.downstream,
-//     oltStatus: row.oltStatus,
-//     oltIp: row.oltIp,
-//     oltSite: row.site,
-//     oltInterface: row.oltInterface,
-//   };
-
-//   modalIsVisible.value = true;
-// };
-
-// Method to open the troubleshoot modal
-// NOTE: i still haven't seen this modal in action since there are issues while opening this modal
-// const openTroubleshootModal = (
-//   onuDeviceName: string,
-//   newSubscriberId: number
-// ) => {
-//   deviceName.value = onuDeviceName;
-//   console.log(typeof newSubscriberId, " id value is ", newSubscriberId);
-//   clientId.value = newSubscriberId;
-//   openTroubleShootModal.value = !openTroubleShootModal.value;
-// };
-
-// Method to close the troubleshoot modal
-// NOTE: i still haven't seen this modal in action since there are issues while opening this modal
-// const closeTroubleShootModal = () => {
-//   openTroubleShootModal.value = !openTroubleShootModal.value;
-// };
-
 // Method for refreshing table data
 const handleRefreshTable = async (): Promise<void> => {
   filter.value = "";
@@ -282,7 +242,23 @@ const getProvisionedSubscriberData = (
   });
 };
 
-// Lifecycle Hooks
+const handleExecuteMonitoring = async (subscriberAccountNumber: string) => {
+  try {
+    console.log("Executing Monitoring...");
+    const response = await executeMonitoring(subscriberAccountNumber);
+
+    if (response) {
+      console.log(
+        "Returned response for execute monitoring by action button: ",
+        response
+      );
+    }
+  } catch (error) {
+    console.error("Error in executing monitoring: ", error);
+    throw error;
+  }
+};
+
 // Fetch active/onhold subscribers when component mounts and send a frontend logger for visiting the page
 onMounted(async () => {
   // Fetch active/onhold subscribers

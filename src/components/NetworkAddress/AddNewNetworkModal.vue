@@ -31,14 +31,15 @@
           <div class="mb-4" style="display: flex; gap: 16px">
             <!-- Network address input field -->
             <Inputs
-              v-model="addNewNetwork.networkAddress"
-              label="Network Addresss"
+              v-model="newNetwork.networkAddress"
+              label="Network Address"
               required
+              @input="noLeadingWhitespace"
             />
 
             <!-- Network type radiobutton field -->
             <RadioButton
-              v-model="addNewNetwork.networkType"
+              v-model="newNetwork.networkType"
               label="Network Type"
               :options="networkTypeOptions"
               required
@@ -46,27 +47,39 @@
 
             <!-- Account number input field (only shown if 'Enterprise' is selected in radiobutton) -->
             <Inputs
-              v-if="addNewNetwork.networkType === 'Enterprise'"
-              v-model="addNewNetwork.accountNumber"
+              v-if="newNetwork.networkType === 'Enterprise'"
+              v-model="newNetwork.accountNumber"
               label="Account Number"
               required
+              @input="noLeadingWhitespace"
             />
           </div>
 
           <div class="mb-4" style="display: flex; gap: 16px">
             <!-- Vlan ID input field -->
-            <Inputs v-model="addNewNetwork.vlanId" label="VLAN ID" required />
+            <Inputs
+              v-model="newNetwork.vlanId"
+              label="VLAN ID"
+              required
+              @input="noLeadingWhitespace"
+            />
 
             <!-- Site input field -->
-            <Inputs v-model="addNewNetwork.networkName" label="Site" required />
+            <Inputs
+              v-model="newNetwork.networkName"
+              label="Site"
+              required
+              @input="noLeadingWhitespace"
+            />
           </div>
 
           <div class="mb-4" style="display: flex; gap: 16px">
             <!-- Notes input field -->
             <Inputs
-              v-model="addNewNetwork.location"
+              v-model="newNetwork.location"
               label="Notes"
               class="w-full"
+              @input="noLeadingWhitespace"
             />
           </div>
         </q-card-section>
@@ -106,12 +119,13 @@ import { reactive, ref, watch } from "vue";
 import Buttons from "../inputs/Buttons.vue";
 import Inputs from "../inputs/Inputs.vue";
 import RadioButton from "../RadioButton.vue";
+import { addNewNetwork } from "src/api/HiveConnectApis/hiveConnect";
 
 const props = defineProps<{
   isVisible: boolean;
 }>();
 
-const addNewNetwork = reactive({
+const newNetwork = reactive({
   networkAddress: "",
   accountNumber: "",
   networkType: "",
@@ -146,12 +160,12 @@ const handleSubmit = (event: Event) => {
 
 // Method to reset form when cancel button is clicked
 const handleCancel = () => {
-  addNewNetwork.networkAddress = "";
-  addNewNetwork.networkType = "";
-  addNewNetwork.accountNumber = "";
-  addNewNetwork.vlanId = "";
-  addNewNetwork.networkName = "";
-  addNewNetwork.location = "";
+  newNetwork.networkAddress = "";
+  newNetwork.networkType = "";
+  newNetwork.accountNumber = "";
+  newNetwork.vlanId = "";
+  newNetwork.networkName = "";
+  newNetwork.location = "";
 
   localIsVisible.value = false;
 };

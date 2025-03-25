@@ -149,29 +149,11 @@ export const sendHiveProvisionedStatusCallback = async (accountNo: string) => {
 
 // POST: /executeMonitoring
 // PURPOSE: Sends required payload to the backend to execute the monitoring process
-export const executeMonitoring = async (
-  accNum: string,
-  clientName: string,
-  serialNum: string,
-  macaddress: string,
-  olt: string,
-  packageType: string,
-  newOltId: number
-  // downstream: number,
-  // upstream: number
-) => {
+export const executeMonitoring = async (accNum: string) => {
   try {
     console.log("Calling '/executeMonitoring' API endpoint...");
     const { data } = await api.post("/executeMonitoring", {
       accountNo: accNum,
-      clientName: clientName,
-      serialNumber: serialNum,
-      macAddress: macaddress,
-      olt: olt,
-      oltId: newOltId,
-      packageType: packageType,
-      // downstream: downstream, //added
-      // upstream: upstream, //added
     });
     console.log(
       "Returned data by calling '/executeMonitoring' API endpoint: ",
@@ -424,10 +406,34 @@ export const getOltSites = async (): Promise<IOltSites[]> => {
 
 // GET: /getOltByIp/{oltIp}
 // PURPOSE: Fetches OLT site by IP address from site_olt table
+// NOTE: THIS API DOES NOT EXIST IN BACKEND
 export const checkOltSiteByIp = async (oltIp: string): Promise<IOltSites> => {
   try {
     console.log("Calling '/getOltByIp/{oltIp}' API endpoint...");
     const { data } = await api.get("/checkOltSiteByIp/" + oltIp, {
+      params: {
+        action: "api call from frontend",
+        user: keycloak.tokenParsed?.preferred_username,
+      },
+    });
+    console.log(
+      "Returned data by calling '/getOltByIp/{oltIp}' API endpoint: ",
+      data
+    );
+    return data;
+  } catch (error) {
+    console.error(
+      "Error while calling '/getOltByIp/{oltIp}' API endpoint: ",
+      error
+    );
+    throw error;
+  }
+};
+
+export const getOltSiteByIp = async (oltIp: string): Promise<IOltSites> => {
+  try {
+    console.log("Calling '/getOltByIp/{oltIp}' API endpoint...");
+    const { data } = await api.get("/getOltByIp/" + oltIp, {
       params: {
         action: "api call from frontend",
         user: keycloak.tokenParsed?.preferred_username,
@@ -539,6 +545,38 @@ export const getNetworkAddresses = async (): Promise<INetworkAddresses[]> => {
       "Error while calling '/getallnetworks' API endpoint: ",
       error
     );
+    throw error;
+  }
+};
+
+// POST: /addnetwork
+// PURPOSE: Add new network address (CIDR block) to cidr_block table
+export const addNewNetwork = async (
+  cidrBlock: string,
+  defaultGateway: string,
+  broadcastAddress: string,
+  networkAddress: string,
+  networkName: string,
+  networkType: string,
+  vlanId: string,
+  location: string
+) => {
+  try {
+    console.log("Calling '/addnetwork' API endpoint...");
+    const { data } = await api.post("/addnetwork", {
+      cidrBlock: cidrBlock,
+      defaultGateway: defaultGateway,
+      broadcastAddress: broadcastAddress,
+      networkAddress: networkAddress,
+      networkName: networkName,
+      networkType: networkType,
+      vlanId: vlanId,
+      location: location,
+    });
+    console.log("Returned data by calling '/addnetwork' API endpoint: ", data);
+    return data;
+  } catch (error) {
+    console.error("Error while calling '/addnetwork' API endpoint: ", error);
     throw error;
   }
 };

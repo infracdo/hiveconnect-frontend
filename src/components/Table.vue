@@ -1,23 +1,24 @@
 <template>
   <div class="flex flex-col">
-    <div class="overflow-x-auto w-full">
+    <div class="relative overflow-x-auto w-full">
       <div class="inline-block min-w-full">
-        <div class="overflow-hidden">
-          <!-- Table header -->
-          <table class="table-fixed min-w-full text-left text-sm">
+        <div class="overflow-visible">
+          <!-- Table -->
+          <table class="min-w-full text-left text-sm">
+            <!-- Table header -->
             <thead class="border-b border-neutral-200 font-medium">
               <tr class="text-gray-iron-500">
                 <th
-                  scope="col"
                   v-for="header in tableColumns.filter((col) =>
                     visibleColumns.includes(col.name)
                   )"
                   :key="header.name"
-                  :class="
+                  :class="[
+                    'whitespace-nowrap px-3 pt-6 pb-2 font-light text-xs uppercase text-primary-gray-500',
                     header.name === 'actions'
-                      ? 'whitespace-nowrap px-3 pt-6 pb-2 font-light text-xs uppercase text-primary-gray-500 text-center' // TODO: redundant, think of a way to handle this
-                      : 'whitespace-nowrap px-3 pt-6 pb-2 font-light text-xs uppercase text-primary-gray-500'
-                  "
+                      ? 'sticky right-0 bg-white z-10 text-center'
+                      : '',
+                  ]"
                 >
                   {{ header.label }}
                 </th>
@@ -38,11 +39,12 @@
                     visibleColumns.includes(col.name)
                   )"
                   :key="column.name"
-                  :class="
+                  :class="[
+                    'px-3 py-2 text-gray-iron-900 font-normal',
                     column.name === 'actions'
-                      ? 'px-3 py-2 text-gray-iron-900 font-normal text-center'
-                      : 'px-3 py-2 text-gray-iron-900 font-normal'
-                  "
+                      ? 'sticky right-0 z-10 text-center'
+                      : '',
+                  ]"
                 >
                   <slot
                     :name="column.name"
@@ -101,24 +103,6 @@ interface TableColumn {
   name: string;
   label: string;
 }
-
-// Define props structure
-// interface Props {
-//   tableColumns: TableColumn[];
-//   tableRows: TableRow[];
-//   visibleColumns?: string[];
-//   rowsPerPage?: number;
-//   moduleName?: string;
-//   callback?: (
-//     event: Event,
-//     row: TableRow,
-//     index: number,
-//     module: string
-//   ) => void;
-// }
-
-// Define props
-// const props = defineProps<Props>();
 
 const props = defineProps<{
   tableColumns: TableColumn[];
@@ -193,8 +177,34 @@ watch(
 </script>
 
 <style scoped>
-.overflow-x-auto {
-  max-width: 100%;
-  overflow-x: auto;
+.relative {
+  position: relative;
+}
+
+.sticky {
+  position: sticky;
+  right: 0;
+}
+
+.sticky::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -4px;
+  bottom: 0;
+  width: 4px;
+  box-shadow: inset 4px 0 8px -3px rgba(0, 0, 0, 0.1);
+}
+
+th.sticky {
+  z-index: 20;
+}
+
+td.sticky {
+  z-index: 10;
+}
+
+.q-table__container {
+  overflow: visible !important;
 }
 </style>

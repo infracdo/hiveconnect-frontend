@@ -17,6 +17,7 @@ export interface ISubscribers {
   oltReportedDownstream: number;
   ssidName: string;
   status: string;
+  monitoringStatus: string;
 }
 
 // Data type for subscribers for migration
