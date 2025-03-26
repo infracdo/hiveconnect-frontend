@@ -1,5 +1,13 @@
 <template>
-  <div class="flex flex-col">
+  <div class="flex flex-col relative">
+    <!-- q-inner-loading component -->
+    <q-inner-loading :showing="props.loading" color="primary-600" />
+
+    <!-- Semi-transparent overlay when loading -->
+    <div
+      v-if="props.loading"
+      class="absolute inset-0 bg-white opacity-50 z-10"
+    ></div>
     <div class="relative overflow-x-auto w-full">
       <div class="inline-block min-w-full">
         <div class="overflow-visible">
@@ -166,6 +174,7 @@ const props = defineProps<{
   rowsPerPage?: number;
   moduleName?: string;
   pagination?: boolean;
+  loading?: boolean;
   callback?: (
     event: Event,
     row: TableRow,

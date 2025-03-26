@@ -27,7 +27,7 @@
               :tableColumns="columns"
               pagination
               :rowsPerPage="10"
-              :loading="loading"
+              :loading="isLoading"
             >
             </Table>
           </div>
@@ -55,20 +55,21 @@ const keycloak = useKeycloak();
 const store = useDevicesStore();
 const tableRow = ref<IRogueDevices[]>([]);
 const columns: QTableProps["columns"] = store.$state.devicesColumn || [];
-const loading = ref<boolean>(false);
+const isLoading = ref(false);
 
 // Count total number of rows (devices) to display in the page description
 const rogueDeviceCount = computed(() => tableRow.value.length || 0);
 
 // Asynchronous function to retrieve devices data through API call
 async function fetchRogueDevices() {
-  loading.value = true;
   try {
+    isLoading.value = true;
     tableRow.value = await getRogueDevices();
   } catch (error) {
     console.log("Error fetching devices for Rogue Devices page: ", error);
+  } finally {
+    isLoading.value = false;
   }
-  loading.value = false;
 }
 
 onMounted(async () => {

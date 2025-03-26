@@ -65,6 +65,7 @@
               :visibleColumns="visibleColumns"
               pagination
               :rowsPerPage="10"
+              :loading="isLoading"
               @rowClick="openModal"
             >
               <!-- Actions column provision action button-->
@@ -260,7 +261,7 @@ const onuMacAddress = ref("");
 const selectedLocation = ref("");
 const selectedOltIp = ref(null);
 const modalOpen = ref(false);
-const loading = ref(false);
+const isLoading = ref(false);
 const modalProvisionClientResponse = ref(false);
 const showProvisionResult = ref(false);
 const showSkeletonDancing = ref(false);
@@ -425,11 +426,11 @@ const openModal = async (newSubscriberId: number) => {
 const handleRefreshTable = async () => {
   rows.value = [];
   filter.value = "";
-  loading.value = true;
+  isLoading.value = true;
   try {
     rows.value = await getNewSubscribers();
   } finally {
-    loading.value = false;
+    isLoading.value = false;
   }
 };
 
@@ -739,11 +740,14 @@ watch(selectedNetworkSiteValue, (newValue) => {
 });
 onMounted(async () => {
   try {
+    isLoading.value = true;
     rows.value = await getNewSubscribers();
     console.log("For Provision subscribers fetched successfully.");
   } catch (error) {
     console.error("Error fetching For Provision subscribers: ", error);
     return;
+  } finally {
+    isLoading.value = false;
   }
 
   try {

@@ -31,7 +31,7 @@
         <div class="flex flex-col">
           <div class="flex flex-row mb-6">
             <div class="flex flex-col">
-              <p class="text-xs text-gray-iron-500">ADDRESS</p>
+              <p class="text-xs text-gray-iron-500">NETWORK ADDRESS</p>
               <p class="text-xl font-medium text-gray-iron-900">
                 {{
                   networkAddressData.networkAddress
@@ -135,8 +135,9 @@
             <Table
               :tableColumns="columns"
               :tableRows="filteredRows"
+              pagination
               :rowsPerPage="10"
-              :loading="rows.length > 0 ? false : true"
+              :loading="isLoading"
             >
               <!-- PENDING FEATURE: previous hive did not specify what is this for or what the modal should contain -->
               <template #actions="{ row }">
@@ -179,9 +180,18 @@ const columns = storeIp.$state.ipAddressColumn?.length
 const ipAddress = route.params.ipAddress;
 const rows = ref<IipAddressesOfCidrBlock[]>([]);
 const filter = ref("");
+const isLoading = ref(false);
 
 watchEffect(async () => {
-  rows.value = await getIpAddresses(ipAddress);
+  try {
+    isLoading.value = true;
+    rows.value = await getIpAddresses(ipAddress);
+  } catch (error) {
+    console.error("Error while fetching IP addresses: ", error);
+    throw error;
+  } finally {
+    isLoading.value = false;
+  }
 });
 
 const networkAddressData = ref(

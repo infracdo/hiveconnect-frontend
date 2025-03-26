@@ -70,6 +70,7 @@
               :visibleColumns="visibleColumns"
               pagination
               :rowsPerPage="10"
+              :loading="isLoading"
               :callback="getProvisionedSubscriberData"
             >
               <template #actions="{ row }">
@@ -131,7 +132,7 @@ const columns = computed(
 const rowsHive = ref<ISubscribers[]>([]);
 const filter = ref("");
 const selectedStatus = ref("");
-const loading = ref(false);
+const isLoading = ref(false);
 const monitoringRows = ref<Record<string, boolean>>({}); // To display q-spinner when clicking the action button for executing monitoring
 
 // Store visible columns' state differently for each pagey using storageKey
@@ -226,16 +227,15 @@ const handleColumnSelect = (selectedOptions: string[]) => {
 // Method for refreshing table data
 const handleRefreshTable = async (): Promise<void> => {
   filter.value = "";
-  loading.value = true;
   rowsHive.value = [];
-
+  isLoading.value = true;
   try {
     rowsHive.value = await getHiveSubscribers();
   } catch (error) {
     console.log("Error fetching provisioned subscribers: ", error);
+  } finally {
+    isLoading.value = false;
   }
-
-  loading.value = false;
 };
 
 // Retrieve provisioned subscriber's data and navigate to the subscriber's details page with auto config and troubleshooting
@@ -283,9 +283,12 @@ const handleExecuteMonitoring = async (subscriberAccountNumber: string) => {
 onMounted(async () => {
   // Fetch active/onhold subscribers
   try {
+    isLoading.value = true;
     rowsHive.value = await getHiveSubscribers();
   } catch (error) {
     console.log("Error fetching provisioned subscribers: ", error);
+  } finally {
+    isLoading.value = false;
   }
 
   // Send a user action to backend for visiting the Active/Onhold Subscribers page

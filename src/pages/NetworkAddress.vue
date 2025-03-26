@@ -50,7 +50,7 @@
               :tableRows="filteredRows"
               pagination
               :rowsPerPage="10"
-              :loading="rows.length > 0 ? false : true"
+              :loading="isLoading"
               :callback="getNetworkAddressData"
             >
             </Table>
@@ -93,7 +93,7 @@ const rows = ref<INetworkAddresses[]>([]);
 const columns: QTableProps["columns"] = store.$state.networkColumn || [];
 const filter = ref("");
 const modalAddNewNetwork = ref(false);
-const loading = ref<boolean>(false);
+const isLoading = ref(false);
 
 // Count total number of rows (network addresses) in the table to display in the page description
 const networkAddressCount = computed(() => rows.value.length);
@@ -141,10 +141,13 @@ const getNetworkAddressData = (
 // Retrieve migration subscribers data as soon as the component is mounted
 onMounted(async () => {
   try {
+    isLoading.value = true;
     rows.value = await getNetworkAddresses();
     console.log("Network addresses data fetched successfully!");
   } catch (error) {
     console.error("Error fetching network addresses: ", error);
+  } finally {
+    isLoading.value = false;
   }
 
   const user = keycloak.tokenParsed.given_name;

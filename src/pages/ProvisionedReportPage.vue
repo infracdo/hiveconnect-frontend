@@ -20,7 +20,12 @@
         >
           <!-- Total Count of Active/Onhold Subscribers per Location Table -->
           <div class="full-width">
-            <Table :tableColumns="columns" :tableRows="rowsWithTotals"> </Table>
+            <Table
+              :tableColumns="columns"
+              :tableRows="rowsWithTotals"
+              :loading="isLoading"
+            >
+            </Table>
           </div>
         </div>
       </div>
@@ -41,6 +46,7 @@ const columns = [
   { name: "active", label: "Active", field: "active" },
   { name: "onhold", label: "Onhold", field: "onhold" },
 ];
+const isLoading = ref(false);
 
 // Table rows with TOTAL row as the last row
 const rowsWithTotals = computed(() => {
@@ -62,6 +68,8 @@ onMounted(async () => {
     console.log(
       "Fetching total number of active/onhold subscribers per location..."
     );
+
+    isLoading.value = true;
 
     // Hardcoded locations; should be fetched from database so change this if an API for fetching dynamic locations is already available
     const locations = ["CDO", "DAVAO", "MALAYBALAY"];
@@ -91,6 +99,8 @@ onMounted(async () => {
       error
     );
     throw error;
+  } finally {
+    isLoading.value = false;
   }
 });
 </script>

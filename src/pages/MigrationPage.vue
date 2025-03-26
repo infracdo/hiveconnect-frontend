@@ -73,6 +73,7 @@
               :visibleColumns="visibleColumns"
               pagination
               :rowsPerPage="10"
+              :loading="isLoading"
               @rowClick="openModal"
             >
               <!-- Actions column provision action button-->
@@ -185,7 +186,7 @@ const selectedStatus = ref("");
 const subscriberStatus = ref("");
 const filter = ref("");
 const modalOpen = ref(false);
-const loading = ref(false);
+const isLoading = ref(false);
 
 // Store visible columns' state differently for each pagey using storageKey
 // const storageKey = `visibleColumns-${route.path}`;
@@ -270,11 +271,11 @@ const refreshTable = async () => {
   //getClient from clients_for_activation db, Account table
   rows.value = [];
   filter.value = "";
-  loading.value = true;
+  isLoading.value = true;
   try {
     rows.value = await getSubscribersForMigration();
   } finally {
-    loading.value = false;
+    isLoading.value = false;
   }
 };
 
@@ -457,6 +458,7 @@ const handleMigrateSubscriber = () => {
 // Asynchronous function to retrieve migration subscribers from API
 async function fetchMigrationSubscribers() {
   try {
+    isLoading.value = true;
     rows.value = await getSubscribersForMigration();
     console.log("Migration subscribers data fetched successfully.");
   } catch (error) {
@@ -464,6 +466,8 @@ async function fetchMigrationSubscribers() {
       "Error during fetching For Migration subscriber data:",
       error
     );
+  } finally {
+    isLoading.value = false;
   }
 }
 
