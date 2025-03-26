@@ -79,6 +79,8 @@
                         :color="
                           row.monitoringStatus === 'monitored'
                             ? 'positive'
+                            : row.monitoringStatus === 'setting up'
+                            ? 'warning'
                             : 'negative'
                         "
                         :label="row.monitoringStatus"

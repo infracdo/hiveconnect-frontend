@@ -72,15 +72,29 @@
               :callback="getProvisionedSubscriberData"
             >
               <template #actions="{ row }">
-                <q-icon
-                  v-if="row.monitoringStatus === 'unmonitored'"
-                  name="autorenew"
-                  size="sm"
-                  class="cursor-pointer text-gray-iron-900 font-normal hover:text-primary-1000"
-                  @click.stop="
-                    handleExecuteMonitoring(row.subscriberAccountNumber)
-                  "
-                />
+                <div class="flex justify-center items-center">
+                  <q-icon
+                    v-if="
+                      row.monitoringStatus === 'unmonitored' &&
+                      !monitoringRows[row.subscriberAccountNumber]
+                    "
+                    name="autorenew"
+                    size="sm"
+                    class="cursor-pointer text-gray-iron-900 font-normal hover:text-primary-1000"
+                    @click.stop="
+                      handleExecuteMonitoring(row.subscriberAccountNumber)
+                    "
+                  />
+
+                  <q-spinner-puff
+                    v-if="
+                      monitoringRows[row.subscriberAccountNumber] ||
+                      row.monitoringStatus === 'setting up'
+                    "
+                    color="primary-600"
+                    size="2em"
+                  />
+                </div>
               </template>
             </Table>
           </div>
@@ -117,6 +131,7 @@ const rowsHive = ref<ISubscribers[]>([]);
 const filter = ref("");
 const selectedStatus = ref("");
 const loading = ref(false);
+const monitoringRows = ref<Record<string, boolean>>({}); // To display q-spinner when clicking the action button for executing monitoring
 
 // Store visible columns' state differently for each pagey using storageKey
 // const storageKey = `visibleColumns-${route.path}`;
@@ -240,10 +255,13 @@ const getProvisionedSubscriberData = (
 
 const handleExecuteMonitoring = async (subscriberAccountNumber: string) => {
   try {
+    monitoringRows.value[subscriberAccountNumber] = true;
+    // isMonitoring.value = true;
     console.log("Executing Monitoring...");
     const response = await executeMonitoring(subscriberAccountNumber);
 
     if (response.status === "200") {
+      // isMonitoring.value = false;
       console.log(
         "Returned response for '/executeMonitoring' API endpoint by action button: ",
         response
@@ -252,8 +270,11 @@ const handleExecuteMonitoring = async (subscriberAccountNumber: string) => {
       handleRefreshTable();
     }
   } catch (error) {
+    // isMonitoring.value = false;
     console.error("Error in execute monitoring by action button: ", error);
     throw error;
+  } finally {
+    monitoringRows.value[subscriberAccountNumber] = false;
   }
 };
 
