@@ -18,6 +18,11 @@
                     header.name === 'actions'
                       ? 'sticky right-0 bg-white z-10 text-center'
                       : '',
+                    header.name === 'location' ||
+                    header.name === 'active' ||
+                    header.name === 'onhold'
+                      ? 'text-center'
+                      : '',
                   ]"
                 >
                   {{ header.label }}
@@ -45,6 +50,11 @@
                       ? 'sticky right-0 z-10 text-center'
                       : '',
                     column.name === 'monitoringStatus' ? 'text-center' : '',
+                    column.name === 'location' ||
+                    column.name === 'active' ||
+                    column.name === 'onhold'
+                      ? 'text-center'
+                      : '',
                   ]"
                 >
                   <slot

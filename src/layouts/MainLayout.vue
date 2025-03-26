@@ -43,6 +43,12 @@
           />
 
           <DrawerTile
+            title="Provisioned Subscribers Report"
+            icon="bi-stickies-fill"
+            to="provisionedreport"
+          />
+
+          <DrawerTile
             title="Troubleshoot"
             icon="bi-wrench"
             to="troubleshooting"
@@ -135,6 +141,12 @@ const essentialLinks = [
     icon: "bi-wrench",
     link: "/troubleshooting",
     roles: ["HIVECONNECT_TROUBLESHOOTING_VIEW"],
+  },
+  {
+    title: "Active/Onhold Subscribers Report",
+    icon: "bi-wrench",
+    link: "/provisioned-report",
+    roles: ["HIVECONNECT_PROVISIONED_VIEW"],
   },
 ];
 

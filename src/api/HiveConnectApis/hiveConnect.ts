@@ -615,6 +615,39 @@ export const checkPackageDetails = async (
 
 //==============================================================================================
 
+//* COUNT APIs *//
+
+// GET: /getStatusCount
+// PURPOSE: Fetch total count of either ACTIVE/ONHOLD subscribers per location; used in Provisioned Subscribers Report page
+export const getStatusCount = async (status: string, location: string) => {
+  try {
+    console.log(
+      `Calling '/getStatusCount' API endpoint w/ status ${status} & location ${location}...`
+    );
+    const { data } = await api.get("/getStatusCount", {
+      params: {
+        status,
+        location,
+        action: "api call from frontend",
+        user: keycloak.tokenParsed?.preferred_username,
+      },
+    });
+    console.log(
+      `Returned data by calling '/getStatusCount' API endpoint w/ status ${status} & location ${location}: `,
+      data
+    );
+    return data;
+  } catch (error) {
+    console.error(
+      `Error while calling '/getStatusCount' API endpoint w/ status ${status} & location ${location}: `,
+      error
+    );
+    throw error;
+  }
+};
+
+//==============================================================================================
+
 //* LOGGER APIs *//
 
 // POST: /log-frontend-action

@@ -61,6 +61,12 @@ const routes: RouteRecordRaw[] = [
         props: true,
         meta: { roles: ["HIVECONNECT_TROUBLESHOOTING_VIEW"] },
       },
+      {
+        path: "provisioned-report",
+        name: "provisionedreport",
+        component: () => import("../pages/ProvisionedReportPage.vue"),
+        meta: { roles: ["HIVECONNECT_PROVISIONED_VIEW"] },
+      },
       // {
       //   path: "/:catchAll(.*)*",
       //   // component: () => import("pages/ErrorNotFound.vue"),

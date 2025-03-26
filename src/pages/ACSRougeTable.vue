@@ -4,12 +4,12 @@
       <div class="full-width q-gutter-y-lg">
         <!-- Headers here -->
         <div>
-          <!-- Page header here -->
+          <!-- Page title -->
           <div class="text-xl font-semibold text-gray-iron-90 mb-2">
             Rogue Devices
           </div>
 
-          <!-- Page description here -->
+          <!-- Page description -->
           <p class="text-sm font-regular text-gray-iron-500">
             There are {{ rogueDeviceCount }} rogue
             {{ rogueDeviceCount < 2 ? "device" : "devices" }}
