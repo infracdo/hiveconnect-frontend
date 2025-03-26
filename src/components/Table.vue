@@ -116,7 +116,7 @@
     </div>
 
     <!-- Pagination controls -->
-    <div class="flex justify-end items-center">
+    <div v-if="pagination" class="flex justify-end items-center">
       <q-btn
         @click="prevPage"
         flat
@@ -165,6 +165,7 @@ const props = defineProps<{
   visibleColumns?: string[];
   rowsPerPage?: number;
   moduleName?: string;
+  pagination?: boolean;
   callback?: (
     event: Event,
     row: TableRow,

@@ -48,6 +48,7 @@
             <Table
               :tableColumns="columns"
               :tableRows="filteredRows"
+              pagination
               :rowsPerPage="10"
               :loading="rows.length > 0 ? false : true"
               :callback="getNetworkAddressData"

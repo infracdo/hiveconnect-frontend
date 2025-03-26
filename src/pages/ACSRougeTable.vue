@@ -25,6 +25,7 @@
             <Table
               :tableRows="tableRow"
               :tableColumns="columns"
+              pagination
               :rowsPerPage="10"
               :loading="loading"
             >

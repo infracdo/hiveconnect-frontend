@@ -71,6 +71,7 @@
               :tableColumns="columns"
               :tableRows="filteredRows"
               :visibleColumns="visibleColumns"
+              pagination
               :rowsPerPage="10"
               @rowClick="openModal"
             >

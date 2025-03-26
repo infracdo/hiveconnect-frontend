@@ -42,6 +42,7 @@ const columns = [
   { name: "onhold", label: "Onhold", field: "onhold" },
 ];
 
+// Table rows with TOTAL row as the last row
 const rowsWithTotals = computed(() => {
   // Return an empty array if the there are no rows
   if (rows.value.length === 0) return [];
@@ -62,8 +63,10 @@ onMounted(async () => {
       "Fetching total number of active/onhold subscribers per location..."
     );
 
+    // Hardcoded locations; should be fetched from database so change this if an API for fetching dynamic locations is already available
     const locations = ["CDO", "DAVAO", "MALAYBALAY"];
 
+    // Fetch total count of ACTIVE and ONHOLD subscribers per location and populate them accordingly to the table as rows
     const results = await Promise.all(
       locations.map(async (location) => {
         const activeCount = await getStatusCount("ACTIVE", location);

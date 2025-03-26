@@ -68,6 +68,7 @@
               "
               :tableRows="filteredRows"
               :visibleColumns="visibleColumns"
+              pagination
               :rowsPerPage="10"
               :callback="getProvisionedSubscriberData"
             >
