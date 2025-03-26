@@ -29,16 +29,61 @@
 
         <q-card-section class="mt-4 p-0" style="z-index: 1">
           <div class="mb-4" style="display: flex; gap: 16px">
-            <!-- Network address input field -->
+            <!-- CIDR block input field -->
             <Inputs
-              v-model="newNetwork.networkAddress"
-              label="Network Address"
+              v-model="newNetwork.cidrBlock"
+              label="CIDR Block"
+              placeholder="Ex: 100.126.0.0/22"
               required
               @input="noLeadingWhitespace"
             />
 
-            <!-- Network type radiobutton field -->
-            <RadioButton
+            <!-- Default gateway input field -->
+            <Inputs
+              v-model="newNetwork.defaultGateway"
+              label="Default Gateway"
+              placeholder="Ex: 100.126.0.1"
+              required
+              @input="noLeadingWhitespace"
+            />
+
+            <!-- Broadcast address input field -->
+            <Inputs
+              v-model="newNetwork.broadcastAddress"
+              label="Broadcast Address"
+              placeholder="Ex: 100.126.0.255"
+              required
+              @input="noLeadingWhitespace"
+            />
+          </div>
+
+          <div class="mb-4" style="display: flex; gap: 16px">
+            <!-- Network address input field -->
+            <Inputs
+              v-model="newNetwork.networkAddress"
+              label="Network Address"
+              placeholder="Ex: 100.126.0.0"
+              required
+              @input="noLeadingWhitespace"
+            />
+
+            <!-- Network name input field -->
+            <Inputs
+              v-model="newNetwork.networkName"
+              label="Network Name"
+              placeholder="Ex: MBY"
+              required
+              @input="noLeadingWhitespace"
+            />
+
+            <!-- Network type radio button/input field -->
+            <!-- <RadioButton
+              v-model="newNetwork.networkType"
+              label="Network Type"
+              :options="networkTypeOptions"
+              required
+            /> -->
+            <Selects
               v-model="newNetwork.networkType"
               label="Network Type"
               :options="networkTypeOptions"
@@ -46,13 +91,13 @@
             />
 
             <!-- Account number input field (only shown if 'Enterprise' is selected in radiobutton) -->
-            <Inputs
+            <!-- <Inputs
               v-if="newNetwork.networkType === 'Enterprise'"
               v-model="newNetwork.accountNumber"
               label="Account Number"
               required
               @input="noLeadingWhitespace"
-            />
+            /> -->
           </div>
 
           <div class="mb-4" style="display: flex; gap: 16px">
@@ -60,28 +105,38 @@
             <Inputs
               v-model="newNetwork.vlanId"
               label="VLAN ID"
+              placeholder="Ex: 2010"
               required
               @input="noLeadingWhitespace"
             />
 
-            <!-- Site input field -->
-            <Inputs
-              v-model="newNetwork.networkName"
-              label="Site"
+            <!-- Location input field -->
+            <!-- <Inputs
+              v-model="newNetwork.location"
+              label="Location"
+              placeholder="Enter location"
               required
               @input="noLeadingWhitespace"
+            /> -->
+            <Selects
+              v-model="newNetwork.location"
+              label="Location"
+              :options="locationOptions"
+              optionLabel="label"
+              optionValue="value"
+              required
             />
           </div>
 
-          <div class="mb-4" style="display: flex; gap: 16px">
-            <!-- Notes input field -->
+          <!-- Notes input field -->
+          <!-- <div class="mb-4" style="display: flex; gap: 16px">
             <Inputs
               v-model="newNetwork.location"
               label="Notes"
               class="w-full"
               @input="noLeadingWhitespace"
             />
-          </div>
+          </div> -->
         </q-card-section>
 
         <!-- Buttons -->
@@ -107,6 +162,7 @@
             label="Add Network"
             type="submit"
             button="modal"
+            v-close-popup
           />
         </div>
       </q-form>
@@ -116,33 +172,63 @@
 
 <script setup lang="ts">
 import { reactive, ref, watch } from "vue";
+import { useRoute } from "vue-router";
+import { useKeycloak } from "src/composables/useKeycloak";
+import Swal from "sweetalert2";
 import Buttons from "../inputs/Buttons.vue";
 import Inputs from "../inputs/Inputs.vue";
 import RadioButton from "../RadioButton.vue";
-import { addNewNetwork } from "src/api/HiveConnectApis/hiveConnect";
+import Selects from "../inputs/Selects.vue";
+import {
+  addNewNetwork,
+  addFrontendLogger,
+} from "src/api/HiveConnectApis/hiveConnect";
 
 const props = defineProps<{
   isVisible: boolean;
 }>();
 
+const route = useRoute();
+const keycloak = useKeycloak();
+const localIsVisible = ref(props.isVisible);
+const inputValue = ref("");
+
 const newNetwork = reactive({
+  cidrBlock: "",
+  defaultGateway: "",
+  broadcastAddress: "",
   networkAddress: "",
-  accountNumber: "",
-  networkType: "",
-  vlanId: "",
   networkName: "",
+  networkType: "",
+  // accountNumber: "",
+  vlanId: "",
   location: "",
 });
 
 const networkTypeOptions = [
-  { value: "Enterprise", label: "Enterprise" },
-  { value: "Residential", label: "Residential" },
+  {
+    label: "Private",
+    value: "Private",
+  },
+  // { value: "Enterprise", label: "Enterprise" },
+  // { value: "Residential", label: "Residential" },
 ];
 
-const localIsVisible = ref(props.isVisible);
+const locationOptions = [
+  {
+    label: "CDO",
+    value: "CDO",
+  },
+  {
+    label: "Davao",
+    value: "DAVAO",
+  },
+  {
+    label: "Malaybalay",
+    value: "MBY",
+  },
+];
 
-// Define inputValue
-const inputValue = ref("");
 // Method to remove leading whitespace in inputs during typing
 const noLeadingWhitespace = (event: Event) => {
   const input = event.target as HTMLInputElement;
@@ -154,20 +240,82 @@ const emit = defineEmits<{
   (event: "update:isVisible", value: boolean): void;
 }>();
 
-const handleSubmit = (event: Event) => {
-  console.log("Handle submit for add new network");
-};
-
 // Method to reset form when cancel button is clicked
 const handleCancel = () => {
+  newNetwork.cidrBlock = "";
+  newNetwork.defaultGateway = "";
+  newNetwork.broadcastAddress = "";
   newNetwork.networkAddress = "";
-  newNetwork.networkType = "";
-  newNetwork.accountNumber = "";
-  newNetwork.vlanId = "";
   newNetwork.networkName = "";
+  newNetwork.networkType = "";
+  // newNetwork.accountNumber = "";
+  newNetwork.vlanId = "";
   newNetwork.location = "";
 
   localIsVisible.value = false;
+};
+
+const handleSubmit = () => {
+  // Display confirmation alert
+  Swal.fire({
+    title: "Confirm",
+    text: "Are you sure you want to add a new network?",
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonColor: "#1d6499",
+    cancelButtonColor: "#d33",
+    confirmButtonText: "Yes, proceed",
+    reverseButtons: true,
+    allowOutsideClick: false,
+    showLoaderOnConfirm: true,
+    preConfirm: async () => {
+      // Send a user action log for attempting to add a new network
+      const user = keycloak.tokenParsed.given_name;
+      const action = "add new network";
+      const details = `${user} attempted to add a new network`;
+      const page = route.path?.toString() || "Unknown page";
+      const userAgent = navigator.userAgent;
+
+      addFrontendLogger(user, action, details, page, userAgent)
+        .then(() => console.log("Frontend log sent successfully."))
+        .catch((error) => console.error("Error sending frontend log: ", error));
+
+      // Execute addNewNetwork through API call
+      try {
+        const response = await addNewNetwork(
+          newNetwork.cidrBlock,
+          newNetwork.defaultGateway,
+          newNetwork.broadcastAddress,
+          newNetwork.networkAddress,
+          newNetwork.networkName,
+          newNetwork.networkType,
+          newNetwork.vlanId,
+          newNetwork.location
+        );
+
+        if (response.status === 201) {
+          Swal.fire({
+            title: "Success",
+            text: response.message,
+            icon: "success",
+            confirmButtonColor: "#1d6499",
+          });
+
+          console.log("Success response for adding new network: ", response);
+        }
+      } catch (error: any) {
+        Swal.fire({
+          title: "Error",
+          text: error.message,
+          icon: "error",
+          confirmButtonColor: "#fd0808",
+        });
+
+        console.error("Error while adding new network: ", error);
+        return false;
+      }
+    },
+  });
 };
 
 watch(

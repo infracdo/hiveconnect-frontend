@@ -16,6 +16,7 @@
         ref="inputField"
         outlined
         v-model="inputValue"
+        :placeholder="placeholder"
         :readonly="readonly"
         @focus="handleFocus"
         @blur="validateInput"
@@ -83,6 +84,7 @@ const props = withDefaults(
     showSpinner?: boolean;
     step?: string; // Allow decimal values
     required?: boolean;
+    placeholder?: string;
   }>(),
   {
     type: "text",
