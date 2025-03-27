@@ -70,12 +70,21 @@
             >
               <!-- Actions column provision action button-->
               <template #actions="{ row }">
-                <q-icon
-                  name="assignment"
-                  size="sm"
-                  class="cursor-pointer text-gray-iron-900 font-normal hover:text-primary-1000"
-                  @click="openModal(row.newSubscriberId)"
-                />
+                <div class="flex justify-center items-center">
+                  <q-icon
+                    v-if="!trackRows[row.newSubscriberId]"
+                    name="assignment"
+                    size="sm"
+                    class="cursor-pointer text-gray-iron-900 font-normal hover:text-primary-1000"
+                    @click="openModal(row.newSubscriberId)"
+                  />
+
+                  <q-spinner-tail
+                    v-if="trackRows[row.newSubscriberId]"
+                    color="primary-600"
+                    size="1.7em"
+                  />
+                </div>
               </template>
             </Table>
           </div>
@@ -265,6 +274,7 @@ const isLoading = ref(false);
 const modalProvisionClientResponse = ref(false);
 const showProvisionResult = ref(false);
 const showSkeletonDancing = ref(false);
+const trackRows = ref<Record<string, boolean>>({}); // Track row when an action button is clicked
 
 const client = ref<IsubsriberType>({
   newSubscriberId: 0,
@@ -408,19 +418,27 @@ const handleColumnSelect = (selectedOptions: string[]) => {
 };
 
 const openModal = async (newSubscriberId: number) => {
-  console.log("Opening modal & accessing /getRogueDevices...");
-  const rogueDevice = await getRogueDevices();
+  try {
+    trackRows.value[newSubscriberId] = true;
+    console.log("Opening modal & accessing /getRogueDevices...");
+    const rogueDevice = await getRogueDevices();
 
-  serialAndMac = rogueDevice.map(
-    (device: { serial_number: string; mac_address: string }) => ({
-      serial_number: device.serial_number,
-      mac_address: device.mac_address,
-    })
-  );
+    serialAndMac = rogueDevice.map(
+      (device: { serial_number: string; mac_address: string }) => ({
+        serial_number: device.serial_number,
+        mac_address: device.mac_address,
+      })
+    );
 
-  client.value = await getSubscriberById(newSubscriberId);
-  console.log(client.value);
-  modalOpen.value = true;
+    client.value = await getSubscriberById(newSubscriberId);
+    console.log(client.value);
+    modalOpen.value = true;
+  } catch (error) {
+    console.error("Error while opening the modal: ", error);
+    throw error;
+  } finally {
+    trackRows.value[newSubscriberId] = false;
+  }
 };
 
 const handleRefreshTable = async () => {
