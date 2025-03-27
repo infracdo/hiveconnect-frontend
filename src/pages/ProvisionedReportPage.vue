@@ -24,6 +24,7 @@
               :tableColumns="columns"
               :tableRows="rowsWithTotals"
               :loading="isLoading"
+              totalRowStyle
             >
             </Table>
           </div>
@@ -58,6 +59,7 @@ const rowsWithTotals = computed(() => {
     location: "TOTAL",
     active: rows.value.reduce((sum, row) => sum + row.active, 0),
     onhold: rows.value.reduce((sum, row) => sum + row.onhold, 0),
+    isTotal: true,
   };
 
   return [...rows.value, totals];

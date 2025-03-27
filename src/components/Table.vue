@@ -46,6 +46,9 @@
                 :key="row.id"
                 @click="handleCallback($event, row, index)"
                 class="border-b border-neutral-200 hover:bg-gray-iron-200 transition:transform duration-150 text-gray-iron-900 hover:cursor-pointer"
+                :class="{
+                  'font-bold bg-primary-gray-50': totalRowStyle && row.isTotal,
+                }"
               >
                 <td
                   v-for="column in tableColumns.filter((col) =>
@@ -62,6 +65,9 @@
                     column.name === 'active' ||
                     column.name === 'onhold'
                       ? 'text-center'
+                      : '',
+                    totalRowStyle && row.isTotal
+                      ? 'font-bold bg-primary-gray-50'
                       : '',
                   ]"
                 >
@@ -175,6 +181,7 @@ const props = defineProps<{
   moduleName?: string;
   pagination?: boolean;
   loading?: boolean;
+  totalRowStyle?: true;
   callback?: (
     event: Event,
     row: TableRow,
