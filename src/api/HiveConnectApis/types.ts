@@ -20,6 +20,27 @@ export interface ISubscribers {
   monitoringStatus: string;
 }
 
+// Data type for provisioned subscribers info
+export interface IProvisionedSubscriberInfo {
+  id: number;
+  subscriberAccountNumber: string;
+  clientName: string;
+  ipAssigned: string;
+  onuSerialNumber: string;
+  site: number;
+  oltIp: string;
+  oltInterface: string;
+  onuMacAddress: string;
+  onuDeviceName: string;
+  packageType: string;
+  oltReportedUpstream: string;
+  oltReportedDownstream: string;
+  provision: string;
+  status: string;
+  ssidName: string;
+  monitoringStatus: string;
+}
+
 // Data type for subscribers for migration
 export interface IMigrationSubscriber {
   id: number;

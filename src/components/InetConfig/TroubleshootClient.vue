@@ -460,6 +460,7 @@ const handleAbsStatusCallback = () => {
   });
 };
 
+// Method to trigger when the Back button is clicked
 const goBack = () => {
   router.push({ name: "provisioned" });
 };

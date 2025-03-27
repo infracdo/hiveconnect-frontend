@@ -21,9 +21,9 @@
         <div class="flex flex-row-reverse w-full">
           <!-- Dropdown button here -->
           <div class="flex flex-row q-gutter-x-md items-center">
-            <!-- Refresh button -->
+            <!-- Refresh button to reload the selected subscriber info -->
             <q-icon
-              @click="fetchClientInfo(selectSubscriber)"
+              @click="fetchSubscriberInfo(selectedSubscriber)"
               flat
               name="autorenew"
               size="sm"
@@ -32,18 +32,17 @@
 
             <!-- Select time dropdown button -->
             <DropdownButton
-              v-model="selectTime"
               @select="handleSelectTime"
               :columnOptions="timeOptions"
+              :selectedOptions="selectedTime"
               label="Select Time"
             />
 
             <!-- Select subscriber dropdown button -->
             <DropdownButton
-              v-model="selectSubscriber"
               @select="handleSelectSubscriber"
-              @update:model-value="fetchClientInfo($event)"
-              :columnOptions="selectOptions"
+              :columnOptions="dropdownSubscriberOptions"
+              :selectedOptions="selectedSubscriber"
               label="Select Subscriber"
             />
           </div>
@@ -51,13 +50,13 @@
 
         <!-- Content container here -->
         <div class="full-width">
-          <!-- Client details card -->
+          <!-- Subscriber details card -->
           <Card
             header="Subscriber Details"
             :details="[
-              { label: 'Subscriber Name', value: clientInfo.clientName },
-              { label: 'Account Number', value: clientInfo.accountNumber },
-              { label: 'Package Type', value: clientInfo.packageType },
+              { label: 'Subscriber Name', value: subscriberInfo.clientName },
+              { label: 'Account Number', value: subscriberInfo.accountNumber },
+              { label: 'Package Type', value: subscriberInfo.packageType },
             ]"
           />
 
@@ -67,17 +66,20 @@
             :details="[
               {
                 label: 'ONU Status',
-                value: selectSubscriber
+                value: selectedSubscriber
                   ? onuStatus === '1'
                     ? 'Online'
                     : 'Offline'
                   : '',
               },
               { label: 'ONU IP', value: onuInfo.instance },
-              { label: 'ONU Serial Number', value: clientInfo.onuSerialNumber },
-              { label: 'ONU Mac Address', value: clientInfo.onuMacAddress },
-              { label: 'Upstream', value: bandwidth.upStream },
-              { label: 'Downstream', value: bandwidth.downStream },
+              {
+                label: 'ONU Serial Number',
+                value: subscriberInfo.onuSerialNumber,
+              },
+              { label: 'ONU Mac Address', value: subscriberInfo.onuMacAddress },
+              { label: 'Upstream', value: subscriberInfo.oltUpstream },
+              { label: 'Downstream', value: subscriberInfo.oltDownstream },
             ]"
           />
 
@@ -87,15 +89,15 @@
             :details="[
               {
                 label: 'OLT Status',
-                value: selectSubscriber
+                value: selectedSubscriber
                   ? oltStatus === '1'
                     ? 'Online'
                     : 'Offline'
                   : '',
               },
-              { label: 'OLT IP', value: clientInfo.oltIp },
+              { label: 'OLT IP', value: subscriberInfo.oltIp },
               { label: 'OLT Site', value: onuInfo.site_name },
-              { label: 'OLT Interface', value: clientInfo.oltInterface },
+              { label: 'OLT Interface', value: subscriberInfo.oltInterface },
             ]"
           />
 
@@ -104,7 +106,7 @@
             <div class="grafana">
               <iframe
                 v-if="doneApiCalls"
-                :src="`${grafanaApi}/d-solo/d94d1e0e-a6e4-45c4-847f-6603e1c31ccb/subscribers-traffic-rate-and-uptime?orgId=1&from=now-${selectTime}&to=now&var-Subscriber=${selectSubscriber}&panelId=3`"
+                :src="`${grafanaApi}/d-solo/d94d1e0e-a6e4-45c4-847f-6603e1c31ccb/subscribers-traffic-rate-and-uptime?orgId=1&from=now-${selectedTime}&to=now&var-Subscriber=${selectedSubscriber}&panelId=3`"
                 class="grafana-panel"
                 frameborder="0"
               >
@@ -124,17 +126,17 @@ import axios from "axios";
 import {
   getHiveActiveSubscribers,
   addFrontendLogger,
+  getHiveClientById,
 } from "src/api/HiveConnectApis/hiveConnect"; // Ensure this is correctly imported
 import { useKeycloak } from "src/composables/useKeycloak";
 import DropdownButton from "src/components/DropdownButton.vue";
 import Card from "src/components/Card.vue";
-import logUserAction from "src/util/logservice";
 
 const route = useRoute();
 const keycloak = useKeycloak();
-const selectOptions = ref<{ label: string; value: string }[]>([]);
-const selectSubscriber = ref("");
-const selectTime = ref("2d");
+const dropdownSubscriberOptions = ref<{ label: string; value: string }[]>([]);
+const selectedSubscriber = ref("");
+const selectedTime = ref("");
 const onuStatus = ref<string | null>(null);
 const oltStatus = ref<string | null>(null);
 const doneApiCalls = ref(false);
@@ -146,21 +148,25 @@ const onuInfo = ref({
   site_name: "",
 });
 
-const clientInfo = reactive({
+const subscriberInfo = reactive({
   accountNumber: "",
   clientName: "",
   onuSerialNumber: "",
   oltIp: "",
   onuMacAddress: "",
-  oltSite: "",
+  // oltSite: "",
   oltInterface: "",
   packageType: "",
+  deviceName: "",
+  ipAssigned: "",
+  oltUpstream: "",
+  oltDownstream: "",
 });
 
-const bandwidth = reactive({
-  upStream: "",
-  downStream: "",
-});
+// const bandwidth = reactive({
+//   upStream: "",
+//   downStream: "",
+// });
 
 const timeOptions = [
   { label: "No Evaluation Time", value: "" },
@@ -176,77 +182,84 @@ const timeOptions = [
   { label: "Last 90 days", value: "90d" },
 ];
 
-const handleSelectTime = (selectedTime: string) => {
-  selectTime.value = selectedTime;
-};
+// Function to fetch the subscriber info based on the selected subscriber when the refresh icon button is clicked
+const fetchSubscriberInfo = async (subscriberId: string) => {
+  console.log("Passed Subscriber ID: ", subscriberId);
+  if (!subscriberId) return; // Ensure a subscriber is selected
 
-const handleSelectSubscriber = (selectedSubscriber: string) => {
-  selectSubscriber.value = selectedSubscriber;
-  fetchClientInfo(selectedSubscriber);
-  console.log("Selected Subscriber: ", selectSubscriber);
-  console.log(
-    `user ${
-      keycloak.tokenParsed.given_name
-    } has accessed the subscriber details of ${selectedSubscriber.toString()}`
-  );
-};
-
-// Fetch subscribers to populate the dropdown
-const fetchSubscribers = async () => {
-  try {
-    const clients = await getHiveActiveSubscribers();
-    selectOptions.value = clients.map((client) => ({
-      label: `${client.onuDeviceName}-${client.ipAssigned}`,
-      value: `${client.onuDeviceName}-${client.ipAssigned}`,
-    }));
-  } catch (error) {
-    console.error("Error fetching clients:", error);
-  }
-};
-
-// Function to fetch client data based on selected subscriber
-const fetchClientInfo = async (deviceName: string) => {
-  if (!deviceName) return; // Ensure a device is selected
-
-  // Logic to find selected client from the options
-  const selectedClient = selectOptions.value.find(
-    (client) => client.value === deviceName
-  );
-
-  if (selectedClient) {
-    const [deviceNamePart, ipAssignedPart] = selectedClient.value.split("-");
+  if (subscriberId) {
+    const numSubscriberId = Number(subscriberId);
+    console.log(
+      "Convert subscriber ID from string to number: ",
+      numSubscriberId
+    );
 
     // Fetch other client info based on selected device name
     try {
-      const clientData = await getHiveActiveSubscribers();
-      const client = clientData.find(
-        (client) =>
-          client.onuDeviceName === deviceNamePart &&
-          client.ipAssigned === ipAssignedPart
-      );
+      const subscriberData = await getHiveClientById(numSubscriberId);
+      console.log("Fetched selected subscriber info: ", subscriberData);
 
-      if (client) {
-        Object.assign(clientInfo, {
-          accountNumber: client.subscriberAccountNumber,
-          clientName: client.clientName,
-          onuSerialNumber: client.onuSerialNumber,
-          oltIp: client.oltIp,
-          onuMacAddress: client.onuMacAddress,
+      if (subscriberData) {
+        Object.assign(subscriberInfo, {
+          accountNumber: subscriberData.subscriberAccountNumber,
+          clientName: subscriberData.clientName,
+          onuSerialNumber: subscriberData.onuSerialNumber,
+          oltIp: subscriberData.oltIp,
+          onuMacAddress: subscriberData.onuMacAddress,
           //oltSite: client.oltSite,
-          oltInterface: client.oltInterface,
-          packageType: client.packageType,
+          oltInterface: subscriberData.oltInterface,
+          packageType: subscriberData.packageType,
+          deviceName: subscriberData.onuDeviceName,
+          ipAssigned: subscriberData.ipAssigned,
+          oltUpstream: subscriberData.oltReportedUpstream,
+          oltDownstream: subscriberData.oltReportedDownstream,
         });
+        console.log("Selected Subscriber Data: ", subscriberInfo);
 
         // Fetch ONU and OLT info from Prometheus
         // await getInfoApiPrometheus(client.onuDeviceName);
         // Fetch ONU and OLT info from Prometheus using the new format
         await getInfoApiPrometheus(
-          `${client.onuDeviceName}-${client.ipAssigned}`
+          `${subscriberData.onuDeviceName}-${subscriberData.ipAssigned}`
         );
       }
     } catch (error) {
-      console.error("Error fetching client info:", error);
+      console.error("Error fetching subscriber info:", error);
+      throw error;
     }
+  }
+};
+
+// Function when the 'Select Status' dropdown is clicked
+const handleSelectTime = (time: { label: string; value: string }) => {
+  selectedTime.value = time.value;
+  console.log("Selected Time: ", selectedTime.value);
+};
+
+// Function when the 'Select Subscriber' dropdown is clicked
+const handleSelectSubscriber = (subscriber: {
+  label: string;
+  value: string;
+}) => {
+  selectedSubscriber.value = subscriber.value;
+  console.log("Selected Subscriber: ", selectedSubscriber.value);
+
+  fetchSubscriberInfo(selectedSubscriber.value); // Fetch subscriber info based on the selected subscriber
+};
+
+// Fetch subscribers to populate the dropdown
+const fetchActiveSubscribers = async () => {
+  try {
+    const activeSubscribers = await getHiveActiveSubscribers();
+    dropdownSubscriberOptions.value = activeSubscribers.map(
+      (activeSubscriber) => ({
+        label: `${activeSubscriber.onuDeviceName}-${activeSubscriber.ipAssigned}`,
+        value: `${activeSubscriber.id}`,
+      })
+    );
+  } catch (error) {
+    console.error("Error fetching active subscribers: ", error);
+    throw error;
   }
 };
 
@@ -254,26 +267,27 @@ const fetchClientInfo = async (deviceName: string) => {
 const getInfoApiPrometheus = async (deviceName: string) => {
   doneApiCalls.value = false;
   try {
-    const onuResponse = await axios.get(
+    const onuPrometheusResponse = await axios.get(
       `${prometheusApi}/api/v1/query?query=lo_status{job="ip_address",site_tenant="DCTECH",device_name="${deviceName}"}`
     );
 
-    if (onuResponse.data.data.result.length > 0) {
-      onuInfo.value = onuResponse.data.data.result[0].metric;
-      onuStatus.value = onuResponse.data.data.result[0].value[1];
+    if (onuPrometheusResponse.data.data.result.length > 0) {
+      onuInfo.value = onuPrometheusResponse.data.data.result[0].metric;
+      onuStatus.value = onuPrometheusResponse.data.data.result[0].value[1];
 
-      const oltResponse = await axios.get(
+      const oltPrometheusResponse = await axios.get(
         `${prometheusApi}/api/v1/query?query=lo_status{job="ip_address",site_tenant="DCTECH",device_name="${onuInfo.value.site_name}"}`
       );
 
-      if (oltResponse.data.data.result.length > 0) {
-        oltStatus.value = oltResponse.data.data.result[0].value[1];
+      if (oltPrometheusResponse.data.data.result.length > 0) {
+        oltStatus.value = oltPrometheusResponse.data.data.result[0].value[1];
       }
     } else {
       console.warn("No ONU data found");
     }
   } catch (error) {
     console.error("Error fetching data from Prometheus:", error);
+    throw error;
   } finally {
     doneApiCalls.value = true;
   }
@@ -281,7 +295,7 @@ const getInfoApiPrometheus = async (deviceName: string) => {
 
 // Fetch subscribers when the component mounts
 onMounted(async () => {
-  await fetchSubscribers();
+  await fetchActiveSubscribers();
 
   const user = keycloak.tokenParsed.given_name;
   const action = "page visit";

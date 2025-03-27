@@ -9,6 +9,7 @@ import {
   IOltSites,
   IPackageDetails,
   INetworkAddresses,
+  IProvisionedSubscriberInfo,
 } from "./types";
 import { keycloak } from "src/boot/keycloak";
 // import { auth } from "src/stores/auth";
@@ -173,7 +174,7 @@ export const executeMonitoring = async (accNum: string) => {
 
 //* SUBSCRIBER APIs *//
 
-//<-------------------------- HIVE/FOR PROVISION ------------------------------------->
+//<-------------------------- PROVISIONED/FOR PROVISION ------------------------------------->
 // GET: /getsubscribers
 // PURPOSE: Fetches subscribers from new_subscriber table where status is 'NEW'
 export const getNewSubscribers = async (): Promise<ISubscribers[]> => {
@@ -278,7 +279,9 @@ export const getSubscriberById = async (
 
 // GET: /getHiveClientById/{id}
 // PURPOSE: Fetches subscriber by ID in hive_clients table
-export const getHiveClientById = async (id: number): Promise<ISubscribers> => {
+export const getHiveClientById = async (
+  id: number
+): Promise<IProvisionedSubscriberInfo> => {
   try {
     console.log("Calling '/getHiveClientById/{id}' API endpoint...");
     const { data } = await api.get("/getHiveClientById/" + id, {
