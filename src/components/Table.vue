@@ -56,7 +56,7 @@
                   )"
                   :key="column.name"
                   :class="[
-                    'px-3 py-2 text-gray-iron-900 font-normal',
+                    'px-3 py-2 text-gray-iron-900',
                     column.name === 'actions'
                       ? 'sticky right-0 z-10 text-center'
                       : '',
@@ -66,9 +66,9 @@
                     column.name === 'onhold'
                       ? 'text-center'
                       : '',
-                    totalRowStyle && row.isTotal
-                      ? 'font-bold bg-primary-gray-50'
-                      : '',
+                    !(totalRowStyle && row.isTotal)
+                      ? 'font-normal'
+                      : 'font-bold bg-primary-gray-50',
                   ]"
                 >
                   <slot
