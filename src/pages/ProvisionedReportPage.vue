@@ -4,13 +4,12 @@
       <div class="full-width q-gutter-y-lg">
         <div>
           <div class="text-xl font-semibold text-gray-iron-90 mb-2">
-            Provisioned Subscribers Report
+            Active/Onhold Subscribers Report
           </div>
 
           <!-- Page description -->
           <p class="text-sm font-regular text-gray-iron-500">
-            Displays total number of provisioned subscribers (ACTIVE / ONHOLD)
-            per location.
+            Displays total number of ACTIVE/ONHOLD subscribers per location.
           </p>
         </div>
 

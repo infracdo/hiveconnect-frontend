@@ -407,32 +407,34 @@ export const getOltSites = async (): Promise<IOltSites[]> => {
   }
 };
 
-// GET: /getOltByIp/{oltIp}
+// GET: /checkOltSiteByIp/{oltIp}
 // PURPOSE: Fetches OLT site by IP address from site_olt table
-// NOTE: THIS API DOES NOT EXIST IN BACKEND
-export const checkOltSiteByIp = async (oltIp: string): Promise<IOltSites> => {
-  try {
-    console.log("Calling '/getOltByIp/{oltIp}' API endpoint...");
-    const { data } = await api.get("/checkOltSiteByIp/" + oltIp, {
-      params: {
-        action: "api call from frontend",
-        user: keycloak.tokenParsed?.preferred_username,
-      },
-    });
-    console.log(
-      "Returned data by calling '/getOltByIp/{oltIp}' API endpoint: ",
-      data
-    );
-    return data;
-  } catch (error) {
-    console.error(
-      "Error while calling '/getOltByIp/{oltIp}' API endpoint: ",
-      error
-    );
-    throw error;
-  }
-};
+// NOTE: THIS API DOES NOT EXIST IN BACKEND; commented instead since the function is saved/stored in the 'dist' directory and could have deployment issues if removed
+// export const checkOltSiteByIp = async (oltIp: string): Promise<IOltSites> => {
+//   try {
+//     console.log("Calling '/checkOltSiteByIp/{oltIp}' API endpoint...");
+//     const { data } = await api.get("/checkOltSiteByIp/" + oltIp, {
+//       params: {
+//         action: "api call from frontend",
+//         user: keycloak.tokenParsed?.preferred_username,
+//       },
+//     });
+//     console.log(
+//       "Returned data by calling '/checkOltSiteByIp/{oltIp}' API endpoint: ",
+//       data
+//     );
+//     return data;
+//   } catch (error) {
+//     console.error(
+//       "Error while calling '/checkOltSiteByIp/{oltIp}' API endpoint: ",
+//       error
+//     );
+//     throw error;
+//   }
+// };
 
+// GET: /getOltByIp/{oltIp}
+// PURPOSE: Fetches OLT information by IP address; used in the TroubleshootClient.vue
 export const getOltSiteByIp = async (oltIp: string): Promise<IOltSites> => {
   try {
     console.log("Calling '/getOltByIp/{oltIp}' API endpoint...");

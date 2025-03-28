@@ -13,17 +13,28 @@
     <q-card-section>
       <div class="flex-row grid grid-cols-7">
         <div v-for="(item, index) in details" :key="index">
+          <!-- Display item label -->
           <p class="text-xs text-gray-iron-500 uppercase mb-2">
             {{ item.label }}
           </p>
+
+          <!-- Display item value -->
           <p
-            v-if="item.label !== 'ONU Status' && item.label !== 'OLT Status'"
+            v-if="
+              item.label !== 'ONU Status' &&
+              item.label !== 'OLT Status' &&
+              !loading
+            "
             class="text-sm text-gray-iron-900"
           >
-            {{ item.value }}
+            {{ item.value ? item.value : "No Data" }}
           </p>
+
+          <!-- Display status with badge -->
           <span
-            v-if="item.value === 'Online' || item.value === 'Offline'"
+            v-if="
+              (item.value === 'Online' || item.value === 'Offline') && !loading
+            "
             :class="[
               'text-sm font-semibold bg-gray-iron-50 px-2 py-1 rounded-lg',
               item.value === 'Online' ? 'text-success-500' : 'text-error-500',
@@ -35,6 +46,10 @@
             />
             {{ item.value }}
           </span>
+
+          <!-- Display spinner when data is still fetching -->
+          <q-spinner-dots v-if="loading" color="primary-600" size="1.4em" />
+
           <p v-else></p>
         </div>
       </div>
@@ -48,5 +63,6 @@ import StatusBadge from "./StatusBadge.vue";
 defineProps<{
   header: string;
   details: { label: string; value: string | number }[];
+  loading?: boolean;
 }>();
 </script>

@@ -184,17 +184,23 @@
             Troubleshoot Subscriber
           </p>
 
-          <!-- <q-icon flat name="autorenew" size="sm" class="cursor-pointer" /> -->
+          <div class="flex flex-row items-center q-gutter-x-md mb-2">
+            <!-- TODO: add this refresh button to reload the subscriber data when clicked -->
+            <q-icon
+              flat
+              name="autorenew"
+              size="sm"
+              class="cursor-pointer"
+              @click="handleRefreshData"
+            />
 
-          <!-- TODO: change color style of this button & add @click event -->
-          <!-- TODO: change this into dropdown button instead of buttons component -->
-          <DropdownButton
-            :modelValue="selectTime"
-            :columnOptions="timeOptions"
-            label="Select time"
-            color="bg-primary-600"
-            textColor="text-white"
-          />
+            <DropdownButton
+              label="Select Time"
+              :columnOptions="timeOptions"
+              :selectedOptions="selectedTime"
+              @select="handleSelectTime"
+            />
+          </div>
         </div>
 
         <!-- REVIEW: v-if doneApiCalls should be added by default but this would hide the cards if the APIs are not responding successfully.
@@ -202,11 +208,11 @@
         <Card
           header="Subscriber Details"
           :details="[
-            { label: 'Subscriber Name', value: clientInfo.clientName },
-            { label: 'Account Number', value: clientInfo.accountNumber },
-            { label: 'Payment Status', value: clientInfo.otcStatus },
+            { label: 'Subscriber Name', value: subscriberInfo.clientName },
+            { label: 'Account Number', value: subscriberInfo.accountNumber },
             { label: 'Package Type', value: bandwidth.name },
           ]"
+          :loading="isLoading"
         />
 
         <!-- ONU Details Card -->
@@ -217,18 +223,21 @@
           :details="[
             {
               label: 'ONU Status',
-              value: selectTime
+              value: selectedTime
                 ? onuStatus === '1'
                   ? 'Online'
                   : 'Offline'
                 : '',
             },
-            { label: 'ONU IP', value: clientInfo.ipAssigned },
-            { label: 'SSID', value: clientInfo.SSID },
-            { label: 'ONU Serial Number', value: clientInfo.onuSerialNumber },
+            { label: 'ONU IP', value: subscriberInfo.ipAssigned },
+            { label: 'SSID', value: subscriberInfo.SSID },
+            {
+              label: 'ONU Serial Number',
+              value: subscriberInfo.onuSerialNumber,
+            },
             {
               label: 'ONU Mac Address',
-              value: clientInfo.onuMacAddress,
+              value: subscriberInfo.onuMacAddress,
             },
             { label: 'Upstream', value: bandwidth.upStream },
             {
@@ -236,6 +245,7 @@
               value: bandwidth.downStream,
             },
           ]"
+          :loading="isLoading"
         />
 
         <!-- OLT Details Card -->
@@ -246,30 +256,31 @@
           :details="[
             {
               label: 'OLT Status',
-              value: selectTime
+              value: selectedTime
                 ? oltStatus === '1'
                   ? 'Online'
                   : 'Offline'
                 : '',
             },
-            { label: 'OLT IP', value: clientInfo.oltIp },
-            { label: 'OLT Site', value: clientInfo.oltSite },
-            { label: 'OLT Interface', value: clientInfo.oltInterface },
+            { label: 'OLT IP', value: subscriberInfo.oltIp },
+            { label: 'OLT Site', value: subscriberInfo.oltSite },
+            { label: 'OLT Interface', value: subscriberInfo.oltInterface },
             {
               label: 'OLT Upstream',
-              value: selectTime ? clientInfo.oltUpstream : '',
+              value: selectedTime ? subscriberInfo.oltUpstream : '',
             },
             {
               label: 'OLT Downstream',
-              value: selectTime ? clientInfo.oltDownstream : '',
+              value: selectedTime ? subscriberInfo.oltDownstream : '',
             },
           ]"
+          :loading="isLoading"
         />
 
         <!-- Grafana Panel -->
         <div class="mt-6">
           <iframe
-            :src="`${grafanaApi}/d-solo/d94d1e0e-a6e4-45c4-847f-6603e1c31ccb/subscribers-traffic-rate-and-uptime?orgId=1&from=now-${selectTime}&to=now&var-Subscriber=${provisionedSubscriberData.onuDeviceName}&panelId=3`"
+            :src="`${grafanaApi}/d-solo/d94d1e0e-a6e4-45c4-847f-6603e1c31ccb/subscribers-traffic-rate-and-uptime?orgId=1&from=now-${selectedTime}&to=now&var-Subscriber=${provisionedSubscriberData.onuDeviceName}&panelId=3`"
             class="grafana-panel"
             frameborder="0"
           >
@@ -281,22 +292,20 @@
 </template>
 
 <script setup lang="ts">
-import { useQuasar } from "quasar";
-import { toRefs, ref, reactive, watch, onMounted } from "vue";
+// import { useQuasar } from "quasar";
+import { ref, reactive, onMounted, watch, computed } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import axios from "axios";
 import Swal from "sweetalert2";
 import {
   getHiveClientById,
-  checkOltSiteByIp,
+  getOltSiteByIp,
   checkPackageDetails,
-  // getOtcStatus,
   addFrontendLogger,
   sendHiveProvisionedStatusCallback,
 } from "src/api/HiveConnectApis/hiveConnect";
 import { toInitialCapital } from "src/util/string";
 import { useKeycloak } from "src/composables/useKeycloak";
-import Inputs from "../inputs/Inputs.vue";
 import Card from "../Card.vue";
 import DropdownButton from "../DropdownButton.vue";
 import StatusBadge from "../StatusBadge.vue";
@@ -305,22 +314,16 @@ import Buttons from "../inputs/Buttons.vue";
 const router = useRouter();
 const route = useRoute();
 const keycloak = useKeycloak();
-const testmodal = ref(true);
-const $q = useQuasar();
-// const props = defineProps<{
-//   isVisible: boolean;
-//   closeModal: Function;
-//   deviceName: string;
-//   clientId: number;
-// }>();
-const doneApiCalls = ref(false);
-// const { isVisible } = toRefs(props);
-// const localIsVisible = ref(props.isVisible);
-// const selectTime = ref("2d");
-const selectTime = ref("");
+// const doneApiCalls = ref(false);
+const selectedTime = ref("2d");
 const onuStatus = ref("");
 const oltStatus = ref("");
-const subscriberAccountNo = route.params.accountNo;
+// const deviceName = ref("");
+const subscriberId = ref(0);
+const accountNumber = ref("");
+const isLoading = ref(false);
+
+// const subscriberAccountNo = route.params.accountNo;
 const provisionedSubscriberData = ref(
   (router.options.history.state as { provisionedSubscriberData?: any })
     ?.provisionedSubscriberData || {}
@@ -342,7 +345,7 @@ const onuInfo = ref({
   provisioned_by: "",
 });
 
-const clientInfo = reactive({
+const subscriberInfo = reactive({
   accountNumber: "",
   clientName: "",
   ipAssigned: "",
@@ -354,9 +357,9 @@ const clientInfo = reactive({
   oltSite: "",
   oltInterface: "",
   SSID: "",
-  otcStatus: "",
-  oltUpstream: 0,
-  oltDownstream: 0,
+  otcStatus: "", // Payment Status in UI
+  oltUpstream: "", // Changed from number (0) to string
+  oltDownstream: "", // Changed from number (0) to string
 });
 const bandwidth = reactive({
   upStream: "",
@@ -365,6 +368,7 @@ const bandwidth = reactive({
 });
 
 const timeOptions = [
+  { label: "No Evaluation Time", value: "" },
   { label: "Last 5 minutes", value: "5m" },
   { label: "Last 15 minutes", value: "15m" },
   { label: "Last 30 minutes", value: "30m" },
@@ -460,36 +464,82 @@ const handleAbsStatusCallback = () => {
   });
 };
 
-// Method to trigger when the Back button is clicked
+// Function to trigger when the Back button is clicked
 const goBack = () => {
   router.push({ name: "provisioned" });
 };
 
-const getInfoApiPrometheus = async (deviceName: string, id: number) => {
-  console.log(deviceName);
-  $q.loading.show();
-
+// Function to trigger when the refresh button is clicked
+const handleRefreshData = () => {
   try {
-    if (!deviceName) {
+    getInfoApiPrometheus(accountNumber.value, subscriberId.value);
+  } catch (error) {
+    console.error("Error while clicking the refresh button: ", error);
+    throw error;
+  }
+};
+
+// Function to trigger when the 'Select Time' dropdown is clicked
+const handleSelectTime = (time: { label: string; value: string }) => {
+  selectedTime.value = time.value;
+  console.log("Selected Time: ", selectedTime.value);
+};
+
+const getInfoApiPrometheus = async (accNumber: string, id: number) => {
+  try {
+    isLoading.value = true;
+    console.log(
+      `Passed data to getInfoApiPrometheus function - Account Number: ${accNumber}, ID: ${id}`
+    );
+
+    if (!accNumber && !id) {
       return;
     }
 
-    //Prometheus
-    const onuInfoResponse = await axios.get(
-      `${prometheusApi}/api/v1/query?query=lo_status{job=%22ip_address%22,site_tenant=%22DCTECH%22,device_name="${deviceName}"}`
+    // Fetch subscriber info from Prometheus
+    const subscriberInfoResponse = await axios.get(
+      `${prometheusApi}/api/v1/query?query=lo_status{job=%22subscriber%22,site_tenant=%22DATACONNECT%22,account_number="${accNumber}"}`
     );
-    console.log("ONU Prometheus: ", onuInfoResponse.data.data.result[0].metric);
+    console.log("Returned Subscriber Info Response: ", subscriberInfoResponse);
+    console.log(
+      "Returned Subscriber Info Metric: ",
+      subscriberInfoResponse.data.data.result.metric
+    );
 
-    onuInfo.value = onuInfoResponse.data.data.result[0].metric;
-    onuStatus.value = onuInfoResponse.data.data.result[0].value[1];
+    // Fetch ONU info from Prometheus
+    // const onuInfoResponse = await axios.get(
+    //   `${prometheusApi}/api/v1/query?query=lo_status{job=%22subscriber%22,site_tenant=%22DATACONNECT%22,account_number="${accNumber}"}`
+    // );
+    // console.log("Returned ONU Prometheus Response: ", onuInfoResponse);
+    // console.log(
+    //   "Returned ONU Prometheus Metric: ",
+    //   onuInfoResponse.data.data.result[0].metric
+    // );
+
+    // onuInfo.value = onuInfoResponse.data.data.result[0].metric;
+    // console.log("Stored ONU Info Data: ", onuInfo.value);
+    // onuStatus.value = onuInfoResponse.data.data.result[0].value[1];
+    // console.log("Stored ONU Status Data: ", onuStatus.value);
+
+    onuInfo.value = subscriberInfoResponse.data.data.result[0].metric;
+    console.log("Stored ONU Info Data: ", onuInfo.value);
+    onuStatus.value = subscriberInfoResponse.data.data.result[0].value[1];
+    console.log("Stored ONU Status Data: ", onuStatus.value);
 
     const OltDeviceName = onuInfo.value.olt_ip;
-    // Prometheus
-    const oltInfoResponse = await axios.get(
-      `${prometheusApi}/api/v1/query?query=lo_status{job=%22ip_address%22,site_tenant=%22DCTECH%22,device_name="OLT-${OltDeviceName}"}`
-    );
+    console.log("Stored OLT Device Name: ", OltDeviceName);
 
-    oltStatus.value = oltInfoResponse.data.data.result[0].value[1];
+    // Fetch OLT info from Prometheus
+    // const oltInfoResponse = await axios.get(
+    //   `${prometheusApi}/api/v1/query?query=lo_status{job=%22subscriber%22,site_tenant=%22DATACONNECT%22,account_number="${accNumber}"}`
+    // );
+    // console.log("Returned OLT Prometheus Response: ", oltInfoResponse);
+
+    // oltStatus.value = oltInfoResponse.data.data.result[0].value[1];
+    // console.log("Stored OLT Status Data: ", oltStatus.value);
+
+    oltStatus.value = subscriberInfoResponse.data.data.result[0].value[1];
+    console.log("Stored OLT Status Data: ", oltStatus.value);
 
     const {
       subscriberAccountNumber,
@@ -506,31 +556,28 @@ const getInfoApiPrometheus = async (deviceName: string, id: number) => {
       oltReportedUpstream,
     } = await getHiveClientById(id);
 
-    // NOTE: commented since getOtcStatus did not exist as API in Hive backend
-    // const response = await getOtcStatus(id);
-    // console.log(response);
-
-    // clientInfo.otcStatus = response;
-
-    clientInfo.accountNumber = subscriberAccountNumber;
-    clientInfo.clientName = clientName;
-    clientInfo.ipAssigned = ipAssigned;
-    clientInfo.oltIp = oltIp;
-    clientInfo.SSID = ssidName;
-    clientInfo.oltInterface = oltInterface;
-    clientInfo.onuDeviceName = onuDeviceName;
-    clientInfo.onuMacAddress = onuMacAddress;
-    clientInfo.onuSerialNumber = onuSerialNumber;
-    clientInfo.packageTypeId = packageType;
-    clientInfo.oltUpstream = oltReportedUpstream;
-    clientInfo.oltDownstream = oltReportedDownstream;
-    console.log(oltReportedUpstream, oltReportedDownstream);
+    subscriberInfo.accountNumber = subscriberAccountNumber;
+    subscriberInfo.clientName = clientName;
+    subscriberInfo.ipAssigned = ipAssigned;
+    subscriberInfo.oltIp = oltIp;
+    subscriberInfo.SSID = ssidName;
+    subscriberInfo.oltInterface = oltInterface;
+    subscriberInfo.onuDeviceName = onuDeviceName;
+    subscriberInfo.onuMacAddress = onuMacAddress;
+    subscriberInfo.onuSerialNumber = onuSerialNumber;
+    subscriberInfo.packageTypeId = packageType;
+    subscriberInfo.oltUpstream = oltReportedUpstream;
+    subscriberInfo.oltDownstream = oltReportedDownstream;
+    // console.log(oltReportedUpstream, oltReportedDownstream);
+    console.log("Stored Data in subscriberInfo variable: ", subscriberInfo);
 
     try {
-      const oltSitePo = await checkOltSiteByIp(clientInfo.oltIp);
-      console.log(oltSitePo);
+      const oltSiteData = await getOltSiteByIp(subscriberInfo.oltIp);
+      console.log("Fetched OLT Site Data by IP: ", oltSiteData);
 
-      clientInfo.oltSite = oltSitePo.oltName;
+      subscriberInfo.oltSite = oltSiteData.oltName;
+      console.log("Stored OLT Site in OLT Site: ", subscriberInfo.oltSite);
+
       const { upstream, downstream, name } = await checkPackageDetails(
         packageType
       );
@@ -539,15 +586,23 @@ const getInfoApiPrometheus = async (deviceName: string, id: number) => {
       bandwidth.upStream = upstream;
       bandwidth.downStream = downstream;
     } catch (err) {
+      console.error("Error while fetching OLT site and package details: ", err);
       throw err;
     }
 
-    doneApiCalls.value = true;
+    // doneApiCalls.value = true;
   } catch (err) {
-    console.log(err);
+    console.log("Error while fetching data from Prometheus: ", err);
+    throw err;
+  } finally {
+    isLoading.value = false;
   }
-  $q.loading.hide();
 };
+
+// Watch when a time is selected and retry Grafana
+// watch(selectedTime, () => {
+//   retryGrafana();
+// });
 
 // watch(isVisible, () => {
 //   if (isVisible.value === true) {
@@ -557,10 +612,22 @@ const getInfoApiPrometheus = async (deviceName: string, id: number) => {
 
 onMounted(() => {
   if (provisionedSubscriberData.value) {
+    // deviceName.value = provisionedSubscriberData.value.onuDeviceName;
+    accountNumber.value =
+      provisionedSubscriberData.value.subscriberAccountNumber;
+    subscriberId.value = provisionedSubscriberData.value.id;
     console.log(
       "Data received from Active/Onhold Subscribers Page: ",
       provisionedSubscriberData.value
     );
+
+    try {
+      // Fetch subscriber data from Prometheus
+      getInfoApiPrometheus(accountNumber.value, subscriberId.value);
+    } catch (error) {
+      console.error("Error fetching subscriber data from Prometheus: ", error);
+      throw error;
+    }
   } else {
     console.log("No data received from Active/Onhold Subscribers Page.");
   }

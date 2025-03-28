@@ -5,7 +5,7 @@
       v-model="drawer"
       :mini="!drawer || miniState"
       @click.capture="drawerClick"
-      :width="300"
+      :width="330"
       :breakpoint="500"
       class="bg-hiveconnect-slate"
     >
@@ -43,7 +43,7 @@
           />
 
           <DrawerTile
-            title="Provisioned Subscribers Report"
+            title="Active/Onhold Subscribers Report"
             icon="bi-stickies-fill"
             to="provisionedreport"
           />
