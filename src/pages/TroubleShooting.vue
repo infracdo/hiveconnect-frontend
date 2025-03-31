@@ -54,10 +54,11 @@
           <Card
             header="Subscriber Details"
             :details="[
-              { label: 'Subscriber Name', value: subscriberInfo.clientName },
               { label: 'Account Number', value: subscriberInfo.accountNumber },
+              { label: 'Subscriber Name', value: subscriberInfo.clientName },
               { label: 'Package Type', value: subscriberInfo.packageType },
             ]"
+            :loading="isLoading"
           />
 
           <!-- ONU details card -->
@@ -66,8 +67,8 @@
             :details="[
               {
                 label: 'ONU Status',
-                value: selectedSubscriber
-                  ? onuStatus === '1'
+                value: onuInfo
+                  ? onuInfo.site_status === 'active'
                     ? 'Online'
                     : 'Offline'
                   : '',
@@ -81,6 +82,7 @@
               { label: 'Upstream', value: subscriberInfo.oltUpstream },
               { label: 'Downstream', value: subscriberInfo.oltDownstream },
             ]"
+            :loading="isLoading"
           />
 
           <!-- OLT details card -->
@@ -96,16 +98,17 @@
                   : '',
               },
               { label: 'OLT IP', value: subscriberInfo.oltIp },
-              { label: 'OLT Site', value: onuInfo.site_name },
+              { label: 'OLT Site', value: 'test-site' },
               { label: 'OLT Interface', value: subscriberInfo.oltInterface },
             ]"
+            :loading="isLoading"
           />
 
           <!-- Grafana panel -->
           <div class="grafana-main">
             <div class="grafana">
               <iframe
-                v-if="doneApiCalls"
+                v-if="donePrometheusCall"
                 :src="`${grafanaApi}/d-solo/d94d1e0e-a6e4-45c4-847f-6603e1c31ccb/subscribers-traffic-rate-and-uptime?orgId=1&from=now-${selectedTime}&to=now&var-Subscriber=${selectedSubscriber}&panelId=3`"
                 class="grafana-panel"
                 frameborder="0"
@@ -127,7 +130,7 @@ import {
   getHiveActiveSubscribers,
   addFrontendLogger,
   getHiveClientById,
-} from "src/api/HiveConnectApis/hiveConnect"; // Ensure this is correctly imported
+} from "src/api/HiveConnectApis/hiveConnect";
 import { useKeycloak } from "src/composables/useKeycloak";
 import DropdownButton from "src/components/DropdownButton.vue";
 import Card from "src/components/Card.vue";
@@ -137,17 +140,22 @@ const keycloak = useKeycloak();
 const dropdownSubscriberOptions = ref<{ label: string; value: string }[]>([]);
 const selectedSubscriber = ref("");
 const selectedTime = ref("");
-const onuStatus = ref<string | null>(null);
+const isLoading = ref(false);
+// const onuStatus = ref<string | null>(null);
 const oltStatus = ref<string | null>(null);
-const doneApiCalls = ref(false);
+const donePrometheusCall = ref(false);
 const prometheusApi = process.env.PROVISION_API_PROMETHEUS;
 const grafanaApi = process.env.PROVISION_API_GRAFANA;
 
+// Stores ONU information from Prometheus API call
 const onuInfo = ref({
-  instance: "",
-  site_name: "",
+  device_role: "", // ONU device
+  instance: "", // ONU IP (ip_assigned in database)
+  site_status: "", // Either "active" or "inactive"
+  site_tenant: "", // Should be "DATACONNECT"
 });
 
+// Stores subscriber information from backend/database API call
 const subscriberInfo = reactive({
   accountNumber: "",
   clientName: "",
@@ -168,6 +176,7 @@ const subscriberInfo = reactive({
 //   downStream: "",
 // });
 
+// Options for 'Select Time' dropdown button
 const timeOptions = [
   { label: "No Evaluation Time", value: "" },
   { label: "Last 5 minutes", value: "5m" },
@@ -182,51 +191,48 @@ const timeOptions = [
   { label: "Last 90 days", value: "90d" },
 ];
 
-// Function to fetch the subscriber info based on the selected subscriber when the refresh icon button is clicked
+// Function to fetch the subscriber info based on the selected subscriber; used also when the refresh icon button is clicked
 const fetchSubscriberInfo = async (subscriberId: string) => {
+  isLoading.value = true;
   console.log("Passed Subscriber ID: ", subscriberId);
   if (!subscriberId) return; // Ensure a subscriber is selected
 
-  if (subscriberId) {
-    const numSubscriberId = Number(subscriberId);
-    console.log(
-      "Convert subscriber ID from string to number: ",
-      numSubscriberId
-    );
+  // Convert the passed subscriber ID from string to number/integer as parameter for the API call
+  const numSubscriberId = Number(subscriberId);
+  console.log("Convert subscriber ID from string to number: ", numSubscriberId);
 
-    // Fetch other client info based on selected device name
-    try {
-      const subscriberData = await getHiveClientById(numSubscriberId);
-      console.log("Fetched selected subscriber info: ", subscriberData);
+  // Fetch other client info based on selected device name
+  try {
+    // Fetch the subscriber info from the database through API call
+    const subscriberData = await getHiveClientById(numSubscriberId);
+    console.log("Fetched selected subscriber info: ", subscriberData);
 
-      if (subscriberData) {
-        Object.assign(subscriberInfo, {
-          accountNumber: subscriberData.subscriberAccountNumber,
-          clientName: subscriberData.clientName,
-          onuSerialNumber: subscriberData.onuSerialNumber,
-          oltIp: subscriberData.oltIp,
-          onuMacAddress: subscriberData.onuMacAddress,
-          //oltSite: client.oltSite,
-          oltInterface: subscriberData.oltInterface,
-          packageType: subscriberData.packageType,
-          deviceName: subscriberData.onuDeviceName,
-          ipAssigned: subscriberData.ipAssigned,
-          oltUpstream: subscriberData.oltReportedUpstream,
-          oltDownstream: subscriberData.oltReportedDownstream,
-        });
-        console.log("Selected Subscriber Data: ", subscriberInfo);
+    // Assign the values to its corresponding variables if there's subscriber information fetched
+    if (subscriberData) {
+      Object.assign(subscriberInfo, {
+        accountNumber: subscriberData.subscriberAccountNumber,
+        clientName: subscriberData.clientName,
+        onuSerialNumber: subscriberData.onuSerialNumber,
+        oltIp: subscriberData.oltIp,
+        onuMacAddress: subscriberData.onuMacAddress,
+        //oltSite: client.oltSite,
+        oltInterface: subscriberData.oltInterface,
+        packageType: subscriberData.packageType,
+        deviceName: subscriberData.onuDeviceName,
+        ipAssigned: subscriberData.ipAssigned,
+        oltUpstream: subscriberData.oltReportedUpstream,
+        oltDownstream: subscriberData.oltReportedDownstream,
+      });
+      console.log("Selected Subscriber Data: ", subscriberInfo);
 
-        // Fetch ONU and OLT info from Prometheus
-        // await getInfoApiPrometheus(client.onuDeviceName);
-        // Fetch ONU and OLT info from Prometheus using the new format
-        await getInfoApiPrometheus(
-          `${subscriberData.onuDeviceName}-${subscriberData.ipAssigned}`
-        );
-      }
-    } catch (error) {
-      console.error("Error fetching subscriber info:", error);
-      throw error;
+      // Call the 'getInfoApiPrometheus' function to fetch the subscriber's ONU and OLT data from Prometheus through API call
+      await getInfoApiPrometheus(subscriberInfo.accountNumber);
+    } else {
+      console.warn("No subscriber data from the database.");
     }
+  } catch (error) {
+    console.error("Error fetching subscriber info:", error);
+    throw error;
   }
 };
 
@@ -244,16 +250,19 @@ const handleSelectSubscriber = (subscriber: {
   selectedSubscriber.value = subscriber.value;
   console.log("Selected Subscriber: ", selectedSubscriber.value);
 
-  fetchSubscriberInfo(selectedSubscriber.value); // Fetch subscriber info based on the selected subscriber
+  // Call the 'fetchSubscriberInfo' function to fetch subscriber info based on the selected subscriber
+  fetchSubscriberInfo(selectedSubscriber.value);
 };
 
-// Fetch subscribers to populate the dropdown
+// Fetch ACTIVE subscribers to populate the 'Select Subscriber' dropdown
 const fetchActiveSubscribers = async () => {
   try {
-    const activeSubscribers = await getHiveActiveSubscribers();
+    const activeSubscribers = await getHiveActiveSubscribers(); // Fetch ACTIVE subscribers from 'hive_clients' table
+
+    // Populate the 'Select Subscriber' dropdown button from the retrieved ACTIVE subscribers
     dropdownSubscriberOptions.value = activeSubscribers.map(
       (activeSubscriber) => ({
-        label: `${activeSubscriber.onuDeviceName}-${activeSubscriber.ipAssigned}`,
+        label: activeSubscriber.subscriberAccountNumber,
         value: `${activeSubscriber.id}`,
       })
     );
@@ -264,39 +273,38 @@ const fetchActiveSubscribers = async () => {
 };
 
 // Function to fetch ONU and OLT info from Prometheus
-const getInfoApiPrometheus = async (deviceName: string) => {
-  doneApiCalls.value = false;
+const getInfoApiPrometheus = async (acctNumber: string) => {
   try {
-    const onuPrometheusResponse = await axios.get(
-      `${prometheusApi}/api/v1/query?query=lo_status{job="ip_address",site_tenant="DCTECH",device_name="${deviceName}"}`
-    );
+    donePrometheusCall.value = false; // Flag for when displaying Grafana
 
+    console.log(`Passed Account Number to getInfoApiPrometheus: ${acctNumber}`);
+
+    // Fetch subscriber's ONU data from Prometheus through API call
+    const onuPrometheusResponse = await axios.get(
+      `${prometheusApi}/api/v1/query?query=lo_status{job="subscriber",site_tenant="DATACONNECT",account_number="${acctNumber}"}`
+    );
+    console.log("Returned response from Prometheus: ", onuPrometheusResponse);
+
+    // Check if ONU has data in Prometheus based on API call response
     if (onuPrometheusResponse.data.data.result.length > 0) {
       onuInfo.value = onuPrometheusResponse.data.data.result[0].metric;
-      onuStatus.value = onuPrometheusResponse.data.data.result[0].value[1];
-
-      const oltPrometheusResponse = await axios.get(
-        `${prometheusApi}/api/v1/query?query=lo_status{job="ip_address",site_tenant="DCTECH",device_name="${onuInfo.value.site_name}"}`
-      );
-
-      if (oltPrometheusResponse.data.data.result.length > 0) {
-        oltStatus.value = oltPrometheusResponse.data.data.result[0].value[1];
-      }
     } else {
-      console.warn("No ONU data found");
+      console.warn("No ONU Data Found in Prometheus.");
     }
   } catch (error) {
     console.error("Error fetching data from Prometheus:", error);
     throw error;
   } finally {
-    doneApiCalls.value = true;
+    donePrometheusCall.value = true;
   }
+  isLoading.value = false;
 };
 
 // Fetch subscribers when the component mounts
 onMounted(async () => {
-  await fetchActiveSubscribers();
+  await fetchActiveSubscribers(); // Call 'fetchActiveSubscribers' function for fetching ACTIVE subscribers
 
+  // Send frontend action log to backend for writing '.log' system file
   const user = keycloak.tokenParsed.given_name;
   const action = "page visit";
   const details = `${user} visited the ${route.path} page`;
