@@ -2,7 +2,7 @@
   <div class="flex flex-row m-4 gap-2">
     <!-- Hive Logo -->
     <img
-      src="/public/icons/bee-hive-32x32.png"
+      src="/icons/bee-hive-32x32.png"
       class="w-8 h-8 mt-2 mb-2 cursor-default"
     />
 
