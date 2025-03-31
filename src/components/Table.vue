@@ -131,8 +131,9 @@
 
     <!-- Pagination controls -->
     <div v-if="pagination" class="flex justify-end items-center">
+      <!-- Previous button -->
       <q-btn
-        @click="prevPage"
+        @click="handlePrevPage"
         flat
         no-caps
         :disable="currentPage === 1"
@@ -142,12 +143,14 @@
         <p class="font-semibold">Prev</p>
       </q-btn>
 
+      <!-- Pages text -->
       <span class="mx-2 text-gray-iron-500">
         {{ itemsDisplayed }} of {{ tableRows.length }}
       </span>
 
+      <!-- Next button -->
       <q-btn
-        @click="nextPage"
+        @click="handleNextPage"
         flat
         no-caps
         :disable="currentPage === totalPages"
@@ -155,6 +158,17 @@
       >
         <p class="font-semibold">Next</p>
         <q-icon name="chevron_right" size="xs" />
+      </q-btn>
+
+      <!-- Last button -->
+      <q-btn
+        @click="handleLastPage"
+        flat
+        no-caps
+        :disable="currentPage === totalPages"
+        class="px-4 py-2 rounded text-primary-600"
+      >
+        <p class="font-semibold">Last</p>
       </q-btn>
     </div>
   </div>
@@ -219,17 +233,22 @@ const itemsDisplayed = computed(() => {
 });
 
 // Go to next table page
-const nextPage = () => {
+const handleNextPage = () => {
   if (currentPage.value < totalPages.value) {
     currentPage.value++;
   }
 };
 
 // Go back to previous table page
-const prevPage = () => {
+const handlePrevPage = () => {
   if (currentPage.value > 1) {
     currentPage.value--;
   }
+};
+
+// Go to the last table page
+const handleLastPage = () => {
+  currentPage.value = totalPages.value;
 };
 
 // Method when a table row is clicked
