@@ -61,7 +61,7 @@
           /> -->
 
           <!-- <div class="flex-grow"></div> -->
-          <DrawerFooter />
+          <!-- <DrawerFooter /> -->
         </q-list>
       </q-scroll-area>
       <!-- <div class="flex flex-row"></div> -->
@@ -76,7 +76,7 @@
 </template>
 
 <script setup lang="ts">
-import Logout from "src/components/Logout.vue";
+// import Logout from "src/components/Logout.vue";
 import { onMounted, ref, watch } from "vue";
 // import { keycloak } from "src/boot/keycloak";
 import { useQuasar } from "quasar";
@@ -85,7 +85,7 @@ import EssentialLink, {
   EssentialLinkProps,
 } from "components/EssentialLink.vue";
 import DrawerHeader from "src/components/DrawerHeader.vue";
-import DrawerFooter from "src/components/DrawerFooter.vue";
+// import DrawerFooter from "src/components/DrawerFooter.vue";
 import DrawerTile from "src/components/DrawerTile.vue";
 import DrawerTileChild from "src/components/DrawerTileChild.vue";
 import DrawerExpansionTile from "src/components/DrawerExpansionTile.vue";
