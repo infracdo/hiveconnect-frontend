@@ -44,6 +44,7 @@
               :columnOptions="dropdownSubscriberOptions"
               :selectedOptions="selectedSubscriber"
               label="Select Subscriber"
+              :disable="!hasActiveSubscribers"
             />
           </div>
         </div>
@@ -59,6 +60,7 @@
               { label: 'Package Type', value: subscriberInfo.packageType },
             ]"
             :loading="isLoading"
+            :showNoData="!!selectedSubscriber"
           />
 
           <!-- ONU details card -->
@@ -67,7 +69,7 @@
             :details="[
               {
                 label: 'ONU Status',
-                value: onuInfo
+                value: selectedSubscriber
                   ? onuInfo.site_status === 'active'
                     ? 'Online'
                     : 'Offline'
@@ -83,6 +85,7 @@
               { label: 'Downstream', value: subscriberInfo.oltDownstream },
             ]"
             :loading="isLoading"
+            :showNoData="!!selectedSubscriber"
           />
 
           <!-- OLT details card -->
@@ -98,10 +101,11 @@
                   : '',
               },
               { label: 'OLT IP', value: subscriberInfo.oltIp },
-              { label: 'OLT Site', value: 'test-site' },
+              { label: 'OLT Site', value: '' },
               { label: 'OLT Interface', value: subscriberInfo.oltInterface },
             ]"
             :loading="isLoading"
+            :showNoData="!!selectedSubscriber"
           />
 
           <!-- Grafana panel -->
@@ -109,7 +113,7 @@
             <div class="grafana">
               <iframe
                 v-if="donePrometheusCall"
-                :src="`${grafanaApi}/d-solo/d94d1e0e-a6e4-45c4-847f-6603e1c31ccb/subscribers-traffic-rate-and-uptime?orgId=1&from=now-${selectedTime}&to=now&var-Subscriber=${selectedSubscriber}&panelId=3`"
+                :src="grafanaPanelUrl"
                 class="grafana-panel"
                 frameborder="0"
               >
@@ -123,7 +127,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, reactive } from "vue";
+import { ref, onMounted, reactive, computed } from "vue";
 import { useRoute } from "vue-router";
 import axios from "axios";
 import {
@@ -137,10 +141,12 @@ import Card from "src/components/Card.vue";
 
 const route = useRoute();
 const keycloak = useKeycloak();
+const subscribersMap = ref<Record<string, string>>({});
 const dropdownSubscriberOptions = ref<{ label: string; value: string }[]>([]);
 const selectedSubscriber = ref("");
-const selectedTime = ref("");
+const selectedTime = ref("2d");
 const isLoading = ref(false);
+const hasActiveSubscribers = ref(false);
 // const onuStatus = ref<string | null>(null);
 const oltStatus = ref<string | null>(null);
 const donePrometheusCall = ref(false);
@@ -191,13 +197,45 @@ const timeOptions = [
   { label: "Last 90 days", value: "90d" },
 ];
 
-// Function to fetch the subscriber info based on the selected subscriber; used also when the refresh icon button is clicked
-const fetchSubscriberInfo = async (subscriberId: string) => {
-  isLoading.value = true;
-  console.log("Passed Subscriber ID: ", subscriberId);
-  if (!subscriberId) return; // Ensure a subscriber is selected
+// Grafana panel URL
+const grafanaPanelUrl = computed(() => {
+  if (!selectedSubscriber) return "";
+  console.log(
+    "Selected Subscriber in grafanaPanelUrl: ",
+    selectedSubscriber.value
+  );
+  console.log("Selected Time in grafanaPanelUrl: ", selectedTime.value);
 
-  // Convert the passed subscriber ID from string to number/integer as parameter for the API call
+  const baseUrl = `${grafanaApi}/d/1_dw5n2Hk/subscribers-traffic-rate-and-uptime`;
+  const orgId = "orgId=1";
+  const subscriberVariable = `var-subscriber=${selectedSubscriber.value}`;
+  const relativeTimeRange = selectedTime.value
+    ? `&from=now-${selectedTime.value}&to=now`
+    : "";
+
+  return `${baseUrl}?${orgId}&${subscriberVariable}${relativeTimeRange}&viewPanel=3`;
+});
+
+// Function to fetch the subscriber info based on the selected subscriber; used also when the refresh icon button is clicked
+const fetchSubscriberInfo = async (accountNumber: string) => {
+  isLoading.value = true;
+
+  console.log(
+    "Passed Subscriber Account Number in fetchSubscriberInfo: ",
+    accountNumber
+  );
+
+  if (!accountNumber) return; // Ensure a subscriber is selected
+
+  // Get the ID from the mapping
+  const subscriberId = subscribersMap.value[accountNumber];
+  console.log("Subscriber ID mapped with account number: ", subscriberId);
+  if (!subscriberId) {
+    console.error("No subscriber ID found for account number: ", accountNumber);
+    return;
+  }
+
+  // Convert the subscriber ID from string to number/integer as parameter for the API call
   const numSubscriberId = Number(subscriberId);
   console.log("Convert subscriber ID from string to number: ", numSubscriberId);
 
@@ -257,15 +295,26 @@ const handleSelectSubscriber = (subscriber: {
 // Fetch ACTIVE subscribers to populate the 'Select Subscriber' dropdown
 const fetchActiveSubscribers = async () => {
   try {
+    hasActiveSubscribers.value = false;
+
     const activeSubscribers = await getHiveActiveSubscribers(); // Fetch ACTIVE subscribers from 'hive_clients' table
+
+    subscribersMap.value = {};
 
     // Populate the 'Select Subscriber' dropdown button from the retrieved ACTIVE subscribers
     dropdownSubscriberOptions.value = activeSubscribers.map(
-      (activeSubscriber) => ({
-        label: activeSubscriber.subscriberAccountNumber,
-        value: `${activeSubscriber.id}`,
-      })
+      (activeSubscriber) => {
+        const accountNumber = activeSubscriber.subscriberAccountNumber;
+
+        subscribersMap.value[accountNumber] = activeSubscriber.id.toString();
+        return {
+          label: accountNumber,
+          value: accountNumber,
+        };
+      }
     );
+
+    hasActiveSubscribers.value = true;
   } catch (error) {
     console.error("Error fetching active subscribers: ", error);
     throw error;

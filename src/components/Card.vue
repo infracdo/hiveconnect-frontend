@@ -27,7 +27,7 @@
             "
             class="text-sm text-gray-iron-900"
           >
-            {{ item.value ? item.value : "No Data" }}
+            {{ item.value ? item.value : showNoData ? "No Data" : "" }}
           </p>
 
           <!-- Display status with badge -->
@@ -64,5 +64,6 @@ defineProps<{
   header: string;
   details: { label: string; value: string | number }[];
   loading?: boolean;
+  showNoData?: boolean;
 }>();
 </script>
