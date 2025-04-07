@@ -185,7 +185,6 @@
           </p>
 
           <div class="flex flex-row items-center q-gutter-x-md mb-2">
-            <!-- TODO: add this refresh button to reload the subscriber data when clicked -->
             <q-icon
               flat
               name="autorenew"
@@ -203,33 +202,30 @@
           </div>
         </div>
 
-        <!-- REVIEW: v-if doneApiCalls should be added by default but this would hide the cards if the APIs are not responding successfully.
-         i think mas nice if naka display na daan ang cards pero blank lng if dli ga respond/error ang API calls -->
+        <!-- Subscriber Details Card -->
         <Card
           header="Subscriber Details"
           :details="[
             { label: 'Subscriber Name', value: subscriberInfo.clientName },
             { label: 'Account Number', value: subscriberInfo.accountNumber },
-            { label: 'Package Type', value: bandwidth.name },
+            { label: 'Package Type', value: subscriberInfo.packageTypeId },
           ]"
           :loading="isLoading"
         />
 
         <!-- ONU Details Card -->
-        <!-- REVIEW: v-if doneApiCalls should be added by default but this would hide the cards if the APIs are not responding successfully.
-         i think mas nice if naka display na daan ang cards pero blank lng if dli ga respond/error ang API calls -->
         <Card
           header="ONU Details"
           :details="[
             {
               label: 'ONU Status',
               value: selectedTime
-                ? onuStatus === '1'
+                ? onuInfo.site_status === 'active'
                   ? 'Online'
                   : 'Offline'
                 : '',
             },
-            { label: 'ONU IP', value: subscriberInfo.ipAssigned },
+            { label: 'ONU IP', value: onuInfo.instance },
             { label: 'SSID', value: subscriberInfo.SSID },
             {
               label: 'ONU Serial Number',
@@ -239,25 +235,23 @@
               label: 'ONU Mac Address',
               value: subscriberInfo.onuMacAddress,
             },
-            { label: 'Upstream', value: bandwidth.upStream },
+            { label: 'Upstream', value: subscriberInfo.oltUpstream },
             {
               label: 'Downstream',
-              value: bandwidth.downStream,
+              value: subscriberInfo.oltDownstream,
             },
           ]"
           :loading="isLoading"
         />
 
         <!-- OLT Details Card -->
-        <!-- REVIEW: v-if doneApiCalls should be added by default but this would hide the cards if the APIs are not responding successfully.
-         i think mas nice if naka display na daan ang cards pero blank lng if dli ga respond/error ang API calls -->
         <Card
           header="OLT Details"
           :details="[
             {
               label: 'OLT Status',
               value: selectedTime
-                ? oltStatus === '1'
+                ? oltStatus === 'active'
                   ? 'Online'
                   : 'Offline'
                 : '',
@@ -280,7 +274,8 @@
         <!-- Grafana Panel -->
         <div class="mt-6">
           <iframe
-            :src="`${grafanaApi}/d-solo/d94d1e0e-a6e4-45c4-847f-6603e1c31ccb/subscribers-traffic-rate-and-uptime?orgId=1&from=now-${selectedTime}&to=now&var-Subscriber=${provisionedSubscriberData.onuDeviceName}&panelId=3`"
+            v-if="donePrometheusCall"
+            :src="grafanaPanelUrl"
             class="grafana-panel"
             frameborder="0"
           >
@@ -322,7 +317,7 @@ const oltStatus = ref("");
 const subscriberId = ref(0);
 const accountNumber = ref("");
 const isLoading = ref(false);
-
+const donePrometheusCall = ref(false);
 // const subscriberAccountNo = route.params.accountNo;
 const provisionedSubscriberData = ref(
   (router.options.history.state as { provisionedSubscriberData?: any })
@@ -331,18 +326,28 @@ const provisionedSubscriberData = ref(
 const prometheusApi = process.env.PROVISION_API_PROMETHEUS;
 const grafanaApi = process.env.PROVISION_API_GRAFANA;
 
+// const onuInfo = ref({
+//   __name__: "",
+//   device_name: "",
+//   device_role: "",
+//   instance: "",
+//   job: "",
+//   site_name: "",
+//   site_status: "",
+//   site_tenant: "",
+//   olt_ip: "",
+//   vlan_690_ip: "",
+//   provisioned_by: "",
+// });
+
 const onuInfo = ref({
   __name__: "",
-  device_name: "",
+  account_number: "",
   device_role: "",
   instance: "",
   job: "",
-  site_name: "",
   site_status: "",
   site_tenant: "",
-  olt_ip: "",
-  vlan_690_ip: "",
-  provisioned_by: "",
 });
 
 const subscriberInfo = reactive({
@@ -380,6 +385,24 @@ const timeOptions = [
   { label: "Last 2 days", value: "2d" },
   { label: "Last 90 days", value: "90d" },
 ];
+
+const grafanaPanelUrl = computed(() => {
+  if (!accountNumber.value) return "";
+  console.log(
+    "Stored value in 'accountNumber' variable: ",
+    accountNumber.value
+  );
+  console.log("Selected Time: ", selectedTime.value);
+
+  const baseUrl = `${grafanaApi}/d/1_dw5n2Hk/subscribers-traffic-rate-and-uptime`;
+  const orgId = "orgId=1";
+  const subscriberVariable = `var-subscriber=${accountNumber.value}`;
+  const relativeTimeRange = selectedTime.value
+    ? `&from=now-${selectedTime.value}&to=now`
+    : "";
+
+  return `${baseUrl}?${orgId}&${subscriberVariable}${relativeTimeRange}&viewPanel=3`;
+});
 
 // Method to trigger when 'Change Status on ABS' button is clicked
 const handleAbsStatusCallback = () => {
@@ -486,8 +509,10 @@ const handleSelectTime = (time: { label: string; value: string }) => {
 };
 
 const getInfoApiPrometheus = async (accNumber: string, id: number) => {
+  isLoading.value = true;
   try {
-    isLoading.value = true;
+    donePrometheusCall.value = false;
+
     console.log(
       `Passed data to getInfoApiPrometheus function - Account Number: ${accNumber}, ID: ${id}`
     );
@@ -497,14 +522,17 @@ const getInfoApiPrometheus = async (accNumber: string, id: number) => {
     }
 
     // Fetch subscriber info from Prometheus
-    const subscriberInfoResponse = await axios.get(
-      `${prometheusApi}/api/v1/query?query=lo_status{job=%22subscriber%22,site_tenant=%22DATACONNECT%22,account_number="${accNumber}"}`
+    const onuPrometheusResponse = await axios.get(
+      `${prometheusApi}/api/v1/query?query=lo_status{job="subscriber",site_tenant="DATACONNECT",account_number="${accNumber}"}`
     );
-    console.log("Returned Subscriber Info Response: ", subscriberInfoResponse);
     console.log(
-      "Returned Subscriber Info Metric: ",
-      subscriberInfoResponse.data.data.result.metric
+      "Returned ONU Info Response from Prometheus: ",
+      onuPrometheusResponse
     );
+    // console.log(
+    //   "Returned Subscriber Info Metric: ",
+    //   subscriberInfoResponse.data.data.result.metric
+    // );
 
     // Fetch ONU info from Prometheus
     // const onuInfoResponse = await axios.get(
@@ -521,13 +549,57 @@ const getInfoApiPrometheus = async (accNumber: string, id: number) => {
     // onuStatus.value = onuInfoResponse.data.data.result[0].value[1];
     // console.log("Stored ONU Status Data: ", onuStatus.value);
 
-    onuInfo.value = subscriberInfoResponse.data.data.result[0].metric;
-    console.log("Stored ONU Info Data: ", onuInfo.value);
-    onuStatus.value = subscriberInfoResponse.data.data.result[0].value[1];
-    console.log("Stored ONU Status Data: ", onuStatus.value);
+    if (onuPrometheusResponse.data.data.result.length > 0) {
+      console.log(`ONU Data Found in Prometheus for Subscriber ${accNumber}`);
 
-    const OltDeviceName = onuInfo.value.olt_ip;
-    console.log("Stored OLT Device Name: ", OltDeviceName);
+      onuInfo.value = onuPrometheusResponse.data.data.result[0].metric;
+      console.log("Stored ONU Info Data: ", onuInfo.value);
+
+      // onuStatus.value = onuPrometheusResponse.data.data.result[0].value[1];
+      // console.log("Stored ONU Status Data: ", onuStatus.value);
+
+      // const OltDeviceName = onuInfo.value.olt_ip;
+      // console.log("Stored OLT Device Name: ", OltDeviceName);
+
+      // oltStatus.value = onuPrometheusResponse.data.data.result[0].value[1];
+      // console.log("Stored OLT Status Data: ", oltStatus.value);
+
+      const subscriberData = await getHiveClientById(id);
+
+      subscriberInfo.accountNumber = subscriberData.subscriberAccountNumber;
+      subscriberInfo.clientName = subscriberData.clientName;
+      subscriberInfo.ipAssigned = subscriberData.ipAssigned;
+      subscriberInfo.oltIp = subscriberData.oltIp;
+      subscriberInfo.SSID = subscriberData.ssidName;
+      subscriberInfo.oltInterface = subscriberData.oltInterface;
+      subscriberInfo.onuDeviceName = subscriberData.onuDeviceName;
+      subscriberInfo.onuMacAddress = subscriberData.onuMacAddress;
+      subscriberInfo.onuSerialNumber = subscriberData.onuSerialNumber;
+      subscriberInfo.packageTypeId = subscriberData.packageType;
+      subscriberInfo.oltUpstream = subscriberData.oltReportedUpstream;
+      subscriberInfo.oltDownstream = subscriberData.oltReportedDownstream;
+
+      console.log("Stored Data in subscriberInfo variable: ", subscriberInfo);
+
+      try {
+        // TODO: instead of using the 'subscriberInfo.oltIp' as the argument for fetching the oltSiteData, use the OLT data fetched from Prometheus, but since there was still no query for OLT in Prometheus, I used the oltIP value from the subscriberInfo instead.
+        const oltSiteData = await getOltSiteByIp(subscriberInfo.oltIp);
+        console.log("Fetched OLT Site Data by IP: ", oltSiteData);
+
+        subscriberInfo.oltSite = oltSiteData.oltNetworksite;
+        console.log("Stored OLT Site in OLT Site: ", subscriberInfo.oltSite);
+      } catch (err) {
+        console.error(
+          "Error while fetching OLT site and package details: ",
+          err
+        );
+        throw err;
+      }
+    } else {
+      console.warn(
+        `No ONU Data Found in Prometheus for Subscriber ${accNumber}`
+      );
+    }
 
     // Fetch OLT info from Prometheus
     // const oltInfoResponse = await axios.get(
@@ -538,64 +610,13 @@ const getInfoApiPrometheus = async (accNumber: string, id: number) => {
     // oltStatus.value = oltInfoResponse.data.data.result[0].value[1];
     // console.log("Stored OLT Status Data: ", oltStatus.value);
 
-    oltStatus.value = subscriberInfoResponse.data.data.result[0].value[1];
-    console.log("Stored OLT Status Data: ", oltStatus.value);
-
-    const {
-      subscriberAccountNumber,
-      clientName,
-      ipAssigned,
-      onuSerialNumber,
-      oltInterface,
-      oltIp,
-      onuDeviceName,
-      onuMacAddress,
-      packageType,
-      ssidName,
-      oltReportedDownstream,
-      oltReportedUpstream,
-    } = await getHiveClientById(id);
-
-    subscriberInfo.accountNumber = subscriberAccountNumber;
-    subscriberInfo.clientName = clientName;
-    subscriberInfo.ipAssigned = ipAssigned;
-    subscriberInfo.oltIp = oltIp;
-    subscriberInfo.SSID = ssidName;
-    subscriberInfo.oltInterface = oltInterface;
-    subscriberInfo.onuDeviceName = onuDeviceName;
-    subscriberInfo.onuMacAddress = onuMacAddress;
-    subscriberInfo.onuSerialNumber = onuSerialNumber;
-    subscriberInfo.packageTypeId = packageType;
-    subscriberInfo.oltUpstream = oltReportedUpstream;
-    subscriberInfo.oltDownstream = oltReportedDownstream;
-    // console.log(oltReportedUpstream, oltReportedDownstream);
-    console.log("Stored Data in subscriberInfo variable: ", subscriberInfo);
-
-    try {
-      const oltSiteData = await getOltSiteByIp(subscriberInfo.oltIp);
-      console.log("Fetched OLT Site Data by IP: ", oltSiteData);
-
-      subscriberInfo.oltSite = oltSiteData.oltName;
-      console.log("Stored OLT Site in OLT Site: ", subscriberInfo.oltSite);
-
-      const { upstream, downstream, name } = await checkPackageDetails(
-        packageType
-      );
-
-      bandwidth.name = name;
-      bandwidth.upStream = upstream;
-      bandwidth.downStream = downstream;
-    } catch (err) {
-      console.error("Error while fetching OLT site and package details: ", err);
-      throw err;
-    }
-
     // doneApiCalls.value = true;
   } catch (err) {
     console.log("Error while fetching data from Prometheus: ", err);
     throw err;
   } finally {
     isLoading.value = false;
+    donePrometheusCall.value = true;
   }
 };
 

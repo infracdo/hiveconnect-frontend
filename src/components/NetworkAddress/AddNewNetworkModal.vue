@@ -9,7 +9,6 @@
       class="px-6 pb-6 dialog-content"
       style="
         max-width: 100%;
-
         max-height: 100%;
         display: flex;
         flex-direction: column;
