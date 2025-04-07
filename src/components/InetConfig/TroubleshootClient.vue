@@ -211,6 +211,7 @@
             { label: 'Package Type', value: subscriberInfo.packageTypeId },
           ]"
           :loading="isLoading"
+          :showNoData="!hasPrometheusData"
         />
 
         <!-- ONU Details Card -->
@@ -242,6 +243,7 @@
             },
           ]"
           :loading="isLoading"
+          :showNoData="!hasPrometheusData"
         />
 
         <!-- OLT Details Card -->
@@ -269,6 +271,7 @@
             },
           ]"
           :loading="isLoading"
+          :showNoData="!hasPrometheusData"
         />
 
         <!-- Grafana Panel -->
@@ -317,6 +320,7 @@ const oltStatus = ref("");
 const subscriberId = ref(0);
 const accountNumber = ref("");
 const isLoading = ref(false);
+const hasPrometheusData = ref(false);
 const donePrometheusCall = ref(false);
 // const subscriberAccountNo = route.params.accountNo;
 const provisionedSubscriberData = ref(
@@ -512,6 +516,7 @@ const getInfoApiPrometheus = async (accNumber: string, id: number) => {
   isLoading.value = true;
   try {
     donePrometheusCall.value = false;
+    hasPrometheusData.value = false;
 
     console.log(
       `Passed data to getInfoApiPrometheus function - Account Number: ${accNumber}, ID: ${id}`
@@ -595,10 +600,13 @@ const getInfoApiPrometheus = async (accNumber: string, id: number) => {
         );
         throw err;
       }
+
+      hasPrometheusData.value = true;
     } else {
       console.warn(
         `No ONU Data Found in Prometheus for Subscriber ${accNumber}`
       );
+      hasPrometheusData.value = false;
     }
 
     // Fetch OLT info from Prometheus
