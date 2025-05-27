@@ -1,5 +1,5 @@
 # Stage 1: Build the Quasar application
-FROM node:lts-alpine AS build
+FROM node:20-alpine AS build
 
 # Set the working directory
 WORKDIR /app
