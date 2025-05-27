@@ -34,4 +34,4 @@ jobs:
       - name: Push Docker Image
         run: |
           docker tag hiveconnect-frontend:prod-1.1 infracdo/hiveconnect-frontend:prod-1.1
-          docker push infracdo/hiveconnect-frontend:prod-1.1
+          docker push infracdo/hiveconnect-frontend:prod-1.2
